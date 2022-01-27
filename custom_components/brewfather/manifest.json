@@ -1,11 +1,11 @@
 {
     "domain": "brewfather",
-    "name": "Brewfather test naampje",
-    "documentation": "https://github.com/home-assistant/example-custom-config/tree/master/custom_components/hello_world/",
+    "name": "Brewfather batch information for Home Assistant",
+    "documentation": "https://github.com/MvdDonk/brewfather/",
     "dependencies": [],
     "codeowners": [],
     "requirements": [],
     "iot_class": "cloud_polling",
-    "version": "0.2.5",
+    "version": "0.3.1",
     "config_flow": true
   }
