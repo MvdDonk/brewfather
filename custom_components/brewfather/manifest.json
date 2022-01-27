@@ -1,0 +1,11 @@
+{
+    "domain": "brewfather",
+    "name": "Brewfather test naampje",
+    "documentation": "https://github.com/home-assistant/example-custom-config/tree/master/custom_components/hello_world/",
+    "dependencies": [],
+    "codeowners": [],
+    "requirements": [],
+    "iot_class": "cloud_polling",
+    "version": "0.2.5",
+    "config_flow": true
+  }

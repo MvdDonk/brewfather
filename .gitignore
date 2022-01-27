@@ -1,0 +1,7 @@
+/*
+!hacs.json
+!readme.md
+!.gitignore
+!/custom_components
+custom_components/brewfather/__pycache__/
+custom_components/brewfather/models/__pycache__/

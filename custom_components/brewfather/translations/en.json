@@ -1,0 +1,25 @@
+{
+  "title": "Brewfather",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Api credentials",
+        "description": "Enter stuff",
+        "data": {
+          "name": "Connection name",
+          "username": "Api username",
+          "password": "Api key"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Failed to register, please try again",
+      "invalid_scope": "The api key doesn't have the correct access (missing scope).",
+      "invalid_api_key": "Unable to authenticate with given credentials.",
+      "unknown":"Something went wrong."
+    },
+    "abort": {
+      "already_configured": "Api key is already configured"
+    }
+  }
+}
