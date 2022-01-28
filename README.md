@@ -7,8 +7,10 @@ The following sensors will be added after setup:
   Name of the beer you are fermenting
 
 - Current temperature
-Temperature the fermentation should have following the recipe
+  Temperature the fermentation should have following the recipe
+
 - Upcoming temperature
+
 The temperature of the next step in the fermentation profile from the recipe
 - Upcoming temperature change
 The date and time when the upcoming temperature will be activated
