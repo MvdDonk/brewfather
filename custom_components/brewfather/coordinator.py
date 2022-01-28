@@ -5,6 +5,8 @@ from datetime import datetime, timezone, timedelta
 from typing import Optional, List
 import aiohttp
 import json
+
+import pytz
 from .connection import *
 
 # from models.batches_item import BatchesItemElement
@@ -82,22 +84,33 @@ class BrewfatherCoordinator(DataUpdateCoordinator[BrewfatherCoordinatorData]):
         currentBatch = fermentingBatches[0]
 
         currentTimeInMs = datetime.utcnow().timestamp() * 1000
+        currentTime = pytz.utc.localize(datetime.utcnow())
         currentBatch.recipe.fermentation.steps.sort(key=sort_by_actual_time)
 
         currentStep: FermentationStep | None = None
         nextStep: FermentationStep | None = None
 
-        for index, obj in enumerate(currentBatch.recipe.fermentation.steps):
-            next_ = None
+        fermenting_start: int | None = None
+        for note in currentBatch.notes:
+            if note.status == "Fermenting":
+                fermenting_start = note.timestamp
+
+        for (index, step) in enumerate[FermentationStep](
+            currentBatch.recipe.fermentation.steps
+        ):
+            step_start_datetime = self.datetime_fromtimestamp_with_fermentingstart(
+                step.actual_time, fermenting_start
+            )
+            step_end_datetime = self.datetime_fromtimestamp_with_fermentingstart(
+                step.actual_time + step.step_time * MS_IN_DAY, fermenting_start
+            )
+
             # check if start date is in past, also check if end date (start date + step_time * MS_IN_DAY) is in future
-            if (
-                obj.actual_time < currentTimeInMs
-                and obj.actual_time + obj.step_time * MS_IN_DAY > currentTimeInMs
-            ):
-                currentStep = obj
+            if step_start_datetime < currentTime and step_end_datetime > currentTime:
+                currentStep = step
             # check if start date is in future
-            elif obj.actual_time > currentTimeInMs:
-                nextStep = obj
+            elif step_start_datetime > currentTime:
+                nextStep = step
                 break
 
         data = BrewfatherCoordinatorData()
@@ -111,33 +124,35 @@ class BrewfatherCoordinator(DataUpdateCoordinator[BrewfatherCoordinatorData]):
 
         if nextStep is not None:
             data.fermenting_next_temperature = nextStep.display_step_temp
-            fermentingStart: int | None = None
-            for note in currentBatch.notes:
-                if note.status == "Fermenting":
-                    fermentingStart = note.timestamp
-            _LOGGER.debug("fermentingStart: %s", fermentingStart)
 
-            data.fermenting_next_date = datetime.fromtimestamp(
-                nextStep.actual_time / 1000, timezone.utc
+            data.fermenting_next_date = (
+                self.datetime_fromtimestamp_with_fermentingstart(
+                    nextStep.actual_time, fermenting_start
+                )
             )
 
-            if fermentingStart is not None:
-                fermentingStartDate = datetime.fromtimestamp(
-                    fermentingStart / 1000, timezone.utc
-                )
-                _LOGGER.debug(
-                    "fermenting_next_date before adding time: %s",
-                    data.fermenting_next_date,
-                )
-                data.fermenting_next_date += timedelta(
-                    hours=fermentingStartDate.hour,
-                    minutes=fermentingStartDate.minute,
-                    seconds=fermentingStartDate.second,
-                )
-
-            _LOGGER.debug("Next step: %s", nextStep.display_step_temp)
-            _LOGGER.debug("fermenting_next_date: %s", data.fermenting_next_date)
+            _LOGGER.debug(
+                "Next step: %s - %s",
+                nextStep.display_step_temp,
+                data.fermenting_next_date,
+            )
         else:
             _LOGGER.debug("No next step")
 
         return data
+
+    def datetime_fromtimestamp_with_fermentingstart(
+        self, epoch: int | None, fermenting_start: int | None
+    ) -> datetime.datetime:
+        datetime_value = datetime.fromtimestamp(epoch / 1000, timezone.utc)
+
+        if fermenting_start is not None:
+            fermenting_start_date = datetime.fromtimestamp(fermenting_start / 1000)
+
+            datetime_value += timedelta(
+                hours=fermenting_start_date.hour,
+                minutes=fermenting_start_date.minute,
+                seconds=fermenting_start_date.second,
+            )
+
+        return datetime_value
