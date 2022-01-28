@@ -2,16 +2,16 @@
 A Home Assistant custom Integration for getting Brewfather batch information in Home Assistant for all homebrewers!
 
 The following sensors will be added after setup:
-- Recipe name
+- **Recipe name**
 
   Name of the beer you are fermenting
-- Current temperature
+- **Current temperature**
 
   Temperature the fermentation should have following the recipe
-- Upcoming temperature
+- **Upcoming temperature**
 
   The temperature of the next step in the fermentation profile from the recipe
-- Upcoming temperature change
+- **Upcoming temperature change**
 
   The date and time when the upcoming temperature will be activated
 
@@ -26,13 +26,13 @@ Alternatively, you can install brewfather through [HACS](https://hacs.xyz/) by a
 # Setup
 
 After installation is completed you must create a new integration in Home Assistant by clicking on the "ADD INTEGRATION" button and search for "Brewfather". A dialog will popup containing the following fields:
-- Connection name
+- **Connection name**
 
   A unique name for your Brewfather connection that will be used in Home Assistant
-- User ID
+- **User ID**
 
   User ID used for API-access. You can get this in the Brewfather app under Settings -> Api -> Generate API-Key.
-- API-Key
+- **API-Key**
 
   API-Key with the correct scopes. This is also located in Settings -> Api -> Generate API-Key. For more info on how to create a correct key see the section "Creating a Brewfather API-key" below.
 
