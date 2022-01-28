@@ -3,18 +3,18 @@
   "config": {
     "step": {
       "user": {
-        "title": "Api credentials",
-        "description": "Enter stuff",
+        "title": "Connection details",
+        "description": "To make an connection to Brewfather you will need to fill in all fields below. Make sure the API-Key has the correct scopes",
         "data": {
           "name": "Connection name",
-          "username": "Api username",
-          "password": "Api key"
+          "username": "User ID",
+          "password": "API-Key"
         }
       }
     },
     "error": {
       "cannot_connect": "Failed to register, please try again",
-      "invalid_scope": "The api key doesn't have the correct access (missing scope).",
+      "invalid_scope": "The API-Key doesn't have the correct scopes.",
       "invalid_api_key": "Unable to authenticate with given credentials.",
       "unknown":"Something went wrong."
     },

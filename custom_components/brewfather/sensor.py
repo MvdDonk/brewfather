@@ -11,16 +11,12 @@ from homeassistant.const import TEMP_CELSIUS
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.typing import StateType
-from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.update_coordinator import (
     CoordinatorEntity,
     DataUpdateCoordinator,
-    UpdateFailed,
 )
 
 _LOGGER = logging.getLogger(__name__)
-REQUEST_TIMEOUT = 10
-BKK_URI = "https://api.brewfather.app/v1/batches/MdygaYwzcjEGmDTwQXJ4Wfhjbm0O8s/"
 
 
 async def async_setup_entry(
@@ -35,7 +31,7 @@ async def async_setup_entry(
     sensors.append(
         BrewfatherSensor(
             coordinator,
-            "Brew name",
+            "Recipe name",
             SensorKinds.fermenting_name,
             "mdi:glass-mug",
             connectionName,
@@ -45,7 +41,7 @@ async def async_setup_entry(
     sensors.append(
         BrewfatherSensor(
             coordinator,
-            "Current fermenting temperature",
+            "Current temperature",
             SensorKinds.fermenting_current_temperature,
             "mdi:thermometer",
             connectionName,
@@ -55,7 +51,7 @@ async def async_setup_entry(
     sensors.append(
         BrewfatherSensor(
             coordinator,
-            "Upcoming fermenting temperature",
+            "Upcoming temperature",
             SensorKinds.fermenting_next_temperature,
             "mdi:thermometer-chevron-up",
             connectionName,
@@ -65,7 +61,7 @@ async def async_setup_entry(
     sensors.append(
         BrewfatherSensor(
             coordinator,
-            "Upcoming fermenting temperature change",
+            "Upcoming temperature change",
             SensorKinds.fermenting_next_date,
             "mdi:clock",
             connectionName,
@@ -89,6 +85,7 @@ class BrewfatherSensor(CoordinatorEntity[SensorEntity]):
 
         super().__init__(coordinator=coordinator)
 
+        # https://developers.home-assistant.io/docs/entity_registry_index/
         self._attr_name = f"{name}"
         self._attr_unique_id = f"{DOMAIN}_{connectionName}_{sensorKind}"
         self._state = None
