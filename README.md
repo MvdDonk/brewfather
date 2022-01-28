@@ -3,7 +3,7 @@ A Home Assistant custom Integration for getting Brewfather batch information in 
 
 The following sensors will be added after setup:
 - Recipe name
-Name of the beer you are fermenting
+  Name of the beer you are fermenting
 - Current temperature
 Temperature the fermentation should have following the recipe
 - Upcoming temperature
