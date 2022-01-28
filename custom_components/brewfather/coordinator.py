@@ -27,23 +27,21 @@ def sort_by_actual_time(entity: FermentationStep):
 
 
 class BrewfatherCoordinatorData:
-    fermenting_name: Optional[str]
-    fermenting_current_temperature: Optional[float]
-    fermenting_next_date: Optional[datetime.datetime]
-    fermenting_next_temperature: Optional[float]
+    brew_name: Optional[str]
+    current_step_temperature: Optional[float]
+    next_step_date: Optional[datetime.datetime]
+    next_step_temperature: Optional[float]
 
     def __init__(self):
         # set defaults to None
-        self.fermenting_name = None
-        self.fermenting_current_temperature = None
-        self.fermenting_next_date = None
-        self.fermenting_next_temperature = None
+        self.brew_name = None
+        self.current_step_temperature = None
+        self.next_step_date = None
+        self.next_step_temperature = None
 
 
 class BrewfatherCoordinator(DataUpdateCoordinator[BrewfatherCoordinatorData]):
     """Class to manage fetching data from the API."""
-
-    _connection: Connection
 
     def __init__(self, hass: HomeAssistant, entry, update_interval: timedelta):
         self.entry = entry
@@ -114,27 +112,25 @@ class BrewfatherCoordinator(DataUpdateCoordinator[BrewfatherCoordinatorData]):
                 break
 
         data = BrewfatherCoordinatorData()
-        data.fermenting_name = currentBatch.recipe.name
+        data.brew_name = currentBatch.recipe.name
 
         if currentStep is not None:
-            data.fermenting_current_temperature = currentStep.display_step_temp
+            data.current_step_temperature = currentStep.display_step_temp
             _LOGGER.debug("Current step: %s", currentStep.display_step_temp)
         else:
             _LOGGER.debug("No current step")
 
         if nextStep is not None:
-            data.fermenting_next_temperature = nextStep.display_step_temp
+            data.next_step_temperature = nextStep.display_step_temp
 
-            data.fermenting_next_date = (
-                self.datetime_fromtimestamp_with_fermentingstart(
-                    nextStep.actual_time, fermenting_start
-                )
+            data.next_step_date = self.datetime_fromtimestamp_with_fermentingstart(
+                nextStep.actual_time, fermenting_start
             )
 
             _LOGGER.debug(
                 "Next step: %s - %s",
                 nextStep.display_step_temp,
-                data.fermenting_next_date,
+                data.next_step_date,
             )
         else:
             _LOGGER.debug("No next step")

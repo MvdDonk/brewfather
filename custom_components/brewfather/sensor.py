@@ -157,13 +157,13 @@ class BrewfatherSensor(CoordinatorEntity[SensorEntity]):
             self._state = None
         else:
             if self._kind == SensorKinds.fermenting_name:
-                self._state = brewfatherCoordinator.data.fermenting_name
+                self._state = brewfatherCoordinator.data.brew_name
             elif self._kind == SensorKinds.fermenting_current_temperature:
-                self._state = brewfatherCoordinator.data.fermenting_current_temperature
+                self._state = brewfatherCoordinator.data.current_step_temperature
             elif self._kind == SensorKinds.fermenting_next_date:
-                self._state = brewfatherCoordinator.data.fermenting_next_date
+                self._state = brewfatherCoordinator.data.next_step_date
             elif self._kind == SensorKinds.fermenting_next_temperature:
-                self._state = brewfatherCoordinator.data.fermenting_next_temperature
+                self._state = brewfatherCoordinator.data.next_step_temperature
 
         return self._state
 
