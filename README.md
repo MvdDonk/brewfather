@@ -5,15 +5,15 @@ The following sensors will be added after setup:
 - Recipe name
 
   Name of the beer you are fermenting
-
 - Current temperature
-  Temperature the fermentation should have following the recipe
 
+  Temperature the fermentation should have following the recipe
 - Upcoming temperature
 
-The temperature of the next step in the fermentation profile from the recipe
+  The temperature of the next step in the fermentation profile from the recipe
 - Upcoming temperature change
-The date and time when the upcoming temperature will be activated
+
+  The date and time when the upcoming temperature will be activated
 
 
 # Installation:
@@ -27,11 +27,14 @@ Alternatively, you can install brewfather through [HACS](https://hacs.xyz/) by a
 
 After installation is completed you must create a new integration in Home Assistant by clicking on the "ADD INTEGRATION" button and search for "Brewfather". A dialog will popup containing the following fields:
 - Connection name
-A unique name for your Brewfather connection that will be used in Home Assistant
+
+  A unique name for your Brewfather connection that will be used in Home Assistant
 - User ID
-User ID used for API-access. You can get this in the Brewfather app under Settings -> Api -> Generate API-Key.
+
+  User ID used for API-access. You can get this in the Brewfather app under Settings -> Api -> Generate API-Key.
 - API-Key
-API-Key with the correct scopes. This is also located in Settings -> Api -> Generate API-Key. For more info on how to create a correct key see the section "Creating a Brewfather API-key" below.
+
+  API-Key with the correct scopes. This is also located in Settings -> Api -> Generate API-Key. For more info on how to create a correct key see the section "Creating a Brewfather API-key" below.
 
 ## Creating a Brewfather API-Key
 
