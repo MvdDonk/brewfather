@@ -1,13 +1,21 @@
 """Platform for sensor integration."""
 from __future__ import annotations
+from datetime import datetime, timezone
 import enum
 import logging
+from typing import cast
+
+
 from homeassistant.config_entries import ConfigEntry
 from .const import *
 from .coordinator import BrewfatherCoordinator
 
-from homeassistant.components.sensor import SensorEntity
-from homeassistant.const import TEMP_CELSIUS
+from homeassistant.components.sensor import SensorDeviceClass, SensorEntity
+from homeassistant.const import (
+    DEVICE_CLASS_TEMPERATURE,
+    DEVICE_CLASS_TIMESTAMP,
+    TEMP_CELSIUS,
+)
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.typing import StateType
@@ -103,9 +111,9 @@ class BrewfatherSensor(CoordinatorEntity[SensorEntity]):
 
         if "temperature" in str(self._kind):
             self._unit_of_measure = TEMP_CELSIUS
-            self._attr_device_class = "temperature"
+            self._attr_device_class = DEVICE_CLASS_TEMPERATURE
         elif "date" in str(self._kind):
-            self._attr_device_class = "timestamp"
+            self._attr_device_class = DEVICE_CLASS_TIMESTAMP
 
     # @property
     # def unique_id(self):
@@ -161,6 +169,30 @@ class BrewfatherSensor(CoordinatorEntity[SensorEntity]):
                 self._state = brewfatherCoordinator.data.next_step_date
             elif self._kind == SensorKinds.fermenting_next_temperature:
                 self._state = brewfatherCoordinator.data.next_step_temperature
+
+        # Received a datetime
+        if self._state is not None and self.device_class == DEVICE_CLASS_TIMESTAMP:
+            try:
+                # We cast the value, to avoid using isinstance, but satisfy
+                # typechecking. The errors are guarded in this try.
+                value = cast(datetime, self._state)
+                if value.tzinfo is None:
+                    raise ValueError(
+                        f"Invalid datetime: {self.entity_id} provides state '{value}', "
+                        "which is missing timezone information"
+                    )
+
+                if value.tzinfo != timezone.utc:
+                    value = value.astimezone(timezone.utc)
+
+                _LOGGER.debug("value %s, %s", value, value.tzinfo)
+
+                return value.isoformat(timespec="seconds")
+            except (AttributeError, TypeError) as err:
+                raise ValueError(
+                    f"Invalid datetime: {self.entity_id} has a timestamp device class"
+                    f"but does not provide a datetime state but {type(value)}"
+                ) from err
 
         return self._state
 
