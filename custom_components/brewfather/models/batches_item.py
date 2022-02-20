@@ -76,7 +76,7 @@ class Recipe:
 
 @dataclass
 class BatchesItemElement:
-    id: Optional[str] = None
+    id: str = None
     name: Optional[Name] = None
     batch_no: Optional[int] = None
     status: Optional[str] = None
@@ -87,7 +87,7 @@ class BatchesItemElement:
     @staticmethod
     def from_dict(obj: Any) -> "BatchesItemElement":
         assert isinstance(obj, dict)
-        id = from_union([from_str, from_none], obj.get("_id"))
+        id = from_str(obj.get("_id"))
         name = from_union([Name, from_none], obj.get("name"))
         batch_no = from_union([from_int, from_none], obj.get("batchNo"))
         status = from_union([from_str, from_none], obj.get("status"))
@@ -98,7 +98,7 @@ class BatchesItemElement:
 
     def to_dict(self) -> dict:
         result: dict = {}
-        result["_id"] = from_union([from_str, from_none], self.id)
+        result["_id"] = from_str(self.id)
         result["name"] = from_union([lambda x: to_enum(Name, x), from_none], self.name)
         result["batchNo"] = from_union([from_int, from_none], self.batch_no)
         result["status"] = from_union([from_str, from_none], self.status)

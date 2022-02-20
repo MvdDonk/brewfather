@@ -3,19 +3,15 @@ import datetime
 import logging
 from datetime import datetime, timezone, timedelta
 from typing import Optional, List
-import aiohttp
-import json
 
 import pytz
 from .connection import *
 
-# from models.batches_item import BatchesItemElement
-from .models.batches_item import BatchesItemElement, batches_item_from_dict
 from .models.batch_item import FermentationStep
-from homeassistant.const import CONF_IP_ADDRESS, CONF_PASSWORD, CONF_USERNAME
+from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
-from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
+from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 from .const import *
 
 _LOGGER = logging.getLogger(__name__)
@@ -63,14 +59,12 @@ class BrewfatherCoordinator(DataUpdateCoordinator[BrewfatherCoordinatorData]):
 
         allBatches = await self.connection.get_batches(DRY_RUN)
 
-        fermentingBatchesItems = []
-        for batch in allBatches:
-            if batch.status == "Fermenting":
-                fermentingBatchesItems.append(batch)
-
         fermentingBatches = []
-        for batch in fermentingBatchesItems:
-            fermentingBatches.append(await self.connection.get_batch(batch.id, DRY_RUN))
+        for batch in allBatches:
+            if batch.status == "Fermenting":  # redundant because of query
+                fermentingBatches.append(
+                    await self.connection.get_batch(batch.id, DRY_RUN)
+                )
 
         # For now we only support a single fermenting batch
         if len(fermentingBatches) == 0:
@@ -81,7 +75,6 @@ class BrewfatherCoordinator(DataUpdateCoordinator[BrewfatherCoordinatorData]):
             )
         currentBatch = fermentingBatches[0]
 
-        currentTimeInMs = datetime.utcnow().timestamp() * 1000
         currentTime = pytz.utc.localize(datetime.utcnow())
         currentBatch.recipe.fermentation.steps.sort(key=sort_by_actual_time)
 

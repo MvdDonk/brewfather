@@ -50,15 +50,14 @@ class Connection:
                         )
 
     async def get_batch(self, batchId: str, dryRun: bool) -> BatchItem:
-        _LOGGER.debug("get_batch %s!", BATCHES_URI)
+        url = BATCH_URI.format(batchId)
+        _LOGGER.debug("get_batch %s", url)
 
         if dryRun:
             return batch_item_from_dict(json.loads(TESTDATA_BATCH))
         else:
             async with aiohttp.ClientSession() as session:
-                async with session.get(
-                    BATCH_URI.format(batchId), auth=self.auth
-                ) as response:
+                async with session.get(url, auth=self.auth) as response:
                     if response.status == 200:
                         jsonText = await response.text()
                         return batch_item_from_dict(json.loads(jsonText))
