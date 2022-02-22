@@ -43,4 +43,4 @@ To create a Brewfather API-key follow the documentation on [Brewfather - docs](h
 
 # Known issues
 
-- At the moment only a single fermenting batch is supported
+- At the moment only a single fermenting batch is supported.
