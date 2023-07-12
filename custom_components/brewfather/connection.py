@@ -6,7 +6,6 @@ import json
 from homeassistant import exceptions
 from .models.batches_item import BatchesItemElement, batches_item_from_dict
 from .models.batch_item import BatchItem, batch_item_from_dict
-from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import UpdateFailed
 from .const import *
 from .testdata import *
@@ -15,7 +14,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class Connection:
-    def __init__(self, hass: HomeAssistant, username: str, apikey: str):
+    def __init__(self, username: str, apikey: str):
         # self.username = username
         # self.password = apikey
         self.auth = aiohttp.BasicAuth(username, apikey)
@@ -49,12 +48,12 @@ class Connection:
                             f"Error communicating with API: {response.status}"
                         )
 
-    async def get_batch(self, batchId: str, dryRun: bool) -> BatchItem:
+    async def get_batch(self, batchId: str, dryRun: bool, testData=TESTDATA_BATCH_1) -> BatchItem:
         url = BATCH_URI.format(batchId)
         _LOGGER.debug("get_batch %s", url)
 
         if dryRun:
-            return batch_item_from_dict(json.loads(TESTDATA_BATCH))
+            return batch_item_from_dict(json.loads(testData))
         else:
             async with aiohttp.ClientSession() as session:
                 async with session.get(url, auth=self.auth) as response:

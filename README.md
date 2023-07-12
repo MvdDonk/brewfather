@@ -40,7 +40,6 @@ After installation is completed you must create a new integration in Home Assist
 
 To create a Brewfather API-key follow the documentation on [Brewfather - docs](https://docs.brewfather.app/api#generate-api-key). Make sure to give the API-key at least the "Read Batches" [scope](https://docs.brewfather.app/api#scopes).
 
+# Developing
 
-# Known issues
-
-- At the moment only a single fermenting batch is supported.
+Partial support for testing API response parsing is available in [test_connection.py](custom_components%2Fbrewfather%2Ftest_connection.py). You will need your User ID and API Key to run the tests. These should be set as the environment variables `USER_ID` and `API_KEY`

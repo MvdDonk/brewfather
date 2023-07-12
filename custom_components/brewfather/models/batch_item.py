@@ -29,7 +29,7 @@ def from_union(fs, x):
     for f in fs:
         try:
             return f(x)
-        except:
+        except Exception as e:
             pass
     assert False
 
@@ -116,9 +116,9 @@ class Created:
 
 @dataclass
 class Step:
-    ramp: None
-    pressure: None
-    display_pressure: None
+    ramp: Optional[int] = None
+    pressure: Optional[float] = None
+    display_pressure: Optional[int] = None
     display_step_temp: Optional[int] = None
     type: Optional[str] = None
     actual_time: Optional[int] = None
@@ -129,12 +129,10 @@ class Step:
     @staticmethod
     def from_dict(obj: Any) -> "Step":
         assert isinstance(obj, dict)
-        ramp = from_none(obj.get("ramp"))
-        pressure = from_none(obj.get("pressure"))
-        display_pressure = from_none(obj.get("displayPressure"))
-        display_step_temp = from_union(
-            [from_int, from_none], obj.get("displayStepTemp")
-        )
+        ramp = from_union([from_int, from_none], obj.get("ramp"))
+        pressure = from_union([from_float, from_none], obj.get("pressure"))
+        display_pressure = from_union([from_int, from_none], obj.get("displayPressure"))
+        display_step_temp = from_union([from_int, from_none], obj.get("displayStepTemp"))
         type = from_union([from_str, from_none], obj.get("type"))
         actual_time = from_union([from_int, from_none], obj.get("actualTime"))
         step_temp = from_union([from_float, from_none], obj.get("stepTemp"))
@@ -154,9 +152,9 @@ class Step:
 
     def to_dict(self) -> dict:
         result: dict = {}
-        result["ramp"] = from_none(self.ramp)
-        result["pressure"] = from_none(self.pressure)
-        result["displayPressure"] = from_none(self.display_pressure)
+        result["ramp"] = from_union([from_int, from_none], self.ramp)
+        result["pressure"] = from_union([from_float, from_none], self.pressure)
+        result["displayPressure"] = from_union([from_int, from_none], self.display_pressure)
         result["displayStepTemp"] = from_union(
             [from_int, from_none], self.display_step_temp
         )
