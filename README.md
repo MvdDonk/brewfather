@@ -40,6 +40,24 @@ After installation is completed you must create a new integration in Home Assist
 
 To create a Brewfather API-key follow the documentation on [Brewfather - docs](https://docs.brewfather.app/api#generate-api-key). Make sure to give the API-key at least the "Read Batches" [scope](https://docs.brewfather.app/api#scopes).
 
+## Getting batch information
+
+Setup a markdown card with the following content to get the batch information in Home Assistant:
+
+```
+type: markdown
+content: |-
+  {% for batch in state_attr('sensor.fermenting_batches', 'data') %}
+    **Name:** {{ batch.name }}
+    **Start Date**: {{ batch.fermentingStart.strftime('%a, %d %b %Y') }}
+    **End Date:** {{ batch.fermentingEnd.strftime('%a, %d %b %Y') }}
+    **Days Left:** {{ batch.fermentingLeft | round(1) }}
+    **Current temperature:** {% if batch.current_temperature is not none %}{{ batch.current_temperature }}°C{%else%}Unknown{% endif %}
+  {% endfor %}
+title: Batch status
+
+```
+
 # Developing
 
 Partial support for testing API response parsing is available in [test_connection.py](custom_components%2Fbrewfather%2Ftest_connection.py). You will need your User ID and API Key to run the tests. These should be set as the environment variables `USER_ID` and `API_KEY`

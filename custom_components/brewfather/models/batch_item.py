@@ -5,7 +5,8 @@
 # and then, to convert JSON from a string, do
 #
 #     result = batch_item_from_dict(json.loads(json_string))
-
+import time
+import datetime
 from enum import Enum
 from dataclasses import dataclass
 from typing import Optional, Any, List, TypeVar, Type, Callable, cast
@@ -237,6 +238,38 @@ class Recipe:
 
 
 @dataclass
+class Reading:
+    temp: Optional[int] = None
+    sg: Optional[float] = None
+    comment: Optional[str] = None
+    time: Optional[int] = None
+    id: Optional[str] = None
+    type: Optional[str] = None
+
+    @staticmethod
+    def from_dict(obj: Any) -> "Reading":
+        assert isinstance(obj, dict)
+        temp = from_union([from_int, from_none], obj.get("temp"))
+        sg = from_union([from_float, from_none], obj.get("sg"))
+        comment = from_union([from_str, from_none], obj.get("comment"))
+        time = from_union([from_int, from_none], obj.get("time"))
+        id = from_union([from_str, from_none], obj.get("_id"))
+        type = from_union([from_str, from_none], obj.get("type"))
+        return Reading(temp, sg, comment, time, id, type)
+
+    def to_dict(self) -> dict:
+        result: dict = {}
+        result["temp"] = from_union([from_int, from_none], self.temp)
+        result["sg"] = from_union([to_float, from_none], self.sg)
+        result["comment"] = from_union([from_str, from_none], self.comment)
+        result["time"] = from_union([from_int, from_none], self.time)
+        result["_id"] = from_union([from_str, from_none], self.id)
+        result["type"] = from_union([from_str, from_none], self.type)
+
+        return result
+
+
+@dataclass
 class BatchItem:
     id: Optional[str] = None
     name: Optional[str] = None
@@ -246,6 +279,7 @@ class BatchItem:
     brew_date: Optional[int] = None
     recipe: Optional[Recipe] = None
     notes: Optional[List[Note]] = None
+    readings: Optional[List[Reading]] = None
 
     @staticmethod
     def from_dict(obj: Any) -> "BatchItem":
@@ -260,7 +294,7 @@ class BatchItem:
         notes = from_union(
             [lambda x: from_list(Note.from_dict, x), from_none], obj.get("notes")
         )
-        return BatchItem(id, name, batch_no, status, brewer, brew_date, recipe, notes)
+        return BatchItem(id, name, batch_no, status, brewer, brew_date, recipe, notes, None)
 
     def to_dict(self) -> dict:
         result: dict = {}
@@ -276,8 +310,52 @@ class BatchItem:
         result["notes"] = from_union(
             [lambda x: from_list(lambda x: to_class(Note, x), x), from_none], self.notes
         )
+        result["readings"] = from_union(
+            [lambda x: from_list(lambda x: to_class(Reading, x), x), from_none], self.readings
+        )
+        return result
+
+    def to_attribute_entry(self) -> dict:
+        result: dict = {}
+        result["name"] = from_union([from_str, from_none], from_union(
+            [lambda x: to_class(Recipe, x), from_none], self.recipe
+        )["name"])
+        result["brewDate"] = datetime.datetime.fromtimestamp(self.brew_date / 1000)
+        result["batchNo"] = from_union([from_int, from_none], self.batch_no)
+        fermenting_start = self.recipe.fermentation.steps[0].actual_time / 1000
+        result["fermentingStart"] = datetime.datetime.fromtimestamp(fermenting_start)
+
+        if self.readings is not None and len(self.readings) > 0:
+            result["current_temperature"] = self.readings[0].temp
+        else:
+            result["current_temperature"] = None
+
+        days_to_ferment = 0
+        for (index, step) in enumerate[FermentationStep](
+                self.recipe.fermentation.steps
+        ):
+            days_to_ferment += step.step_time
+
+        current_time = time.time()
+        finish_time = fermenting_start + (days_to_ferment * 86400)
+        result["fermentingEnd"] = datetime.datetime.fromtimestamp(finish_time)
+        result["fermentingLeft"] = (finish_time - current_time) / 86400
+        result["status"] = from_union([from_str, from_none], self.status)
+        result["recipe"] = from_union(
+            [lambda x: to_class(Recipe, x), from_none], self.recipe
+        )
+        result["notes"] = from_union(
+            [lambda x: from_list(lambda x: to_class(Note, x), x), from_none], self.notes
+        )
+        result["readings"] = from_union(
+            [lambda x: from_list(lambda x: to_class(Reading, x), x), from_none], self.readings
+        )
         return result
 
 
 def batch_item_from_dict(s: Any) -> BatchItem:
     return BatchItem.from_dict(s)
+
+
+def readings_item_from_dict(s: Any) -> List[Reading]:
+    return from_list(Reading.from_dict, s)

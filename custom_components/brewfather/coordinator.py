@@ -25,6 +25,7 @@ class BrewfatherCoordinatorData:
     current_step_temperature: Optional[float]
     next_step_date: Optional[datetime.datetime]
     next_step_temperature: Optional[float]
+    batches: Optional[list[BatchItem]]
 
     def __init__(self):
         # set defaults to None
@@ -59,18 +60,15 @@ class BrewfatherCoordinator(DataUpdateCoordinator[BrewfatherCoordinatorData]):
 
         fermentingBatches = []
         for batch in allBatches:
-            if batch.status == "Fermenting":  # redundant because of query
-                fermentingBatches.append(
-                    await self.connection.get_batch(batch.id, DRY_RUN)
-                )
+            fermentingBatch = await self.connection.get_batch(batch.id, DRY_RUN)
+            readings = await self.connection.get_readings(batch.id, DRY_RUN)
+            fermentingBatch.readings = readings
+            fermentingBatches.append(
+                fermentingBatch
+            )
 
-        # For now we only support a single fermenting batch
         if len(fermentingBatches) == 0:
             return None
-        elif len(fermentingBatches) > 1:
-            _LOGGER.warning(
-                "Multiple fermenting batches found, at the moment only 1 is supported. Using the latest batch..."
-            )
         currentBatch = fermentingBatches[0]
 
         currentTime = pytz.utc.localize(datetime.utcnow())
@@ -103,6 +101,7 @@ class BrewfatherCoordinator(DataUpdateCoordinator[BrewfatherCoordinatorData]):
                 break
 
         data = BrewfatherCoordinatorData()
+        data.batches = fermentingBatches
         data.brew_name = currentBatch.recipe.name
 
         if currentStep is not None:

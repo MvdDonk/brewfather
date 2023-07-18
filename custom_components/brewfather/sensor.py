@@ -1,5 +1,7 @@
 """Platform for sensor integration."""
 from __future__ import annotations
+
+import json
 from datetime import datetime, timezone
 import enum
 import logging
@@ -10,7 +12,7 @@ from homeassistant.config_entries import ConfigEntry
 from .const import *
 from .coordinator import BrewfatherCoordinator
 
-from homeassistant.components.sensor import SensorDeviceClass, SensorEntity
+from homeassistant.components.sensor import SensorEntity, SensorStateClass
 from homeassistant.const import (
     DEVICE_CLASS_TEMPERATURE,
     DEVICE_CLASS_TIMESTAMP,
@@ -75,6 +77,16 @@ async def async_setup_entry(
             connectionName,
         )
     )
+
+    sensors.append(
+        BrewfatherSensor(
+            coordinator,
+            "Fermenting batches",
+            SensorKinds.fermenting_batches,
+            "mdi:glass-mug",
+            connectionName,
+        )
+    )
     async_add_entities(sensors)
 
 
@@ -94,6 +106,7 @@ class BrewfatherSensor(CoordinatorEntity[SensorEntity]):
         super().__init__(coordinator=coordinator)
 
         # https://developers.home-assistant.io/docs/entity_registry_index/
+        self.batches = None
         self._attr_name = f"{name}"
         self._attr_unique_id = f"{DOMAIN}_{connectionName}_{sensorKind}"
         self._state = None
@@ -101,29 +114,14 @@ class BrewfatherSensor(CoordinatorEntity[SensorEntity]):
         self._kind = sensorKind
         self._unit_of_measure = None
         self.attrs = {}
-
-        # # As per the sensor, this must be a unique value within this domain. This is done
-        # # by using the device ID, and appending "_battery"
-        # self._attr_unique_id = f"{self._roller.roller_id}_illuminance"
-
-        # # The name of the entity
-        # self._attr_name = f"{self._roller.name} Illuminance"
+        if self._kind == SensorKinds.fermenting_current_temperature:
+            self._attr_state_class = SensorStateClass.MEASUREMENT
 
         if "temperature" in str(self._kind):
             self._unit_of_measure = TEMP_CELSIUS
             self._attr_device_class = DEVICE_CLASS_TEMPERATURE
         elif "date" in str(self._kind):
             self._attr_device_class = DEVICE_CLASS_TIMESTAMP
-
-    # @property
-    # def unique_id(self):
-    #     """Return the unique Home Assistant friendly identifier for this entity."""
-    #     return self._unique_id
-
-    # @property
-    # def name(self):
-    #     """Return the friendly name of this entity."""
-    #     return self._name
 
     @property
     def icon(self):
@@ -169,6 +167,9 @@ class BrewfatherSensor(CoordinatorEntity[SensorEntity]):
                 self._state = brewfatherCoordinator.data.next_step_date
             elif self._kind == SensorKinds.fermenting_next_temperature:
                 self._state = brewfatherCoordinator.data.next_step_temperature
+            elif self._kind == SensorKinds.fermenting_batches:
+                self._state = len(brewfatherCoordinator.data.batches)
+                self.batches = brewfatherCoordinator.data.batches
 
         # Received a datetime
         if self._state is not None and self.device_class == DEVICE_CLASS_TIMESTAMP:
@@ -197,6 +198,16 @@ class BrewfatherSensor(CoordinatorEntity[SensorEntity]):
         return self._state
 
     @property
+    def extra_state_attributes(self):
+        if self.batches is None:
+            return None
+        attributes = {}
+        attributes["data"] = []
+        for batch in self.batches:
+            attributes["data"].append(batch.to_attribute_entry())
+        return attributes
+
+    @property
     def available(self) -> bool:
         """Return True if entity is available."""
         brewfatherCoordinator: BrewfatherCoordinator = self.coordinator
@@ -220,3 +231,4 @@ class SensorKinds(enum.Enum):
     fermenting_current_temperature = 2
     fermenting_next_temperature = 3
     fermenting_next_date = 4
+    fermenting_batches = 5

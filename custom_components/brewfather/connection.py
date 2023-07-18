@@ -5,7 +5,7 @@ import aiohttp
 import json
 from homeassistant import exceptions
 from .models.batches_item import BatchesItemElement, batches_item_from_dict
-from .models.batch_item import BatchItem, batch_item_from_dict
+from .models.batch_item import BatchItem, batch_item_from_dict, readings_item_from_dict, Reading
 from homeassistant.helpers.update_coordinator import UpdateFailed
 from .const import *
 from .testdata import *
@@ -60,6 +60,22 @@ class Connection:
                     if response.status == 200:
                         jsonText = await response.text()
                         return batch_item_from_dict(json.loads(jsonText))
+                    else:
+                        raise UpdateFailed(
+                            f"Error communicating with API: {response.status}"
+                        )
+
+    async def get_readings(self, batchId: str, dryRun: bool) -> List[Reading]:
+        url = READINGS_URI.format(batchId)
+        _LOGGER.debug("get_readings %s!", url)
+        if dryRun:
+            return readings_item_from_dict(json.loads(TESTDATA_READINGS))
+        else:
+            async with aiohttp.ClientSession() as session:
+                async with session.get(url, auth=self.auth) as response:
+                    if response.status == 200:
+                        jsonText = await response.text()
+                        return readings_item_from_dict(json.loads(jsonText))
                     else:
                         raise UpdateFailed(
                             f"Error communicating with API: {response.status}"

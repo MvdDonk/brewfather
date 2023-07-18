@@ -2333,3 +2333,22 @@ TESTDATA_BATCH_2 = r"""
     ]
 }
 """
+
+TESTDATA_READINGS = r"""[
+    {
+        "temp": 22,
+        "sg": null,
+        "comment": "",
+        "time": 1689162288098,
+        "id": "manual",
+        "type": "manual"
+    },
+    {
+        "temp": 23,
+        "sg": null,
+        "comment": "",
+        "time": 1689162288099,
+        "id": "manual",
+        "type": "manual"
+    }
+]"""
