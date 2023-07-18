@@ -10,7 +10,7 @@ import datetime
 from enum import Enum
 from dataclasses import dataclass
 from typing import Optional, Any, List, TypeVar, Type, Callable, cast
-
+MS_IN_DAY = 86400000
 
 T = TypeVar("T")
 EnumT = TypeVar("EnumT", bound=Enum)
@@ -330,13 +330,18 @@ class BatchItem:
         else:
             result["current_temperature"] = None
 
+        result["target_temperature"] = None
+        current_time = time.time()
         days_to_ferment = 0
         for (index, step) in enumerate[FermentationStep](
                 self.recipe.fermentation.steps
         ):
             days_to_ferment += step.step_time
+            step_start_datetime = step.actual_time / 1000
+            step_end_datetime = (step.actual_time + step.step_time * MS_IN_DAY) / 1000
+            if step_start_datetime < current_time < step_end_datetime:
+                result["target_temperature"] = from_union([from_float, from_none], step.step_temp)
 
-        current_time = time.time()
         finish_time = fermenting_start + (days_to_ferment * 86400)
         result["fermentingEnd"] = datetime.datetime.fromtimestamp(finish_time)
         result["fermentingLeft"] = (finish_time - current_time) / 86400

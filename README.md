@@ -47,14 +47,25 @@ Setup a markdown card with the following content to get the batch information in
 ```
 type: markdown
 content: |-
+  # Batch status
+  ---
   {% for batch in state_attr('sensor.fermenting_batches', 'data') %}
-    **Name:** {{ batch.name }}
+    ## Batch \#{{ batch.batchNo }}, recipe: {{ batch.name }}
     **Start Date**: {{ batch.fermentingStart.strftime('%a, %d %b %Y') }}
     **End Date:** {{ batch.fermentingEnd.strftime('%a, %d %b %Y') }}
     **Days Left:** {{ batch.fermentingLeft | round(1) }}
-    **Current temperature:** {% if batch.current_temperature is not none %}{{ batch.current_temperature }}°C{%else%}Unknown{% endif %}
+    **Temperature:** {% if batch.current_temperature is not none %}
+    {% if batch.current_temperature == batch.target_temperature %}
+    <ha-alert alert-type="success">
+    {%else%}
+    <ha-alert alert-type="error">
+    {% endif %}Current: {{ batch.current_temperature }}°C / Target: {{ batch.target_temperature }}°C
+    {%else%}<ha-alert alert-type="warning">Unknown / Target: {{ batch.target_temperature }}°C
+    {% endif %}</ha-alert>
+
   {% endfor %}
-title: Batch status
+
+
 
 ```
 
