@@ -5,182 +5,110 @@ template:
       state_class: measurement
       device_class: temperature
       state: >
-             {% if state_attr('sensor.fermenting_batches', 'data') | list | count > 1 %}
-             {{state_attr('sensor.fermenting_batches', 'data')[0].current_temperature}}
-             {% else %}
-             0
-             {% endif %}
+             {% from 'coalesce_fermenting_batch_property.jinja' import fermenting_batch_property %}
+             {{ fermenting_batch_property(0, 'current_temperature') }}
     - name: Batch 1 target temperature
       unit_of_measurement: "°C"
       state: >
-             {% if state_attr('sensor.fermenting_batches', 'data') | list | count > 1 %}
-             {{state_attr('sensor.fermenting_batches', 'data')[0].target_temperature}}
-             {% else %}
-             0
-             {% endif %}
+             {% from 'coalesce_fermenting_batch_property.jinja' import fermenting_batch_property %}
+             {{ fermenting_batch_property(0, 'target_temperature') }}
     - name: Batch 1 name
       state: >
-             {% if state_attr('sensor.fermenting_batches', 'data') | list | count > 1 %}
-             {{state_attr('sensor.fermenting_batches', 'data')[0].name}}
-             {% else %}
-             None
-             {% endif %}
+             {% from 'coalesce_fermenting_batch_property.jinja' import fermenting_batch_property %}
+             {{ fermenting_batch_property(0, 'name') }}
     - name: Batch 1 start
       state: >
-             {% if state_attr('sensor.fermenting_batches', 'data') | list | count > 1 %}
-             {{state_attr('sensor.fermenting_batches', 'data')[0].fermentingStart}}
-             {% else %}
-             0
-             {% endif %}
+             {% from 'coalesce_fermenting_batch_property.jinja' import fermenting_batch_property %}
+             {{ fermenting_batch_property(0, 'fermentingStart') }}
     - name: Batch 1 end
       state: >
-             {% if state_attr('sensor.fermenting_batches', 'data') | list | count > 1 %}
-             {{state_attr('sensor.fermenting_batches', 'data')[0].fermentingEnd}}
-             {% else %}
-             0
-             {% endif %}
+             {% from 'coalesce_fermenting_batch_property.jinja' import fermenting_batch_property %}
+             {{ fermenting_batch_property(0, 'fermentingEnd') }}
     - name: Batch 1 left
       state: >
-             {% if state_attr('sensor.fermenting_batches', 'data') | list | count > 1 %}
-             {{state_attr('sensor.fermenting_batches', 'data')[0].fermentingLeft | round(1)}}
-             {% else %}
-             0
-             {% endif %}
+             {% from 'coalesce_fermenting_batch_property.jinja' import fermenting_batch_property %}
+             {{ fermenting_batch_property(0, 'fermentingLeft') | round(1) }}
     - name: Batch 2 temperature
       unit_of_measurement: "°C"
       state_class: measurement
       device_class: temperature
       state: >
-            {% if state_attr('sensor.fermenting_batches', 'data') | list | count > 1 %}
-            {{state_attr('sensor.fermenting_batches', 'data')[1].current_temperature}}
-            {% else %}
-            0
-            {% endif %}
+             {% from 'coalesce_fermenting_batch_property.jinja' import fermenting_batch_property %}
+             {{ fermenting_batch_property(1, 'current_temperature') }}
     - name: Batch 2 target temperature
       unit_of_measurement: "°C"
       state: >
-             {% if state_attr('sensor.fermenting_batches', 'data') | list | count > 1 %}
-             {{state_attr('sensor.fermenting_batches', 'data')[1].target_temperature}}
-             {% else %}
-             0
-             {% endif %}
+             {% from 'coalesce_fermenting_batch_property.jinja' import fermenting_batch_property %}
+             {{ fermenting_batch_property(1, 'target_temperature') }}
     - name: Batch 2 name
       state: >
-             {% if state_attr('sensor.fermenting_batches', 'data') | list | count > 1 %}
-             {{state_attr('sensor.fermenting_batches', 'data')[1].name}}
-             {% else %}
-             None
-             {% endif %}
+             {% from 'coalesce_fermenting_batch_property.jinja' import fermenting_batch_property %}
+             {{ fermenting_batch_property(1, 'name') }}
     - name: Batch 2 start
       state: >
-             {% if state_attr('sensor.fermenting_batches', 'data') | list | count > 1 %}
-             {{state_attr('sensor.fermenting_batches', 'data')[1].fermentingStart}}
-             {% else %}
-             0
-             {% endif %}
+             {% from 'coalesce_fermenting_batch_property.jinja' import fermenting_batch_property %}
+             {{ fermenting_batch_property(1, 'fermentingStart') }}
     - name: Batch 2 end
       state: >
-             {% if state_attr('sensor.fermenting_batches', 'data') | list | count > 1 %}
-             {{state_attr('sensor.fermenting_batches', 'data')[1].fermentingEnd}}
-             {% else %}
-             0
-             {% endif %}
+             {% from 'coalesce_fermenting_batch_property.jinja' import fermenting_batch_property %}
+             {{ fermenting_batch_property(1, 'fermentingEnd') }}
     - name: Batch 2 left
       state: >
-             {% if state_attr('sensor.fermenting_batches', 'data') | list | count > 1 %}
-             {{state_attr('sensor.fermenting_batches', 'data')[1].fermentingLeft | round(1)}}
-             {% else %}
-             0
-             {% endif %}
+             {% from 'coalesce_fermenting_batch_property.jinja' import fermenting_batch_property %}
+             {{ fermenting_batch_property(1, 'fermentingLeft') | round(1) }}
     - name: Batch 3 temperature
       unit_of_measurement: "°C"
       state_class: measurement
       device_class: temperature
       state: >
-             {% if state_attr('sensor.fermenting_batches', 'data') | list | count > 1 %}
-             {{state_attr('sensor.fermenting_batches', 'data')[2].current_temperature}}
-             {% else %}
-             0
-             {% endif %}
+             {% from 'coalesce_fermenting_batch_property.jinja' import fermenting_batch_property %}
+             {{ fermenting_batch_property(2, 'current_temperature') }}
     - name: Batch 3 target temperature
       unit_of_measurement: "°C"
       state: >
-             {% if state_attr('sensor.fermenting_batches', 'data') | list | count > 1 %}
-             {{state_attr('sensor.fermenting_batches', 'data')[2].target_temperature}}
-             {% else %}
-             0
-             {% endif %}
+             {% from 'coalesce_fermenting_batch_property.jinja' import fermenting_batch_property %}
+             {{ fermenting_batch_property(2, 'target_temperature') }}
     - name: Batch 3 name
       state: >
-             {% if state_attr('sensor.fermenting_batches', 'data') | list | count > 1 %}
-             {{state_attr('sensor.fermenting_batches', 'data')[2].name}}
-             {% else %}
-             None
-             {% endif %}
+             {% from 'coalesce_fermenting_batch_property.jinja' import fermenting_batch_property %}
+             {{ fermenting_batch_property(2, 'name') }}
     - name: Batch 3 start
       state: >
-             {% if state_attr('sensor.fermenting_batches', 'data') | list | count > 1 %}
-             {{state_attr('sensor.fermenting_batches', 'data')[2].fermentingStart}}
-             {% else %}
-             0
-             {% endif %}
+             {% from 'coalesce_fermenting_batch_property.jinja' import fermenting_batch_property %}
+             {{ fermenting_batch_property(2, 'fermentingStart') }}
     - name: Batch 3 end
       state: >
-             {% if state_attr('sensor.fermenting_batches', 'data') | list | count > 1 %}
-             {{state_attr('sensor.fermenting_batches', 'data')[2].fermentingEnd}}
-             {% else %}
-             0
-             {% endif %}
+             {% from 'coalesce_fermenting_batch_property.jinja' import fermenting_batch_property %}
+             {{ fermenting_batch_property(2, 'fermentingEnd') }}
     - name: Batch 3 left
       state: >
-             {% if state_attr('sensor.fermenting_batches', 'data') | list | count > 1 %}
-             {{state_attr('sensor.fermenting_batches', 'data')[2].fermentingLeft | round(1)}}
-             {% else %}
-             0
-             {% endif %}
+             {% from 'coalesce_fermenting_batch_property.jinja' import fermenting_batch_property %}
+             {{ fermenting_batch_property(2, 'fermentingLeft') | round(1) }}
     - name: Batch 4 temperature
       unit_of_measurement: "°C"
       state_class: measurement
       device_class: temperature
       state: >
-             {% if state_attr('sensor.fermenting_batches', 'data') | list | count > 1 %}
-             {{state_attr('sensor.fermenting_batches', 'data')[3].current_temperature}}
-             {% else %}
-             0
-             {% endif %}
+             {% from 'coalesce_fermenting_batch_property.jinja' import fermenting_batch_property %}
+             {{ fermenting_batch_property(3, 'current_temperature') }}
     - name: Batch 4 target temperature
       unit_of_measurement: "°C"
       state: >
-             {% if state_attr('sensor.fermenting_batches', 'data') | list | count > 1 %}
-             {{state_attr('sensor.fermenting_batches', 'data')[3].target_temperature}}
-             {% else %}
-             0
-             {% endif %}
+             {% from 'coalesce_fermenting_batch_property.jinja' import fermenting_batch_property %}
+             {{ fermenting_batch_property(3, 'target_temperature') }}
     - name: Batch 4 name
       state: >
-             {% if state_attr('sensor.fermenting_batches', 'data') | list | count > 1 %}
-             {{state_attr('sensor.fermenting_batches', 'data')[3].name}}
-             {% else %}
-             None
-             {% endif %}
+             {% from 'coalesce_fermenting_batch_property.jinja' import fermenting_batch_property %}
+             {{ fermenting_batch_property(3, 'name') }}
     - name: Batch 4 start
       state: >
-             {% if state_attr('sensor.fermenting_batches', 'data') | list | count > 1 %}
-             {{state_attr('sensor.fermenting_batches', 'data')[3].fermentingStart}}
-             {% else %}
-             0
-             {% endif %}
+             {% from 'coalesce_fermenting_batch_property.jinja' import fermenting_batch_property %}
+             {{ fermenting_batch_property(3, 'fermentingStart') }}
     - name: Batch 4 end
       state: >
-             {% if state_attr('sensor.fermenting_batches', 'data') | list | count > 1 %}
-             {{state_attr('sensor.fermenting_batches', 'data')[3].fermentingEnd}}
-             {% else %}
-             0
-             {% endif %}
+             {% from 'coalesce_fermenting_batch_property.jinja' import fermenting_batch_property %}
+             {{ fermenting_batch_property(3, 'fermentingEnd') }}
     - name: Batch 4 left
       state: >
-             {% if state_attr('sensor.fermenting_batches', 'data') | list | count > 1 %}
-             {{state_attr('sensor.fermenting_batches', 'data')[3].fermentingLeft | round(1)}}
-             {% else %}
-             0
-             {% endif %}
+             {% from 'coalesce_fermenting_batch_property.jinja' import fermenting_batch_property %}
+             {{ fermenting_batch_property(3, 'fermentingLeft') | round(1) }}

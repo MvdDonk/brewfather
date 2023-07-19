@@ -31,89 +31,113 @@ views:
                 {% endif %}</ha-alert>
 
               {% endfor %}
-      - type: custom:layout-card
-        layout_type: custom:masonry-layout
-        layout: {}
-        cards:
-          - type: entity
-            entity: sensor.batch_1_name
-          - chart_type: line
-            period: week
-            type: statistics-graph
-            entities:
-              - sensor.batch_1_temperature
-            stat_types:
-              - mean
-              - min
-              - max
-          - type: gauge
-            entity: sensor.batch_1_temperature
-            needle: false
-          - type: entity
-            entity: sensor.batch_1_target_temperature
-          - type: entity
-            entity: sensor.batch_1_left
-            unit: days
-      - type: custom:layout-card
-        layout_type: custom:masonry-layout
-        layout: {}
-        cards:
-          - type: entity
-            entity: sensor.batch_2_name
-          - chart_type: line
-            period: week
-            type: statistics-graph
-            entities:
-              - sensor.batch_2_temperature
-            stat_types:
-              - mean
-              - min
-              - max
-          - type: gauge
-            entity: sensor.batch_2_temperature
-          - type: entity
-            entity: sensor.batch_2_target_temperature
-          - type: entity
-            entity: sensor.batch_2_left
-      - type: custom:layout-card
-        layout_type: custom:masonry-layout
-        layout: {}
-        cards:
-          - type: entity
-            entity: sensor.batch_3_name
-          - chart_type: line
-            period: week
-            type: statistics-graph
-            entities:
-              - sensor.batch_3_temperature
-            stat_types:
-              - mean
-              - min
-              - max
-          - type: gauge
-            entity: sensor.batch_3_temperature
-          - type: entity
-            entity: sensor.batch_3_target_temperature
-          - type: entity
-            entity: sensor.batch_3_left
-      - type: custom:layout-card
-        layout_type: custom:masonry-layout
-        layout: {}
-        cards:
-          - type: entity
-            entity: sensor.batch_4_name
-          - chart_type: line
-            period: week
-            type: statistics-graph
-            entities:
-              - sensor.batch_4_temperature
-            stat_types:
-              - mean
-              - min
-              - max
-          - type: gauge
-            entity: sensor.batch_4_temperature
-          - type: entity
-            entity: sensor.batch_4_target_temperature
-          - type: entity
-            entity: sensor.batch_4_left
+      - type: conditional
+        conditions:
+          - entity: sensor.batch_1_name
+            state_not: '0'
+        card:
+          type: custom:layout-card
+          layout_type: custom:masonry-layout
+          layout: {}
+          cards:
+            - type: entity
+              entity: sensor.batch_1_name
+            - chart_type: line
+              period: week
+              type: statistics-graph
+              entities:
+                - sensor.batch_1_temperature
+              stat_types:
+                - mean
+                - min
+                - max
+            - type: gauge
+              entity: sensor.batch_1_temperature
+              needle: false
+            - type: entity
+              entity: sensor.batch_1_target_temperature
+            - type: entity
+              entity: sensor.batch_1_left
+              unit: days
+      - type: conditional
+        conditions:
+          - entity: sensor.batch_2_name
+            state_not: '0'
+        card:
+          type: custom:layout-card
+          layout_type: custom:masonry-layout
+          layout: {}
+          cards:
+            - type: entity
+              entity: sensor.batch_2_name
+            - chart_type: line
+              period: week
+              type: statistics-graph
+              entities:
+                - sensor.batch_2_temperature
+              stat_types:
+                - mean
+                - min
+                - max
+            - type: gauge
+              entity: sensor.batch_2_temperature
+            - type: entity
+              entity: sensor.batch_2_target_temperature
+            - type: entity
+              entity: sensor.batch_2_left
+      - type: conditional
+        conditions:
+          - entity: sensor.batch_3_name
+            state_not: '0'
+        card:
+          type: custom:layout-card
+          layout_type: custom:masonry-layout
+          layout: {}
+          cards:
+            - type: custom:layout-card
+              layout_type: custom:masonry-layout
+              layout: {}
+              cards:
+                - type: entity
+                  entity: sensor.batch_3_name
+                - chart_type: line
+                  period: week
+                  type: statistics-graph
+                  entities:
+                    - sensor.batch_3_temperature
+                  stat_types:
+                    - mean
+                    - min
+                    - max
+                - type: gauge
+                  entity: sensor.batch_3_temperature
+                - type: entity
+                  entity: sensor.batch_3_target_temperature
+                - type: entity
+                  entity: sensor.batch_3_left
+      - type: conditional
+        conditions:
+          - entity: sensor.batch_4_name
+            state_not: '0'
+        card:
+          type: custom:layout-card
+          layout_type: custom:masonry-layout
+          layout: {}
+          cards:
+            - type: entity
+              entity: sensor.batch_4_name
+            - chart_type: line
+              period: week
+              type: statistics-graph
+              entities:
+                - sensor.batch_4_temperature
+              stat_types:
+                - mean
+                - min
+                - max
+            - type: gauge
+              entity: sensor.batch_4_temperature
+            - type: entity
+              entity: sensor.batch_4_target_temperature
+            - type: entity
+              entity: sensor.batch_4_left
