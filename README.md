@@ -14,11 +14,44 @@ The following sensors will be added after setup:
 - **Upcoming temperature change**
 
   The date and time when the upcoming temperature will be activated
+- **Fermenting batches**
+
+    A list of all batches that are fermenting. This sensor contains the following attributes:
+    - **batchNo**
+    
+        The batch number of the batch
+    - **name**
+    
+        The name of the recipe
+    - **fermentingStart**
+    
+        The date and time when the fermentation started
+    - **fermentingEnd**
+    
+        The date and time when the fermentation should be finished
+    - **fermentingLeft**
+    
+        The number of days left until the fermentation is finished
+    - **target_temperature**
+    
+        The temperature the fermentation should have following the recipe
+    - **current_temperature**
+    
+        The current temperature of the fermentation based on readings entered into the app or through a connected device
 
 
 # Installation:
 
-Copy the brewfather folder and all of its contents into your Home Assistant's custom_components folder. This folder is usually inside your `/config` folder. If you are running Hass.io, use SAMBA to copy the folder over. If you are running Home Assistant Supervised, the custom_components folder might be located at `/usr/share/hassio/homeassistant`. You may need to create the `custom_components` folder and then copy the brewfather folder and all of its contents into it
+Copy the `custom_components/brewfather` folder and all of its contents into your Home Assistant's custom_components folder. This folder is usually inside your `/config` folder. If you are running Hass.io, use SAMBA to copy the folder over. If you are running Home Assistant Supervised, the custom_components folder might be located at `/usr/share/hassio/homeassistant`. You may need to create the `custom_components` folder and then copy the brewfather folder and all of its contents into it
+
+Copy the `custom_templates` folder and all of its contents into your Home Assistant's custom_templates folder, this should be in the config directory next to custom_components. If the custom_templates folder does not exist, create it.
+
+Copy the contents of the `template_sensors.yaml` file and paste it on to the end of the `config/configuration.yaml` file. If you already have a `template` and `sensor` section, just copy the contents of the `template_sensors.yaml` file excluding the first 2 lines and paste it into your existing `template` / `sensor` section.
+
+A `dashboard.yaml` file has been included in this repository. To use it, create a new dashboard amd copy the contents of the `dashboard.yaml` file into it. The dashboard shows up to 4 batches, if you have more than 4 batches you will need to add more cards to the dashboard and template_sensors.yaml.
+
+## Dashboard
+![dashboard.png](dashboard.png)
 
 Alternatively, you can install brewfather through [HACS](https://hacs.xyz/) by adding this repository.
 
