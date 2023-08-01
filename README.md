@@ -105,3 +105,10 @@ content: |-
 # Developing
 
 Partial support for testing API response parsing is available in [test_connection.py](custom_components%2Fbrewfather%2Ftest_connection.py). You will need your User ID and API Key to run the tests. These should be set as the environment variables `USER_ID` and `API_KEY`
+
+The following commands can be used to run the tests:
+```shell
+export USER_ID=your_user_id
+export API_KEY=your_api_key
+pytest
+```

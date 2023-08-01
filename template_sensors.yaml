@@ -28,6 +28,10 @@ template:
       state: >
              {% from 'coalesce_fermenting_batch_property.jinja' import fermenting_batch_property %}
              {{ fermenting_batch_property(0, 'fermentingLeft') | round(1) }}
+    - name: Batch 1 OG
+      state: >
+             {% from 'coalesce_fermenting_batch_property.jinja' import fermenting_batch_property %}
+             {{ fermenting_batch_property(0, 'measuredOg') }}
     - name: Batch 2 temperature
       unit_of_measurement: "°C"
       state_class: measurement
@@ -56,6 +60,10 @@ template:
       state: >
              {% from 'coalesce_fermenting_batch_property.jinja' import fermenting_batch_property %}
              {{ fermenting_batch_property(1, 'fermentingLeft') | round(1) }}
+    - name: Batch 2 OG
+      state: >
+             {% from 'coalesce_fermenting_batch_property.jinja' import fermenting_batch_property %}
+             {{ fermenting_batch_property(1, 'measuredOg') }}
     - name: Batch 3 temperature
       unit_of_measurement: "°C"
       state_class: measurement
@@ -84,6 +92,10 @@ template:
       state: >
              {% from 'coalesce_fermenting_batch_property.jinja' import fermenting_batch_property %}
              {{ fermenting_batch_property(2, 'fermentingLeft') | round(1) }}
+    - name: Batch 3 OG
+      state: >
+             {% from 'coalesce_fermenting_batch_property.jinja' import fermenting_batch_property %}
+             {{ fermenting_batch_property(2, 'measuredOg') }}
     - name: Batch 4 temperature
       unit_of_measurement: "°C"
       state_class: measurement
@@ -112,3 +124,7 @@ template:
       state: >
              {% from 'coalesce_fermenting_batch_property.jinja' import fermenting_batch_property %}
              {{ fermenting_batch_property(3, 'fermentingLeft') | round(1) }}
+    - name: Batch 4 OG
+      state: >
+             {% from 'coalesce_fermenting_batch_property.jinja' import fermenting_batch_property %}
+             {{ fermenting_batch_property(3, 'measuredOg') }}

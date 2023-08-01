@@ -280,6 +280,7 @@ class BatchItem:
     recipe: Optional[Recipe] = None
     notes: Optional[List[Note]] = None
     readings: Optional[List[Reading]] = None
+    measured_og: Optional[float] = None
 
     @staticmethod
     def from_dict(obj: Any) -> "BatchItem":
@@ -294,7 +295,8 @@ class BatchItem:
         notes = from_union(
             [lambda x: from_list(Note.from_dict, x), from_none], obj.get("notes")
         )
-        return BatchItem(id, name, batch_no, status, brewer, brew_date, recipe, notes, None)
+        measured_og = from_union([from_float, from_none], obj.get("measuredOg"))
+        return BatchItem(id, name, batch_no, status, brewer, brew_date, recipe, notes, None, measured_og)
 
     def to_dict(self) -> dict:
         result: dict = {}
@@ -313,6 +315,7 @@ class BatchItem:
         result["readings"] = from_union(
             [lambda x: from_list(lambda x: to_class(Reading, x), x), from_none], self.readings
         )
+        result["measuredOg"] = from_union([from_float, from_none], self.measured_og)
         return result
 
     def to_attribute_entry(self) -> dict:
@@ -346,6 +349,7 @@ class BatchItem:
         result["fermentingEnd"] = datetime.datetime.fromtimestamp(finish_time)
         result["fermentingLeft"] = (finish_time - current_time) / 86400
         result["status"] = from_union([from_str, from_none], self.status)
+        result["measuredOg"] = from_union([from_float, from_none], self.measured_og)
         result["recipe"] = from_union(
             [lambda x: to_class(Recipe, x), from_none], self.recipe
         )

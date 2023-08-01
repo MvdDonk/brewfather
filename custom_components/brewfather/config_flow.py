@@ -58,16 +58,14 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     # changes.
     CONNECTION_CLASS = config_entries.CONN_CLASS_CLOUD_POLL
 
-    async def validate_input(self, hass: HomeAssistant, data: dict) -> dict[str, any]:
+    async def validate_input(self, data: dict) -> dict[str, any]:
         """Validate the user input allows us to connect.
         Data has the keys from DATA_SCHEMA with values provided by the user.
         """
         # Validate the data can be used to set up a connection.
         name = data.get(CONF_NAME, False)
 
-        connection = Connection(
-            hass, data.get(CONF_USERNAME, False), data.get(CONF_PASSWORD, False)
-        )
+        connection = Connection(data.get(CONF_USERNAME, False), data.get(CONF_PASSWORD, False))
 
         result = await connection.test_connection()
         return {"status": result, "name": name}
@@ -90,7 +88,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             # https://developers.home-assistant.io/docs/config_entries_config_flow_handler/
 
             try:
-                validationResult = await self.validate_input(self.hass, user_input)
+                validationResult = await self.validate_input(user_input)
             except InvalidCredentials:
                 errors["base"] = "invalid_api_key"
             except InvalidScope:
