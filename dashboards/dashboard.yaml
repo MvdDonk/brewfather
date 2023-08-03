@@ -1,0 +1,13 @@
+title: Home
+views:
+  - path: default_view
+    title: Home
+    cards:
+      - type: entity
+        entity: sensor.recipe_name
+      - type: gauge
+        entity: sensor.current_temperature
+      - type: entity
+        entity: sensor.upcoming_temperature
+      - type: entity
+        entity: sensor.upcoming_temperature_change

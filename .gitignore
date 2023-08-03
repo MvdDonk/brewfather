@@ -4,6 +4,8 @@
 !.gitignore
 !/custom_components
 !/custom_templates
-!dashboard.png
+!/dashboards
+!/template_sensors
+!dashboard-multi-batch.png
 custom_components/brewfather/__pycache__/
 custom_components/brewfather/models/__pycache__/

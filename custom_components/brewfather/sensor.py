@@ -16,7 +16,7 @@ from homeassistant.components.sensor import SensorEntity, SensorStateClass
 from homeassistant.const import (
     DEVICE_CLASS_TEMPERATURE,
     DEVICE_CLASS_TIMESTAMP,
-    TEMP_CELSIUS,
+    TEMP_CELSIUS, UnitOfTemperature,
 )
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback

@@ -44,16 +44,26 @@ The following sensors will be added after setup:
 
 Copy the `custom_components/brewfather` folder and all of its contents into your Home Assistant's custom_components folder. This folder is usually inside your `/config` folder. If you are running Hass.io, use SAMBA to copy the folder over. If you are running Home Assistant Supervised, the custom_components folder might be located at `/usr/share/hassio/homeassistant`. You may need to create the `custom_components` folder and then copy the brewfather folder and all of its contents into it
 
+Alternatively, you can install brewfather through [HACS](https://hacs.xyz/) by adding this repository.
+
+## Single Batch Support
+
+The integration produces a sensor for recipe name, current temperature, upcoming temperature and upcoming temperature change date for the most recently started batch. This can be displayed in home assistant by creating a new dashboard and copying the contents of the `dashboard/dashboard-single-batch.png` file into it.
+
+![dashboard-single-batch.png](dashboard-single-batch.png)
+
+## Multiple Batch Support
+
+Multiple batch support is available through the use of custom templates and a custom dashboard. All the data for all currently fermenting batches is stored in the `fermenting_batches` sensor. The `fermenting_batches` sensor as a `data` attribute that contains a list of all fermenting batches. The `data` attribute is a list of dictionaries. You can follow the below steps to add the custom templates and dashboard to display all fermenting batch information in your Home Assistant.
+
 Copy the `custom_templates` folder and all of its contents into your Home Assistant's custom_templates folder, this should be in the config directory next to custom_components. If the custom_templates folder does not exist, create it.
 
-Copy the contents of the `template_sensors.yaml` file and paste it on to the end of the `config/configuration.yaml` file. If you already have a `template` and `sensor` section, just copy the contents of the `template_sensors.yaml` file excluding the first 2 lines and paste it into your existing `template` / `sensor` section.
+Copy the contents of the `template_sensors/template_sensors.yaml` file and paste it on to the end of the `config/configuration.yaml` file. If you already have a `template` and `sensor` section, just copy the contents of the `template_sensors.yaml` file excluding the first 2 lines and paste it into your existing `template` / `sensor` section.
 
-A `dashboard.yaml` file has been included in this repository. To use it, create a new dashboard amd copy the contents of the `dashboard.yaml` file into it. The dashboard shows up to 4 batches, if you have more than 4 batches you will need to add more cards to the dashboard and template_sensors.yaml.
+A `dashboard/dashboard-multi-batch.png` file has been included in this repository. To use it, create a new dashboard amd copy the contents of the `dashboard-multi-batch.png` file into it. The dashboard shows up to 4 batches, if you have more than 4 batches you will need to add more cards to the dashboard and template_sensors.yaml.
 
-## Dashboard
-![dashboard.png](dashboard.png)
-
-Alternatively, you can install brewfather through [HACS](https://hacs.xyz/) by adding this repository.
+### Dashboard
+![dashboard-multi-batch.png)](dashboard-multi-batch.png)
 
 
 # Setup
