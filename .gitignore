@@ -6,6 +6,6 @@
 !/custom_templates
 !/dashboards
 !/template_sensors
-!dashboard-multi-batch.png
+!*.png
 custom_components/brewfather/__pycache__/
 custom_components/brewfather/models/__pycache__/
