@@ -5,11 +5,12 @@
 # and then, to convert JSON from a string, do
 #
 #     result = batch_item_from_dict(json.loads(json_string))
-
+import time
+import datetime
 from enum import Enum
 from dataclasses import dataclass
 from typing import Optional, Any, List, TypeVar, Type, Callable, cast
-
+MS_IN_DAY = 86400000
 
 T = TypeVar("T")
 EnumT = TypeVar("EnumT", bound=Enum)
@@ -29,7 +30,7 @@ def from_union(fs, x):
     for f in fs:
         try:
             return f(x)
-        except:
+        except Exception as e:
             pass
     assert False
 
@@ -116,9 +117,9 @@ class Created:
 
 @dataclass
 class Step:
-    ramp: None
-    pressure: None
-    display_pressure: None
+    ramp: Optional[int] = None
+    pressure: Optional[float] = None
+    display_pressure: Optional[int] = None
     display_step_temp: Optional[int] = None
     type: Optional[str] = None
     actual_time: Optional[int] = None
@@ -129,12 +130,10 @@ class Step:
     @staticmethod
     def from_dict(obj: Any) -> "Step":
         assert isinstance(obj, dict)
-        ramp = from_none(obj.get("ramp"))
-        pressure = from_none(obj.get("pressure"))
-        display_pressure = from_none(obj.get("displayPressure"))
-        display_step_temp = from_union(
-            [from_int, from_none], obj.get("displayStepTemp")
-        )
+        ramp = from_union([from_int, from_none], obj.get("ramp"))
+        pressure = from_union([from_float, from_none], obj.get("pressure"))
+        display_pressure = from_union([from_int, from_none], obj.get("displayPressure"))
+        display_step_temp = from_union([from_int, from_none], obj.get("displayStepTemp"))
         type = from_union([from_str, from_none], obj.get("type"))
         actual_time = from_union([from_int, from_none], obj.get("actualTime"))
         step_temp = from_union([from_float, from_none], obj.get("stepTemp"))
@@ -154,9 +153,9 @@ class Step:
 
     def to_dict(self) -> dict:
         result: dict = {}
-        result["ramp"] = from_none(self.ramp)
-        result["pressure"] = from_none(self.pressure)
-        result["displayPressure"] = from_none(self.display_pressure)
+        result["ramp"] = from_union([from_int, from_none], self.ramp)
+        result["pressure"] = from_union([from_float, from_none], self.pressure)
+        result["displayPressure"] = from_union([from_int, from_none], self.display_pressure)
         result["displayStepTemp"] = from_union(
             [from_int, from_none], self.display_step_temp
         )
@@ -239,6 +238,38 @@ class Recipe:
 
 
 @dataclass
+class Reading:
+    temp: Optional[int] = None
+    sg: Optional[float] = None
+    comment: Optional[str] = None
+    time: Optional[int] = None
+    id: Optional[str] = None
+    type: Optional[str] = None
+
+    @staticmethod
+    def from_dict(obj: Any) -> "Reading":
+        assert isinstance(obj, dict)
+        temp = from_union([from_int, from_none], obj.get("temp"))
+        sg = from_union([from_float, from_none], obj.get("sg"))
+        comment = from_union([from_str, from_none], obj.get("comment"))
+        time = from_union([from_int, from_none], obj.get("time"))
+        id = from_union([from_str, from_none], obj.get("_id"))
+        type = from_union([from_str, from_none], obj.get("type"))
+        return Reading(temp, sg, comment, time, id, type)
+
+    def to_dict(self) -> dict:
+        result: dict = {}
+        result["temp"] = from_union([from_int, from_none], self.temp)
+        result["sg"] = from_union([to_float, from_none], self.sg)
+        result["comment"] = from_union([from_str, from_none], self.comment)
+        result["time"] = from_union([from_int, from_none], self.time)
+        result["_id"] = from_union([from_str, from_none], self.id)
+        result["type"] = from_union([from_str, from_none], self.type)
+
+        return result
+
+
+@dataclass
 class BatchItem:
     id: Optional[str] = None
     name: Optional[str] = None
@@ -248,6 +279,8 @@ class BatchItem:
     brew_date: Optional[int] = None
     recipe: Optional[Recipe] = None
     notes: Optional[List[Note]] = None
+    readings: Optional[List[Reading]] = None
+    measured_og: Optional[float] = None
 
     @staticmethod
     def from_dict(obj: Any) -> "BatchItem":
@@ -262,7 +295,8 @@ class BatchItem:
         notes = from_union(
             [lambda x: from_list(Note.from_dict, x), from_none], obj.get("notes")
         )
-        return BatchItem(id, name, batch_no, status, brewer, brew_date, recipe, notes)
+        measured_og = from_union([from_float, from_none], obj.get("measuredOg"))
+        return BatchItem(id, name, batch_no, status, brewer, brew_date, recipe, notes, None, measured_og)
 
     def to_dict(self) -> dict:
         result: dict = {}
@@ -278,8 +312,59 @@ class BatchItem:
         result["notes"] = from_union(
             [lambda x: from_list(lambda x: to_class(Note, x), x), from_none], self.notes
         )
+        result["readings"] = from_union(
+            [lambda x: from_list(lambda x: to_class(Reading, x), x), from_none], self.readings
+        )
+        result["measuredOg"] = from_union([from_float, from_none], self.measured_og)
+        return result
+
+    def to_attribute_entry(self) -> dict:
+        result: dict = {}
+        result["name"] = from_union([from_str, from_none], from_union(
+            [lambda x: to_class(Recipe, x), from_none], self.recipe
+        )["name"])
+        result["brewDate"] = datetime.datetime.fromtimestamp(self.brew_date / 1000)
+        result["batchNo"] = from_union([from_int, from_none], self.batch_no)
+        fermenting_start = self.recipe.fermentation.steps[0].actual_time / 1000
+        result["fermentingStart"] = datetime.datetime.fromtimestamp(fermenting_start)
+
+        if self.readings is not None and len(self.readings) > 0:
+            result["current_temperature"] = self.readings[0].temp
+        else:
+            result["current_temperature"] = None
+
+        result["target_temperature"] = None
+        current_time = time.time()
+        days_to_ferment = 0
+        for (index, step) in enumerate[FermentationStep](
+                self.recipe.fermentation.steps
+        ):
+            days_to_ferment += step.step_time
+            step_start_datetime = step.actual_time / 1000
+            step_end_datetime = (step.actual_time + step.step_time * MS_IN_DAY) / 1000
+            if step_start_datetime < current_time < step_end_datetime:
+                result["target_temperature"] = from_union([from_float, from_none], step.step_temp)
+
+        finish_time = fermenting_start + (days_to_ferment * 86400)
+        result["fermentingEnd"] = datetime.datetime.fromtimestamp(finish_time)
+        result["fermentingLeft"] = (finish_time - current_time) / 86400
+        result["status"] = from_union([from_str, from_none], self.status)
+        result["measuredOg"] = from_union([from_float, from_none], self.measured_og)
+        result["recipe"] = from_union(
+            [lambda x: to_class(Recipe, x), from_none], self.recipe
+        )
+        result["notes"] = from_union(
+            [lambda x: from_list(lambda x: to_class(Note, x), x), from_none], self.notes
+        )
+        result["readings"] = from_union(
+            [lambda x: from_list(lambda x: to_class(Reading, x), x), from_none], self.readings
+        )
         return result
 
 
 def batch_item_from_dict(s: Any) -> BatchItem:
     return BatchItem.from_dict(s)
+
+
+def readings_item_from_dict(s: Any) -> List[Reading]:
+    return from_list(Reading.from_dict, s)

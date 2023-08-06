@@ -30,7 +30,7 @@ from homeassistant.exceptions import ConfigEntryNotReady
 
 from .coordinator import BrewfatherCoordinator
 from .const import *
-from .testdata import TESTDATA_BATCH
+from .testdata import TESTDATA_BATCH_1
 
 _LOGGER = logging.getLogger(__name__)
 PLATFORMS = ["sensor"]

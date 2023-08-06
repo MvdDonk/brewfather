@@ -113,7 +113,7 @@ TESTDATA_BATCHES = r"""
 ]
 """
 
-TESTDATA_BATCH = r"""
+TESTDATA_BATCH_1 = r"""
 {
     "_timestamp": {
         "_seconds": 1642957959,
@@ -2277,3 +2277,78 @@ TESTDATA_BATCH = r"""
     "bottlingDate": 1643842800000
 }
 """
+
+TESTDATA_BATCH_2 = r"""
+{
+    "_id": "BZFF1swDJnQWmkyzSEog28O2aIsZ12",
+    "name": "Batch",
+    "batchNo": 29,
+    "status": "Fermenting",
+    "brewer": "Steven Leadbeater",
+    "brewDate": 1687561200000,
+    "recipe": {
+        "name": "Kolsch adjusted ",
+        "fermentation": {
+            "pressurized": true,
+            "name": "Ale",
+            "_id": "default",
+            "steps": [
+                {
+                    "actualTime": 1687561200000,
+                    "stepTemp": 17,
+                    "displayPressure": 1,
+                    "ramp": 3,
+                    "displayStepTemp": 17,
+                    "pressure": 14.503774,
+                    "type": "Primary",
+                    "stepTime": 10
+                },
+                {
+                    "actualTime": 1688943600000,
+                    "stepTemp": 20,
+                    "actualRampTime": 1688684400000,
+                    "displayPressure": null,
+                    "ramp": 3,
+                    "pressure": null,
+                    "displayStepTemp": 20,
+                    "stepTime": 3,
+                    "type": "Primary"
+                }
+            ]
+        }
+    },
+    "notes": [
+        {
+            "note": "",
+            "type": "statusChanged",
+            "timestamp": 1688232745570,
+            "status": "Fermenting"
+        },
+        {
+            "note": "",
+            "type": "statusChanged",
+            "timestamp": 1687609251831,
+            "status": "Brewing"
+        }
+    ]
+}
+"""
+
+TESTDATA_READINGS = r"""[
+    {
+        "temp": 22,
+        "sg": null,
+        "comment": "",
+        "time": 1689162288098,
+        "id": "manual",
+        "type": "manual"
+    },
+    {
+        "temp": 23,
+        "sg": null,
+        "comment": "",
+        "time": 1689162288099,
+        "id": "manual",
+        "type": "manual"
+    }
+]"""
