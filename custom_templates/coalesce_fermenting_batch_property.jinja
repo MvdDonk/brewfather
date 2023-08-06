@@ -1,0 +1,7 @@
+{% macro fermenting_batch_property(data_index, property) %}
+{% if state_attr('sensor.fermenting_batches', 'data') | list | count > data_index %}
+{{state_attr('sensor.fermenting_batches', 'data')[data_index][property]}}
+{% else %}
+0
+{% endif %}
+{% endmacro %}

@@ -1,8 +1,7 @@
 from __future__ import annotations
 import datetime
-import logging
 from datetime import datetime, timezone, timedelta
-from typing import Optional, List
+from typing import Optional
 
 import pytz
 from .connection import *
@@ -10,7 +9,6 @@ from .connection import *
 from .models.batch_item import FermentationStep
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 from .const import *
 
@@ -27,6 +25,7 @@ class BrewfatherCoordinatorData:
     current_step_temperature: Optional[float]
     next_step_date: Optional[datetime.datetime]
     next_step_temperature: Optional[float]
+    batches: Optional[list[BatchItem]]
 
     def __init__(self):
         # set defaults to None
@@ -42,7 +41,7 @@ class BrewfatherCoordinator(DataUpdateCoordinator[BrewfatherCoordinatorData]):
     def __init__(self, hass: HomeAssistant, entry, update_interval: timedelta):
         self.entry = entry
         self.connection = Connection(
-            hass, entry.data[CONF_USERNAME], entry.data[CONF_PASSWORD]
+            entry.data[CONF_USERNAME], entry.data[CONF_PASSWORD]
         )
 
         super().__init__(hass, _LOGGER, name=DOMAIN, update_interval=update_interval)
@@ -61,18 +60,15 @@ class BrewfatherCoordinator(DataUpdateCoordinator[BrewfatherCoordinatorData]):
 
         fermentingBatches = []
         for batch in allBatches:
-            if batch.status == "Fermenting":  # redundant because of query
-                fermentingBatches.append(
-                    await self.connection.get_batch(batch.id, DRY_RUN)
-                )
+            fermentingBatch = await self.connection.get_batch(batch.id, DRY_RUN)
+            readings = await self.connection.get_readings(batch.id, DRY_RUN)
+            fermentingBatch.readings = readings
+            fermentingBatches.append(
+                fermentingBatch
+            )
 
-        # For now we only support a single fermenting batch
         if len(fermentingBatches) == 0:
             return None
-        elif len(fermentingBatches) > 1:
-            _LOGGER.warning(
-                "Multiple fermenting batches found, at the moment only 1 is supported. Using the latest batch..."
-            )
         currentBatch = fermentingBatches[0]
 
         currentTime = pytz.utc.localize(datetime.utcnow())
@@ -105,6 +101,7 @@ class BrewfatherCoordinator(DataUpdateCoordinator[BrewfatherCoordinatorData]):
                 break
 
         data = BrewfatherCoordinatorData()
+        data.batches = fermentingBatches
         data.brew_name = currentBatch.recipe.name
 
         if currentStep is not None:
