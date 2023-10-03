@@ -123,7 +123,7 @@ class Step:
     actual_time: Optional[int] = None
     step_temp: Optional[float] = None
     name: Optional[str] = None
-    step_time: Optional[int] = None
+    step_time: Optional[float] = None
 
     @staticmethod
     def from_dict(obj: Any) -> "Step":
@@ -136,7 +136,7 @@ class Step:
         actual_time = from_union([from_int, from_none], obj.get("actualTime"))
         step_temp = from_union([from_float, from_none], obj.get("stepTemp"))
         name = from_union([from_str, from_none], obj.get("name"))
-        step_time = from_union([from_int, from_none], obj.get("stepTime"))
+        step_time = from_union([from_float, from_none], obj.get("stepTime"))
         return Step(
             ramp,
             pressure,
@@ -161,7 +161,7 @@ class Step:
         result["actualTime"] = from_union([from_int, from_none], self.actual_time)
         result["stepTemp"] = from_union([to_float, from_none], self.step_temp)
         result["name"] = from_union([from_str, from_none], self.name)
-        result["stepTime"] = from_union([from_int, from_none], self.step_time)
+        result["stepTime"] = from_union([from_float, from_none], self.step_time)
         return result
 
 
