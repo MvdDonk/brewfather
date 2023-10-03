@@ -42,24 +42,23 @@ class Connection:
                 async with session.get(BATCHES_URI, auth=self.auth) as response:
                     if response.status == 200:
                         jsonText = await response.text()
-                        
+                        _LOGGER.debug("json response: %s", jsonText)
+
                         try:
                             jsonData = json.loads(jsonText)
                         except Exception as e:
-                            _LOGGER.debug("json response: %s", jsonText)
-                            _LOGGER.error("Unable to parse json response")
+                            _LOGGER.error("Unable to load json response")
 
                         try:
                             batches = batches_item_from_dict(jsonData)
                         except Exception as e:
-                            _LOGGER.debug("json response: %s", jsonText)
                             _LOGGER.error("Unable to create batches from json")
                         else:
                             return batches
                         
                     else:
                         raise UpdateFailed(
-                            f"Error communicating with API: {response.status}"
+                            f"Error communicating with API: {response.status}, URL: {BATCHES_URI}"
                         )
 
     async def get_batch(self, batchId: str, dryRun: bool, testData=TESTDATA_BATCH_1) -> BatchItem:
@@ -73,24 +72,23 @@ class Connection:
                 async with session.get(url, auth=self.auth) as response:
                     if response.status == 200:
                         jsonText = await response.text()
+                        _LOGGER.debug("json response: %s", jsonText)
 
                         try:
                             jsonData = json.loads(jsonText)
                         except Exception as e:
-                            _LOGGER.debug("json response: %s", jsonText)
-                            _LOGGER.error("Unable to parse json response")
+                            _LOGGER.error("Unable to load json response")
 
                         try:
                             batch = batch_item_from_dict(jsonData)
                         except Exception as e:
-                            _LOGGER.debug("json response: %s", jsonText)
-                            _LOGGER.error("Unable to create batches from json")
+                            _LOGGER.error("Unable to create batch from json")
                         else:
                             return batch
                         
                     else:
                         raise UpdateFailed(
-                            f"Error communicating with API: {response.status}"
+                            f"Error communicating with API: {response.status}, URL: {url}"
                         )
 
     async def get_readings(self, batchId: str, dryRun: bool) -> List[Reading]:
@@ -104,23 +102,22 @@ class Connection:
                 async with session.get(url, auth=self.auth) as response:
                     if response.status == 200:
                         jsonText = await response.text()
+                        _LOGGER.debug("json response: %s", jsonText)
 
                         try:
                             jsonData = json.loads(jsonText)
                         except Exception as e:
-                            _LOGGER.debug("json response: %s", jsonText)
-                            _LOGGER.error("Unable to parse json response")
+                            _LOGGER.error("Unable to load json response")
 
                         try:
                             reading = readings_item_from_dict(jsonData)
                         except Exception as e:
-                            _LOGGER.debug("json response: %s", jsonText)
-                            _LOGGER.error("Unable to create batches from json")
+                            _LOGGER.error("Unable to create readings from json")
                         else:
                             return reading
                     else:
                         raise UpdateFailed(
-                            f"Error communicating with API: {response.status}"
+                            f"Error communicating with API: {response.status}, URL: {url}"
                         )
 
 
