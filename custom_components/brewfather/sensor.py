@@ -204,7 +204,7 @@ class BrewfatherSensor(CoordinatorEntity[SensorEntity]):
         attributes = {}
         attributes["data"] = []
         for batch in self.batches:
-            attributes["data"].append(batch.to_attribute_entry())
+            attributes["data"].append(batch.to_dict())
         return attributes
 
     @property

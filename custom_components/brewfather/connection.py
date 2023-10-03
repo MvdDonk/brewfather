@@ -5,7 +5,9 @@ import aiohttp
 import json
 from homeassistant import exceptions
 from .models.batches_item import BatchesItemElement, batches_item_from_dict
-from .models.batch_item import BatchItem, batch_item_from_dict, readings_item_from_dict, Reading
+from .models.batch_item import BatchItem, batch_item_from_dict
+from .models.reading_item import Reading, readings_from_dict
+
 from homeassistant.helpers.update_coordinator import UpdateFailed
 from .const import *
 from .testdata import *
@@ -46,13 +48,10 @@ class Connection:
 
                         try:
                             jsonData = json.loads(jsonText)
-                        except Exception as e:
-                            _LOGGER.error("Unable to load json response")
-
-                        try:
                             batches = batches_item_from_dict(jsonData)
                         except Exception as e:
                             _LOGGER.error("Unable to create batches from json")
+                            exit(1)
                         else:
                             return batches
                         
@@ -76,13 +75,10 @@ class Connection:
 
                         try:
                             jsonData = json.loads(jsonText)
-                        except Exception as e:
-                            _LOGGER.error("Unable to load json response")
-
-                        try:
                             batch = batch_item_from_dict(jsonData)
                         except Exception as e:
                             _LOGGER.error("Unable to create batch from json")
+                            exit(1)
                         else:
                             return batch
                         
@@ -96,7 +92,7 @@ class Connection:
         _LOGGER.debug("get_readings %s (%s)", url, dryRun)
 
         if dryRun:
-            return readings_item_from_dict(json.loads(TESTDATA_READINGS))
+            return readings_from_dict(json.loads(TESTDATA_READINGS))
         else:
             async with aiohttp.ClientSession() as session:
                 async with session.get(url, auth=self.auth) as response:
@@ -106,13 +102,10 @@ class Connection:
 
                         try:
                             jsonData = json.loads(jsonText)
-                        except Exception as e:
-                            _LOGGER.error("Unable to load json response")
-
-                        try:
-                            reading = readings_item_from_dict(jsonData)
+                            reading = readings_from_dict(jsonData)
                         except Exception as e:
                             _LOGGER.error("Unable to create readings from json")
+                            exit(1)
                         else:
                             return reading
                     else:

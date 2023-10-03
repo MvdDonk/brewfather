@@ -6,7 +6,7 @@ from typing import Optional
 import pytz
 from .connection import *
 
-from .models.batch_item import FermentationStep
+from .models.batch_item import Fermentation
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
@@ -16,7 +16,7 @@ _LOGGER = logging.getLogger(__name__)
 MS_IN_DAY = 86400000
 
 
-def sort_by_actual_time(entity: FermentationStep):
+def sort_by_actual_time(entity: Fermentation):
     return entity.actual_time
 
 
@@ -62,7 +62,9 @@ class BrewfatherCoordinator(DataUpdateCoordinator[BrewfatherCoordinatorData]):
         for batch in allBatches:
             fermentingBatch = await self.connection.get_batch(batch.id, DRY_RUN)
             readings = await self.connection.get_readings(batch.id, DRY_RUN)
+            #Add the readings to fermentingBatch with a on-the-fly created property
             fermentingBatch.readings = readings
+            
             fermentingBatches.append(
                 fermentingBatch
             )
@@ -74,15 +76,15 @@ class BrewfatherCoordinator(DataUpdateCoordinator[BrewfatherCoordinatorData]):
         currentTime = pytz.utc.localize(datetime.utcnow())
         currentBatch.recipe.fermentation.steps.sort(key=sort_by_actual_time)
 
-        currentStep: FermentationStep | None = None
-        nextStep: FermentationStep | None = None
+        currentStep: Fermentation | None = None
+        nextStep: Fermentation | None = None
 
         fermenting_start: int | None = None
         for note in currentBatch.notes:
             if note.status == "Fermenting":
                 fermenting_start = note.timestamp
 
-        for (index, step) in enumerate[FermentationStep](
+        for (index, step) in enumerate[Fermentation](
             currentBatch.recipe.fermentation.steps
         ):
             step_start_datetime = self.datetime_fromtimestamp_with_fermentingstart(
