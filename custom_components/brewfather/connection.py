@@ -34,7 +34,7 @@ class Connection:
         return False
 
     async def get_batches(self, dryRun: bool) -> List[BatchesItemElement]:
-        _LOGGER.debug("get_batches %s!", BATCHES_URI)
+        _LOGGER.debug("get_batches %s (%s)", BATCHES_URI, dryRun)
         if dryRun:
             return batches_item_from_dict(json.loads(TESTDATA_BATCHES))
         else:
@@ -42,7 +42,21 @@ class Connection:
                 async with session.get(BATCHES_URI, auth=self.auth) as response:
                     if response.status == 200:
                         jsonText = await response.text()
-                        return batches_item_from_dict(json.loads(jsonText))
+                        
+                        try:
+                            jsonData = json.loads(jsonText)
+                        except Exception as e:
+                            _LOGGER.debug("json response: %s", jsonText)
+                            _LOGGER.error("Unable to parse json response")
+
+                        try:
+                            batches = batches_item_from_dict(jsonData)
+                        except Exception as e:
+                            _LOGGER.debug("json response: %s", jsonText)
+                            _LOGGER.error("Unable to create batches from json")
+                        else:
+                            return batches
+                        
                     else:
                         raise UpdateFailed(
                             f"Error communicating with API: {response.status}"
@@ -50,7 +64,7 @@ class Connection:
 
     async def get_batch(self, batchId: str, dryRun: bool, testData=TESTDATA_BATCH_1) -> BatchItem:
         url = BATCH_URI.format(batchId)
-        _LOGGER.debug("get_batch %s", url)
+        _LOGGER.debug("get_batch %s (%s)", url, dryRun)
 
         if dryRun:
             return batch_item_from_dict(json.loads(testData))
@@ -59,7 +73,21 @@ class Connection:
                 async with session.get(url, auth=self.auth) as response:
                     if response.status == 200:
                         jsonText = await response.text()
-                        return batch_item_from_dict(json.loads(jsonText))
+
+                        try:
+                            jsonData = json.loads(jsonText)
+                        except Exception as e:
+                            _LOGGER.debug("json response: %s", jsonText)
+                            _LOGGER.error("Unable to parse json response")
+
+                        try:
+                            batch = batch_item_from_dict(jsonData)
+                        except Exception as e:
+                            _LOGGER.debug("json response: %s", jsonText)
+                            _LOGGER.error("Unable to create batches from json")
+                        else:
+                            return batch
+                        
                     else:
                         raise UpdateFailed(
                             f"Error communicating with API: {response.status}"
@@ -67,7 +95,8 @@ class Connection:
 
     async def get_readings(self, batchId: str, dryRun: bool) -> List[Reading]:
         url = READINGS_URI.format(batchId)
-        _LOGGER.debug("get_readings %s!", url)
+        _LOGGER.debug("get_readings %s (%s)", url, dryRun)
+
         if dryRun:
             return readings_item_from_dict(json.loads(TESTDATA_READINGS))
         else:
@@ -75,7 +104,20 @@ class Connection:
                 async with session.get(url, auth=self.auth) as response:
                     if response.status == 200:
                         jsonText = await response.text()
-                        return readings_item_from_dict(json.loads(jsonText))
+
+                        try:
+                            jsonData = json.loads(jsonText)
+                        except Exception as e:
+                            _LOGGER.debug("json response: %s", jsonText)
+                            _LOGGER.error("Unable to parse json response")
+
+                        try:
+                            reading = readings_item_from_dict(jsonData)
+                        except Exception as e:
+                            _LOGGER.debug("json response: %s", jsonText)
+                            _LOGGER.error("Unable to create batches from json")
+                        else:
+                            return reading
                     else:
                         raise UpdateFailed(
                             f"Error communicating with API: {response.status}"
