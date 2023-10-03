@@ -77,7 +77,7 @@ class Recipe:
 @dataclass
 class BatchesItemElement:
     id: str = None
-    name: Optional[Name] = None
+    name: Optional[str] = None
     batch_no: Optional[int] = None
     status: Optional[str] = None
     brewer: Optional[str] = None
@@ -88,7 +88,7 @@ class BatchesItemElement:
     def from_dict(obj: Any) -> "BatchesItemElement":
         assert isinstance(obj, dict)
         id = from_str(obj.get("_id"))
-        name = from_union([Name, from_none], obj.get("name"))
+        name = from_union([from_str, from_none], obj.get("name"))
         batch_no = from_union([from_int, from_none], obj.get("batchNo"))
         status = from_union([from_str, from_none], obj.get("status"))
         brewer = from_union([from_none, from_str], obj.get("brewer"))
