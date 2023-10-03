@@ -1,5 +1,11 @@
+from .reading_item import Reading
 from typing import Optional, Any, List, TypeVar, Callable, Type, cast
-
+import time
+import datetime
+from enum import Enum
+from dataclasses import dataclass
+from typing import Optional, Any, List, TypeVar, Type, Callable, cast
+MS_IN_DAY = 86400000
 
 T = TypeVar("T")
 
@@ -263,6 +269,8 @@ class BatchItem:
     recipe: Optional[Recipe]
     notes: Optional[List[Note]]
     measured_og: Optional[float]
+    #Add the readings to fermentingBatch with a fake property
+    readings: Optional[List[Reading]]
 
     def __init__(self, id: Optional[str], name: Optional[str], batch_no: Optional[int], status: Optional[str], brewer: Optional[str], brew_date: Optional[int], recipe: Optional[Recipe], notes: Optional[List[Note]], measured_og: Optional[float]) -> None:
         self.id = id
@@ -309,6 +317,49 @@ class BatchItem:
             result["notes"] = from_union([lambda x: from_list(lambda x: to_class(Note, x), x), from_none], self.notes)
         if self.measured_og is not None:
             result["measuredOg"] = from_union([to_float, from_none], self.measured_og)
+        return result
+
+    def to_attribute_entry_hassio(self) -> dict:
+        result: dict = {}
+        result["name"] = from_union([from_str, from_none], from_union(
+            [lambda x: to_class(Recipe, x), from_none], self.recipe
+        )["name"])
+        result["brewDate"] = datetime.datetime.fromtimestamp(self.brew_date / 1000)
+        result["batchNo"] = from_union([from_int, from_none], self.batch_no)
+        fermenting_start = self.recipe.fermentation.steps[0].actual_time / 1000
+        result["fermentingStart"] = datetime.datetime.fromtimestamp(fermenting_start)
+
+        if self.readings is not None and len(self.readings) > 0:
+            result["current_temperature"] = self.readings[0].temp
+        else:
+            result["current_temperature"] = None
+
+        result["target_temperature"] = None
+        current_time = time.time()
+        days_to_ferment = 0
+        for (index, step) in enumerate[Step](
+                self.recipe.fermentation.steps
+        ):
+            days_to_ferment += step.step_time
+            step_start_datetime = step.actual_time / 1000
+            step_end_datetime = (step.actual_time + step.step_time * MS_IN_DAY) / 1000
+            if step_start_datetime < current_time < step_end_datetime:
+                result["target_temperature"] = from_union([from_float, from_none], step.step_temp)
+
+        finish_time = fermenting_start + (days_to_ferment * 86400)
+        result["fermentingEnd"] = datetime.datetime.fromtimestamp(finish_time)
+        result["fermentingLeft"] = (finish_time - current_time) / 86400
+        result["status"] = from_union([from_str, from_none], self.status)
+        result["measuredOg"] = from_union([from_float, from_none], self.measured_og)
+        result["recipe"] = from_union(
+            [lambda x: to_class(Recipe, x), from_none], self.recipe
+        )
+        result["notes"] = from_union(
+            [lambda x: from_list(lambda x: to_class(Note, x), x), from_none], self.notes
+        )
+        result["readings"] = from_union(
+            [lambda x: from_list(lambda x: to_class(Reading, x), x), from_none], self.readings
+        )
         return result
 
 

@@ -62,7 +62,6 @@ class BrewfatherCoordinator(DataUpdateCoordinator[BrewfatherCoordinatorData]):
         for batch in allBatches:
             fermentingBatch = await self.connection.get_batch(batch.id, DRY_RUN)
             readings = await self.connection.get_readings(batch.id, DRY_RUN)
-            #Add the readings to fermentingBatch with a on-the-fly created property
             fermentingBatch.readings = readings
             
             fermentingBatches.append(
