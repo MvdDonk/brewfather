@@ -13,13 +13,6 @@ from typing import Any, List, TypeVar, Type, cast, Callable
 import aiohttp
 import json
 
-
-# from models.batches_item import BatchesItemElement
-from .models.batches_item import BatchesItemElement, batches_item_from_dict
-from .models.batch_item import BatchItem, batch_item_from_dict, FermentationStep
-
-# ontwikkelogmvign: https://developers.home-assistant.io/docs/development_environment/
-
 # voorbeeld https://github.com/black-roland/homeassistant-microsoft-todo/tree/master/custom_components/microsoft_todo
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_IP_ADDRESS, CONF_NAME, CONF_PASSWORD, CONF_USERNAME
