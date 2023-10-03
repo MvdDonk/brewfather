@@ -74,7 +74,7 @@ class Note:
     note: Optional[str] = None
     status: Optional[str] = None
     timestamp: Optional[int] = None
-    type: Optional[TypeEnum] = None
+    type: Optional[str] = None
 
     @staticmethod
     def from_dict(obj: Any) -> "Note":
@@ -82,7 +82,7 @@ class Note:
         note = from_union([from_str, from_none], obj.get("note"))
         status = from_union([from_str, from_none], obj.get("status"))
         timestamp = from_union([from_int, from_none], obj.get("timestamp"))
-        type = from_union([TypeEnum, from_none], obj.get("type"))
+        type = from_union([from_str, from_none], obj.get("type"))
         return Note(note, status, timestamp, type)
 
     def to_dict(self) -> dict:
@@ -90,9 +90,7 @@ class Note:
         result["note"] = from_union([from_str, from_none], self.note)
         result["status"] = from_union([from_str, from_none], self.status)
         result["timestamp"] = from_union([from_int, from_none], self.timestamp)
-        result["type"] = from_union(
-            [lambda x: to_enum(TypeEnum, x), from_none], self.type
-        )
+        result["type"] = from_union([from_str, from_none], self.type)
         return result
 
 
