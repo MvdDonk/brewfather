@@ -120,15 +120,15 @@ class Created:
 class Step:
     actual_time: Optional[int]
     step_temp: Optional[float]
-    display_pressure: None
-    ramp: None
+    display_pressure: Optional[str]
+    ramp: Optional[float]
     name: Optional[str]
-    pressure: None
-    display_step_temp: Optional[int]
+    pressure: Optional[str]
+    display_step_temp: Optional[float]
     step_time: Optional[float]
     type: Optional[str]
 
-    def __init__(self, actual_time: Optional[int], step_temp: Optional[float], display_pressure: None, ramp: None, name: Optional[str], pressure: None, display_step_temp: Optional[int], step_time: Optional[float], type: Optional[str]) -> None:
+    def __init__(self, actual_time: Optional[int], step_temp: Optional[float], display_pressure: Optional[str], ramp: Optional[float], name: Optional[str], pressure: Optional[str], display_step_temp: Optional[float], step_time: Optional[float], type: Optional[str]) -> None:
         self.actual_time = actual_time
         self.step_temp = step_temp
         self.display_pressure = display_pressure
@@ -144,11 +144,11 @@ class Step:
         assert isinstance(obj, dict)
         actual_time = from_union([from_int, from_none], obj.get("actualTime"))
         step_temp = from_union([from_float, from_none], obj.get("stepTemp"))
-        display_pressure = from_none(obj.get("displayPressure"))
-        ramp = from_none(obj.get("ramp"))
+        display_pressure = from_union([from_str, from_none], obj.get("displayPressure"))
+        ramp = from_union([from_float, from_none], obj.get("ramp"))
         name = from_union([from_str, from_none], obj.get("name"))
-        pressure = from_none(obj.get("pressure"))
-        display_step_temp = from_union([from_int, from_none], obj.get("displayStepTemp"))
+        pressure = from_union([from_str, from_none], obj.get("pressure"))
+        display_step_temp = from_union([from_float, from_none], obj.get("displayStepTemp"))
         step_time = from_union([from_float, from_none], obj.get("stepTime"))
         type = from_union([from_str, from_none], obj.get("type"))
         return Step(actual_time, step_temp, display_pressure, ramp, name, pressure, display_step_temp, step_time, type)
@@ -160,15 +160,15 @@ class Step:
         if self.step_temp is not None:
             result["stepTemp"] = from_union([to_float, from_none], self.step_temp)
         if self.display_pressure is not None:
-            result["displayPressure"] = from_none(self.display_pressure)
+            result["displayPressure"] = from_union([from_str, from_none], self.display_pressure)
         if self.ramp is not None:
-            result["ramp"] = from_none(self.ramp)
+            result["ramp"] = from_union([to_float, from_none], self.ramp)
         if self.name is not None:
             result["name"] = from_union([from_str, from_none], self.name)
         if self.pressure is not None:
-            result["pressure"] = from_none(self.pressure)
+            result["pressure"] = from_union([from_str, from_none], self.pressure)
         if self.display_step_temp is not None:
-            result["displayStepTemp"] = from_union([from_int, from_none], self.display_step_temp)
+            result["displayStepTemp"] = from_union([from_float, from_none], self.display_step_temp)
         if self.step_time is not None:
             result["stepTime"] = from_union([to_float, from_none], self.step_time)
         if self.type is not None:
