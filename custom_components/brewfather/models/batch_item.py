@@ -330,7 +330,7 @@ class BatchItem:
         result["fermentingStart"] = datetime.datetime.fromtimestamp(fermenting_start)
 
         if self.readings is not None and len(self.readings) > 0:
-            result["current_temperature"] = self.readings[0].temp
+            result["current_temperature"] = sorted(self.readings, key=lambda x: x.time, reverse=True)[0].temp
         else:
             result["current_temperature"] = None
 
