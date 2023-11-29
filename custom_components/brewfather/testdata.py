@@ -2350,5 +2350,21 @@ TESTDATA_READINGS = r"""[
         "time": 1689162288099,
         "id": "manual",
         "type": "manual"
+    },
+    {
+        "temp": 21.9,
+        "sg": null,
+        "comment": "",
+        "time": 1789162288099,
+        "id": "manual",
+        "type": "manual"
+    },
+    {
+        "temp": 20.5,
+        "sg": null,
+        "comment": "",
+        "time": 1589162288099,
+        "id": "manual",
+        "type": "manual"
     }
 ]"""
