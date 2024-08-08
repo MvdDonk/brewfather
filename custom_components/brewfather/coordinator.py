@@ -106,13 +106,13 @@ class BrewfatherCoordinator(DataUpdateCoordinator[BrewfatherCoordinatorData]):
         data.brew_name = currentBatch.recipe.name
 
         if currentStep is not None:
-            data.current_step_temperature = currentStep.display_step_temp
-            _LOGGER.debug("Current step: %s", currentStep.display_step_temp)
+            data.current_step_temperature = currentStep.step_temp
+            _LOGGER.debug("Current step: %s", currentStep.step_temp)
         else:
             _LOGGER.debug("No current step")
 
         if nextStep is not None:
-            data.next_step_temperature = nextStep.display_step_temp
+            data.next_step_temperature = nextStep.step_temp
 
             data.next_step_date = self.datetime_fromtimestamp_with_fermentingstart(
                 nextStep.actual_time, fermenting_start
@@ -120,7 +120,7 @@ class BrewfatherCoordinator(DataUpdateCoordinator[BrewfatherCoordinatorData]):
 
             _LOGGER.debug(
                 "Next step: %s - %s",
-                nextStep.display_step_temp,
+                nextStep.step_temp,
                 data.next_step_date,
             )
         else:
