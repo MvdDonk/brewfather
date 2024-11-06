@@ -3,7 +3,6 @@ import logging
 from typing import Any, Dict, Optional
 import voluptuous as vol # type: ignore
 from homeassistant import config_entries # type: ignore
-from homeassistant.core import HomeAssistant # type: ignore
 import homeassistant.helpers.config_validation as cv # type: ignore
 from .const import (
     DOMAIN
@@ -67,7 +66,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             except CannotConnect:
                 errors["base"] = "cannot_connect"
             except Exception as ex:
-                _LOGGER.exception("Unexpected exception when testing connection: ", ex)
+                _LOGGER.exception("Unexpected exception when testing connection: %s", str(ex))
                 errors["base"] = "unknown"
                 
         if not errors and validCredentials:

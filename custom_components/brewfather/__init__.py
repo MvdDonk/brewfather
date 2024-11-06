@@ -43,5 +43,4 @@ async def async_setup_entry(hass: core.HomeAssistant, config_entry: config_entri
     return True
 
 def update_callback(hass, coordinator):
-    _LOGGER.debug("Refresh Brewfather connection data")
     hass.async_create_task(coordinator.async_request_refresh())
