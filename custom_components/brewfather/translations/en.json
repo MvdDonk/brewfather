@@ -16,7 +16,7 @@
       "cannot_connect": "Failed to register, please try again",
       "invalid_scope": "The API-Key doesn't have the correct scopes.",
       "invalid_api_key": "Unable to authenticate with given credentials.",
-      "unknown":"Something went wrong."
+      "unknown":"Something went wrong, please check the log files."
     },
     "abort": {
       "already_configured": "Api key is already configured"

@@ -13,10 +13,11 @@ from .const import *
 from .coordinator import BrewfatherCoordinator
 
 from homeassistant.components.sensor import SensorEntity, SensorStateClass
+from homeassistant.components.sensor import (
+    SensorDeviceClass,
+)
 from homeassistant.const import (
-    DEVICE_CLASS_TEMPERATURE,
-    DEVICE_CLASS_TIMESTAMP,
-    TEMP_CELSIUS, UnitOfTemperature,
+    UnitOfTemperature,
 )
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -118,10 +119,10 @@ class BrewfatherSensor(CoordinatorEntity[SensorEntity]):
             self._attr_state_class = SensorStateClass.MEASUREMENT
 
         if "temperature" in str(self._kind):
-            self._unit_of_measure = TEMP_CELSIUS
-            self._attr_device_class = DEVICE_CLASS_TEMPERATURE
+            self._unit_of_measure = UnitOfTemperature.CELSIUS
+            self._attr_device_class = SensorDeviceClass.TEMPERATURE
         elif "date" in str(self._kind):
-            self._attr_device_class = DEVICE_CLASS_TIMESTAMP
+            self._attr_device_class = SensorDeviceClass.TIMESTAMP
 
     @property
     def icon(self):
@@ -172,7 +173,7 @@ class BrewfatherSensor(CoordinatorEntity[SensorEntity]):
                 self.batches = brewfatherCoordinator.data.batches
 
         # Received a datetime
-        if self._state is not None and self.device_class == DEVICE_CLASS_TIMESTAMP:
+        if self._state is not None and self.device_class == SensorDeviceClass.TIMESTAMP:
             try:
                 # We cast the value, to avoid using isinstance, but satisfy
                 # typechecking. The errors are guarded in this try.

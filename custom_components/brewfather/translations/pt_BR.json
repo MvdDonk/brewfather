@@ -14,7 +14,6 @@
     },
     "error": {
       "cannot_connect": "Falha no registro, por favor tente novamente.",
-      "invalid_scope": "The API-Key doesn't have the correct scopes.",
       "invalid_scope": "A API-Key não tem acesso aos escopos corretos",
       "invalid_api_key": "Não foi possível autenticar com as credenciais fornecidas",
       "unknown": "Algo errado aconteceu"
