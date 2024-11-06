@@ -2,10 +2,7 @@ from __future__ import annotations
 import logging
 from datetime import datetime, timezone, timedelta
 from typing import Optional
-
-import pytz
 from .connection import Connection
-
 from .models.batch_item import (
     Fermentation,
     BatchItem
@@ -21,10 +18,8 @@ from .const import (
 
 _LOGGER = logging.getLogger(__name__)
 
-
 def sort_by_actual_time(entity: Fermentation):
     return entity.actual_time
-
 
 class BrewfatherCoordinatorData:
     brew_name: Optional[str]
@@ -54,14 +49,11 @@ class BrewfatherCoordinator(DataUpdateCoordinator[BrewfatherCoordinatorData]):
 
     async def _async_update_data(self) -> BrewfatherCoordinatorData:
         """Update data via library."""
-        _LOGGER.debug("BrewfatherCoordinator._async_update_data!")
-        # https://github.com/djtimca/HASpaceX/blob/master/custom_components/spacex/__init__.py
         data = await self.update()
         return data
 
     async def update(self) -> BrewfatherCoordinatorData:
-        _LOGGER.debug("BrewfatherCoordinator.update!")
-
+        _LOGGER.debug("Updating data...")
         allBatches = await self.connection.get_batches(DRY_RUN)
 
         fermentingBatches = []
@@ -76,9 +68,9 @@ class BrewfatherCoordinator(DataUpdateCoordinator[BrewfatherCoordinatorData]):
 
         if len(fermentingBatches) == 0:
             return None
+        
         currentBatch = fermentingBatches[0]
-
-        currentTime = pytz.utc.localize(datetime.utcnow())
+        currentTime = datetime.now().astimezone()
         currentBatch.recipe.fermentation.steps.sort(key=sort_by_actual_time)
 
         currentStep: Fermentation | None = None
