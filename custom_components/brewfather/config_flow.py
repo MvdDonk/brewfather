@@ -28,6 +28,7 @@ CONNECTION_SCHEMA = vol.Schema(
         vol.Required(CONF_PASSWORD): cv.string,
     }
 )
+OPTIONS_SCHEMA = vol.Schema({vol.Optional("Update interval", default=3600): cv.Number})
 
 async def validate_auth(username:str, password:str) -> dict[str, any]:
     """Validate the user input allows us to connect."""
@@ -66,7 +67,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             except CannotConnect:
                 errors["base"] = "cannot_connect"
             except Exception as ex:
-                _LOGGER.exception("Unexpected exception when testing connection: %s", str(ex))
+                _LOGGER.error("Unexpected exception when testing connection: %s", str(ex))
                 errors["base"] = "unknown"
                 
         if not errors and validCredentials:
