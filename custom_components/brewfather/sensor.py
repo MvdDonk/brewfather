@@ -4,15 +4,21 @@ from datetime import datetime, timezone
 import enum
 import logging
 from typing import cast
-from homeassistant.core import callback
 from homeassistant.config_entries import ConfigEntry
 from .const import (
     DOMAIN,
-    COORDINATOR
+    COORDINATOR,
+    CONNECTION_NAME
 )
-from homeassistant.const import UnitOfTemperature
 from .coordinator import BrewfatherCoordinator
-from homeassistant.components.sensor import SensorEntity, SensorStateClass, SensorEntityDescription, SensorDeviceClass
+
+from homeassistant.components.sensor import SensorEntity, SensorStateClass
+from homeassistant.components.sensor import (
+    SensorDeviceClass,
+)
+from homeassistant.const import (
+    UnitOfTemperature,
+)
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.typing import StateType
@@ -22,174 +28,148 @@ from homeassistant.helpers.update_coordinator import (
 )
 
 _LOGGER = logging.getLogger(__name__)
-# See: https://github.com/cyberjunky/home-assistant-toon_smartmeter/blob/master/custom_components/toon_smartmeter/sensor.py#L286
-SENSOR_PREFIX = "Brewfather"
+
+
 async def async_setup_entry(
     hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
 ):
     """Set up the sensor platforms."""
     coordinator = hass.data[DOMAIN][entry.entry_id][COORDINATOR]
-    #connectionName = hass.data[DOMAIN][entry.entry_id][CONNECTION_NAME]
+    connectionName = hass.data[DOMAIN][entry.entry_id][CONNECTION_NAME]
     sensors = []
 
     sensors.append(
         BrewfatherSensor(
             coordinator,
-            0,
+            "Recipe name",
             SensorKinds.fermenting_name,
-            SensorEntityDescription(
-                key="batch_recipe_name",
-                name="Batch recipe name",
-                icon="mdi:glass-mug",
-            )
+            "mdi:glass-mug",
+            connectionName,
         )
     )
 
     sensors.append(
         BrewfatherSensor(
             coordinator,
-            1,
+            "Current temperature",
             SensorKinds.fermenting_current_temperature,
-            SensorEntityDescription(
-                key="batch_target_temperature",
-                name="Batch target temperature",
-                icon="mdi:thermometer",
-                native_unit_of_measurement=UnitOfTemperature.CELSIUS, #Should we support fahrenheit?
-                device_class=SensorDeviceClass.TEMPERATURE,
-                state_class=SensorStateClass.MEASUREMENT,
-            )
+            "mdi:thermometer",
+            connectionName,
         )
     )
 
     sensors.append(
         BrewfatherSensor(
             coordinator,
-            2,
+            "Upcoming temperature",
             SensorKinds.fermenting_next_temperature,
-            SensorEntityDescription(
-                key="batch_upcoming_target_temperature",
-                name="Batch upcoming target temperature",
-                icon="mdi:thermometer-chevron-up",
-                native_unit_of_measurement=UnitOfTemperature.CELSIUS, #Should we support fahrenheit?
-                device_class=SensorDeviceClass.TEMPERATURE,
-                state_class=SensorStateClass.MEASUREMENT,
-            )
+            "mdi:thermometer-chevron-up",
+            connectionName,
         )
     )
 
     sensors.append(
         BrewfatherSensor(
             coordinator,
-            3,
+            "Upcoming temperature change",
             SensorKinds.fermenting_next_date,
-            SensorEntityDescription(
-                key="batch_upcoming_target_temperature_change",
-                name="Batch upcoming target temperature change",
-                icon="mdi:clock",
-                device_class=SensorDeviceClass.TIMESTAMP,
-            )
+            "mdi:clock",
+            connectionName,
         )
     )
 
-    # sensors.append(
-    #     BrewfatherSensor(
-    #         coordinator,
-    #         "Fermenting batches",
-    #         SensorKinds.fermenting_batches,
-    #         "mdi:glass-mug",
-    #         connectionName,
-    #     )
-    # )
-    # async_add_entities(
-    #     BrewfatherSensor(coordinator, idx, ent) for idx, ent in enumerate(sensors)
-    # )
-
-    async_add_entities(sensors, True)
+    sensors.append(
+        BrewfatherSensor(
+            coordinator,
+            "Fermenting batches",
+            SensorKinds.fermenting_batches,
+            "mdi:glass-mug",
+            connectionName,
+        )
+    )
+    async_add_entities(sensors)
 
 
-class BrewfatherSensor(CoordinatorEntity, SensorEntity):
-    """An entity using CoordinatorEntity.
-
-    The CoordinatorEntity class provides:
-      should_poll
-      async_update
-      async_added_to_hass
-      available
-
-    """
+class BrewfatherSensor(CoordinatorEntity[SensorEntity]):
     """Defines a sensor."""
 
     def __init__(
         self,
         coordinator: DataUpdateCoordinator,
-        idx,
+        name: str,
         sensorKind: SensorKinds,
-        description: SensorEntityDescription,
+        icon: str,
+        connectionName: str,
     ):
-        """Pass coordinator to CoordinatorEntity."""
-        super().__init__(coordinator, context=idx)
-        self.idx = idx
+        """Initialize Entities."""
 
-        self._entity_description = description
-        self._sensor_type = sensorKind
-        self.device_type = self._entity_description.key
+        super().__init__(coordinator=coordinator)
 
-        self._attr_name = f"{SENSOR_PREFIX} {self._entity_description.name}"
-        self._attr_unique_id = f"{SENSOR_PREFIX}_{self._entity_description.name}"
-
-        self._attr_icon = self._entity_description.icon
-        self._attr_state_class = self._entity_description.state_class
-        self._attr_native_unit_of_measurement = self._entity_description.native_unit_of_measurement
-        self._attr_device_class = self._entity_description.device_class
+        # https://developers.home-assistant.io/docs/entity_registry_index/
+        self.batches = None
+        self._attr_name = f"{name}"
+        self._attr_unique_id = f"{DOMAIN}_{connectionName}_{sensorKind}"
         self._state = None
-        self._discovery = False
-        self._dev_id = {}
-        
+        self._icon = icon
+        self._kind = sensorKind
+        self._unit_of_measure = None
+        self.attrs = {}
+        if self._kind == SensorKinds.fermenting_current_temperature:
+            self._attr_state_class = SensorStateClass.MEASUREMENT
+
+        if "temperature" in str(self._kind):
+            self._unit_of_measure = UnitOfTemperature.CELSIUS
+            self._attr_device_class = SensorDeviceClass.TEMPERATURE
+        elif "date" in str(self._kind):
+            self._attr_device_class = SensorDeviceClass.TIMESTAMP
+
+    @property
+    def icon(self):
+        """Return the icon for this entity."""
+        return self._icon
+
+    @property
+    def unit_of_measurement(self):
+        """Return the unit of measurement for this entity."""
+        return self._unit_of_measure
+
+    # @property
+    # def device_info(self):
+    #     """Define the device based on device_identifier."""
+
+    #     device_name = "SpaceX Launches"
+    #     device_model = "Launch"
+
+    #     if self._device_identifier != "spacexlaunch":
+    #         device_name = "SpaceX Starman"
+    #         device_model = "Starman"
+
+    #     return {
+    #         ATTR_IDENTIFIERS: {(DOMAIN, self._device_identifier)},
+    #         ATTR_NAME: device_name,
+    #         ATTR_MANUFACTURER: "SpaceX",
+    #         ATTR_MODEL: device_model,
+    #     }
+
     @property
     def state(self) -> StateType:
         """Return the state."""
-        return self._state
-
-    # @property
-    # def extra_state_attributes(self):
-    #     if self.batches is None:
-    #         return None
-    #     attributes = {}
-    #     attributes["data"] = []
-    #     for batch in self.batches:
-    #         attributes["data"].append(batch.to_attribute_entry_hassio())
-    #     return attributes
-
-    @property
-    def available(self) -> bool:
-        """Return True if entity is available."""
-        return self._attr_available
-
-    @callback
-    def _handle_coordinator_update(self) -> None:
-        """Handle updated data from the coordinator."""
-        """Update Sensor Entity."""
-        _LOGGER.debug("Updating state of the sensors.")
-        #await self.coordinator.async_request_refresh()
         brewfatherCoordinator: BrewfatherCoordinator = self.coordinator
-        data = brewfatherCoordinator.data
-        if data is None:
+
+        if brewfatherCoordinator.data is None:
             self._state = None
-            self._attr_available = False
-            return
-        
-        self._attr_available = True
-        if self._sensor_type == SensorKinds.fermenting_name:
-            self._state = data.brew_name
-        elif self._sensor_type == SensorKinds.fermenting_current_temperature:
-            self._state = data.current_step_temperature
-        elif self._sensor_type == SensorKinds.fermenting_next_date:
-            self._state = data.next_step_date
-        elif self._sensor_type == SensorKinds.fermenting_next_temperature:
-            self._state = data.next_step_temperature
-        elif self._sensor_type == SensorKinds.fermenting_batches:
-            self._state = len(data.batches)
-            self.batches = data.batches
+        else:
+            if self._kind == SensorKinds.fermenting_name:
+                self._state = brewfatherCoordinator.data.brew_name
+            elif self._kind == SensorKinds.fermenting_current_temperature:
+                self._state = brewfatherCoordinator.data.current_step_temperature
+            elif self._kind == SensorKinds.fermenting_next_date:
+                self._state = brewfatherCoordinator.data.next_step_date
+            elif self._kind == SensorKinds.fermenting_next_temperature:
+                self._state = brewfatherCoordinator.data.next_step_temperature
+            elif self._kind == SensorKinds.fermenting_batches:
+                self._state = len(brewfatherCoordinator.data.batches)
+                self.batches = brewfatherCoordinator.data.batches
 
         # Received a datetime
         if self._state is not None and self.device_class == SensorDeviceClass.TIMESTAMP:
@@ -208,15 +188,36 @@ class BrewfatherSensor(CoordinatorEntity, SensorEntity):
 
                 _LOGGER.debug("value %s, %s", value, value.tzinfo)
 
-                #return value.isoformat(timespec="seconds")
-                self._state =value.isoformat(timespec="seconds")
+                return value.isoformat(timespec="seconds")
             except (AttributeError, TypeError) as err:
                 raise ValueError(
                     f"Invalid datetime: {self.entity_id} has a timestamp device class"
                     f"but does not provide a datetime state but {type(value)}"
                 ) from err
 
-            
+        return self._state
+
+    @property
+    def extra_state_attributes(self):
+        if self.batches is None:
+            return None
+        attributes = {}
+        attributes["data"] = []
+        for batch in self.batches:
+            attributes["data"].append(batch.to_attribute_entry_hassio())
+        return attributes
+
+    @property
+    def available(self) -> bool:
+        """Return True if entity is available."""
+        brewfatherCoordinator: BrewfatherCoordinator = self.coordinator
+        self._attr_available = brewfatherCoordinator.data is not None
+        return self._attr_available
+
+    async def async_update(self):
+        """Update Sensor Entity."""
+        await self.coordinator.async_request_refresh()
+        _LOGGER.debug("Updating state of the sensors.")
 
     async def async_added_to_hass(self):
         """Subscribe to updates."""
