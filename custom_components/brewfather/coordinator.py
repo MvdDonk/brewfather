@@ -5,15 +5,15 @@ from typing import Optional
 from .connection import Connection
 from .models.batch_item import (
     Fermentation,
-    BatchItem
-    )
+    BatchItem,
+    Step
+)
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 from .const import (
     DOMAIN,
     MS_IN_DAY,
-    DRY_RUN
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -54,12 +54,12 @@ class BrewfatherCoordinator(DataUpdateCoordinator[BrewfatherCoordinatorData]):
 
     async def update(self) -> BrewfatherCoordinatorData:
         _LOGGER.debug("Updating data...")
-        allBatches = await self.connection.get_batches(DRY_RUN)
+        allBatches = await self.connection.get_batches()
 
-        fermentingBatches = []
+        fermentingBatches = [BatchItem]
         for batch in allBatches:
-            fermentingBatch = await self.connection.get_batch(batch.id, DRY_RUN)
-            readings = await self.connection.get_readings(batch.id, DRY_RUN)
+            fermentingBatch = await self.connection.get_batch(batch.id)
+            readings = await self.connection.get_readings(batch.id)
             fermentingBatch.readings = readings
             
             fermentingBatches.append(
@@ -70,7 +70,7 @@ class BrewfatherCoordinator(DataUpdateCoordinator[BrewfatherCoordinatorData]):
             return None
         
         currentBatch = fermentingBatches[0]
-        currentTime = datetime.now().astimezone()
+        currentTimeUtc = datetime.now().astimezone()
         currentBatch.recipe.fermentation.steps.sort(key=sort_by_actual_time)
 
         currentStep: Fermentation | None = None
@@ -81,21 +81,28 @@ class BrewfatherCoordinator(DataUpdateCoordinator[BrewfatherCoordinatorData]):
             if note.status == "Fermenting":
                 fermenting_start = note.timestamp
 
-        for (index, step) in enumerate[Fermentation](
+        _LOGGER.debug("currentTimeUtc: %s", currentTimeUtc.strftime("%m/%d/%Y, %H:%M:%S"))
+
+        for (index, step) in enumerate[Step](
             currentBatch.recipe.fermentation.steps
         ):
-            step_start_datetime = self.datetime_fromtimestamp_with_fermentingstart(
+            step_start_datetime_utc = self.datetime_fromtimestamp_with_fermentingstart(
                 step.actual_time, fermenting_start
             )
-            step_end_datetime = self.datetime_fromtimestamp_with_fermentingstart(
+            step_end_datetime_utc = self.datetime_fromtimestamp_with_fermentingstart(
                 step.actual_time + step.step_time * MS_IN_DAY, fermenting_start
             )
-
+            
+            #TODO implement ramp times, calculate a increase of temperature for each hour
+            
+            _LOGGER.debug("step_start_datetime_utc (%s C): %s", step.step_temp, step_start_datetime_utc.strftime("%m/%d/%Y, %H:%M:%S"))
+            _LOGGER.debug("step_end_datetime_utc (%s C): %s", step.step_temp, step_end_datetime_utc.strftime("%m/%d/%Y, %H:%M:%S"))
+            
             # check if start date is in past, also check if end date (start date + step_time * MS_IN_DAY) is in future
-            if step_start_datetime < currentTime and step_end_datetime > currentTime:
+            if step_start_datetime_utc < currentTimeUtc and step_end_datetime_utc > currentTimeUtc:
                 currentStep = step
             # check if start date is in future
-            elif step_start_datetime > currentTime:
+            elif step_start_datetime_utc > currentTimeUtc:
                 nextStep = step
                 break
 
@@ -128,7 +135,7 @@ class BrewfatherCoordinator(DataUpdateCoordinator[BrewfatherCoordinatorData]):
 
     def datetime_fromtimestamp_with_fermentingstart(
         self, epoch: int | None, fermenting_start: int | None
-    ) -> datetime.datetime:
+    ) -> datetime:
         datetime_value = datetime.fromtimestamp(epoch / 1000, timezone.utc)
 
         if fermenting_start is not None:

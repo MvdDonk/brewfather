@@ -13,7 +13,8 @@ from .const import (
     BATCHES_URI,
     TEST_URI,
     BATCH_URI,
-    READINGS_URI
+    READINGS_URI,
+    DRY_RUN
 )
 from .testdata import (
     TESTDATA_BATCHES,
@@ -43,26 +44,26 @@ class Connection:
                     raise CannotConnect()
 
         return False
-
-    async def get_batches(self, dryRun: bool) -> List[BatchesItemElement]:
+    
+    async def get_batches(self) -> List[BatchesItemElement]:
         url = BATCHES_URI
-        if dryRun:
+        if DRY_RUN:
             return batches_item_from_dict(json.loads(TESTDATA_BATCHES))
         else:
             batch = await self.get_api_response(url, batches_item_from_dict)
             return batch
 
-    async def get_batch(self, batchId: str, dryRun: bool, testData=TESTDATA_BATCH_1) -> BatchItem:
+    async def get_batch(self, batchId: str, testData=TESTDATA_BATCH_1) -> BatchItem:
         url = BATCH_URI.format(batchId)
-        if dryRun:
+        if DRY_RUN:
             return batch_item_from_dict(json.loads(testData))
         else:
             batch = await self.get_api_response(url, batch_item_from_dict)
             return batch    
 
-    async def get_readings(self, batchId: str, dryRun: bool) -> List[Reading]:
+    async def get_readings(self, batchId: str) -> List[Reading]:
         url = READINGS_URI.format(batchId)
-        if dryRun:
+        if DRY_RUN:
             return readings_from_dict(json.loads(TESTDATA_READINGS))
         else:
             reading = await self.get_api_response(url, readings_from_dict)

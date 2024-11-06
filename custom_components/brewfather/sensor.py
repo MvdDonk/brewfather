@@ -1,15 +1,15 @@
 """Platform for sensor integration."""
 from __future__ import annotations
-
-import json
 from datetime import datetime, timezone
 import enum
 import logging
 from typing import cast
-
-
 from homeassistant.config_entries import ConfigEntry
-from .const import *
+from .const import (
+    DOMAIN,
+    COORDINATOR,
+    CONNECTION_NAME
+)
 from .coordinator import BrewfatherCoordinator
 
 from homeassistant.components.sensor import SensorEntity, SensorStateClass
@@ -34,7 +34,6 @@ async def async_setup_entry(
     hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
 ):
     """Set up the sensor platforms."""
-    _LOGGER.debug("async_setup_entry")
     coordinator = hass.data[DOMAIN][entry.entry_id][COORDINATOR]
     connectionName = hass.data[DOMAIN][entry.entry_id][CONNECTION_NAME]
     sensors = []
