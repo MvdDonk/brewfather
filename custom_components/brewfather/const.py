@@ -11,3 +11,7 @@ BATCH_URI = "https://api.brewfather.app/v2/batches/{}?include=recipe.fermentatio
 READINGS_URI = "https://api.brewfather.app/v2/batches/{}/readings"
 
 DRY_RUN = False
+CONF_SINGLEBATCHMODE = "single_batch_mode"
+
+VERSION_MAJOR = 1
+VERSION_MINOR = 5

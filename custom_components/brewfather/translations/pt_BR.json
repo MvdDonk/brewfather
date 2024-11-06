@@ -8,7 +8,8 @@
         "data": {
           "name": "Nome da Conexão",
           "username": "ID de usuário",
-          "password": "API-Key"
+          "password": "API-Key",
+          "single_batch_mode": "Single batch mode"
         }
       }
     },

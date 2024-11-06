@@ -122,3 +122,10 @@ export USER_ID=your_user_id
 export API_KEY=your_api_key
 pytest
 ```
+
+
+TODO:
+- Optionflow voor single batch mode
+- Config aanpassen, naam eruit en v2 noemen, single instantie only
+- Ramp steps support
+- Documentatie uitbreiden, voorbeelden

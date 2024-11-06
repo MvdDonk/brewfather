@@ -14,6 +14,7 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 from .const import (
     DOMAIN,
     MS_IN_DAY,
+    CONF_SINGLEBATCHMODE
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -40,7 +41,7 @@ class BrewfatherCoordinator(DataUpdateCoordinator[BrewfatherCoordinatorData]):
     """Class to manage fetching data from the API."""
 
     def __init__(self, hass: HomeAssistant, entry, update_interval: timedelta):
-        self.entry = entry
+        self.single_batch_mode = entry.data[CONF_SINGLEBATCHMODE]
         self.connection = Connection(
             entry.data[CONF_USERNAME], entry.data[CONF_PASSWORD]
         )
@@ -49,6 +50,7 @@ class BrewfatherCoordinator(DataUpdateCoordinator[BrewfatherCoordinatorData]):
 
     async def _async_update_data(self) -> BrewfatherCoordinatorData:
         """Update data via library."""
+        _LOGGER.debug("Updating data via library")
         data = await self.update()
         return data
 
@@ -56,7 +58,7 @@ class BrewfatherCoordinator(DataUpdateCoordinator[BrewfatherCoordinatorData]):
         _LOGGER.debug("Updating data...")
         allBatches = await self.connection.get_batches()
 
-        fermentingBatches = [BatchItem]
+        fermentingBatches:list[BatchItem] = []
         for batch in allBatches:
             fermentingBatch = await self.connection.get_batch(batch.id)
             readings = await self.connection.get_readings(batch.id)
@@ -65,16 +67,21 @@ class BrewfatherCoordinator(DataUpdateCoordinator[BrewfatherCoordinatorData]):
             fermentingBatches.append(
                 fermentingBatch
             )
+            if self.single_batch_mode:
+                break
 
         if len(fermentingBatches) == 0:
             return None
         
-        currentBatch = fermentingBatches[0]
         currentTimeUtc = datetime.now().astimezone()
-        currentBatch.recipe.fermentation.steps.sort(key=sort_by_actual_time)
 
         currentStep: Fermentation | None = None
         nextStep: Fermentation | None = None
+
+        if not self.single_batch_mode:
+            raise Exception("Multibatch is not implemented")
+        
+        currentBatch = fermentingBatches[0]
 
         fermenting_start: int | None = None
         for note in currentBatch.notes:
@@ -83,28 +90,29 @@ class BrewfatherCoordinator(DataUpdateCoordinator[BrewfatherCoordinatorData]):
 
         _LOGGER.debug("currentTimeUtc: %s", currentTimeUtc.strftime("%m/%d/%Y, %H:%M:%S"))
 
-        for (index, step) in enumerate[Step](
-            currentBatch.recipe.fermentation.steps
-        ):
-            step_start_datetime_utc = self.datetime_fromtimestamp_with_fermentingstart(
-                step.actual_time, fermenting_start
-            )
-            step_end_datetime_utc = self.datetime_fromtimestamp_with_fermentingstart(
-                step.actual_time + step.step_time * MS_IN_DAY, fermenting_start
-            )
-            
-            #TODO implement ramp times, calculate a increase of temperature for each hour
-            
-            _LOGGER.debug("step_start_datetime_utc (%s C): %s", step.step_temp, step_start_datetime_utc.strftime("%m/%d/%Y, %H:%M:%S"))
-            _LOGGER.debug("step_end_datetime_utc (%s C): %s", step.step_temp, step_end_datetime_utc.strftime("%m/%d/%Y, %H:%M:%S"))
-            
-            # check if start date is in past, also check if end date (start date + step_time * MS_IN_DAY) is in future
-            if step_start_datetime_utc < currentTimeUtc and step_end_datetime_utc > currentTimeUtc:
-                currentStep = step
-            # check if start date is in future
-            elif step_start_datetime_utc > currentTimeUtc:
-                nextStep = step
-                break
+        if currentBatch.recipe is not None and currentBatch.recipe.fermentation is not None and currentBatch.recipe.fermentation.steps is not None:
+            for (index, step) in enumerate[Step](
+                currentBatch.recipe.fermentation.steps
+            ):
+                step_start_datetime_utc = self.datetime_fromtimestamp_with_fermentingstart(
+                    step.actual_time, fermenting_start
+                )
+                step_end_datetime_utc = self.datetime_fromtimestamp_with_fermentingstart(
+                    step.actual_time + step.step_time * MS_IN_DAY, fermenting_start
+                )
+                
+                #TODO implement ramp times, calculate a increase of temperature for each hour
+                
+                _LOGGER.debug("step_start_datetime_utc (%s C): %s", step.step_temp, step_start_datetime_utc.strftime("%m/%d/%Y, %H:%M:%S"))
+                _LOGGER.debug("step_end_datetime_utc (%s C): %s", step.step_temp, step_end_datetime_utc.strftime("%m/%d/%Y, %H:%M:%S"))
+                
+                # check if start date is in past, also check if end date (start date + step_time * MS_IN_DAY) is in future
+                if step_start_datetime_utc < currentTimeUtc and step_end_datetime_utc > currentTimeUtc:
+                    currentStep = step
+                # check if start date is in future
+                elif step_start_datetime_utc > currentTimeUtc:
+                    nextStep = step
+                    break
 
         data = BrewfatherCoordinatorData()
         data.batches = fermentingBatches

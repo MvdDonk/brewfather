@@ -1,11 +1,14 @@
 from __future__ import annotations
 import logging
 from typing import Any, Dict, Optional
-import voluptuous as vol # type: ignore
-from homeassistant import config_entries # type: ignore
-import homeassistant.helpers.config_validation as cv # type: ignore
+import voluptuous as vol  # type: ignore
+from homeassistant import config_entries 
+import homeassistant.helpers.config_validation as cv 
 from .const import (
-    DOMAIN
+    DOMAIN,
+    CONF_SINGLEBATCHMODE,
+    VERSION_MAJOR,
+    VERSION_MINOR
 )
 from .connection import (
     Connection,
@@ -13,7 +16,7 @@ from .connection import (
     InvalidCredentials,
     InvalidScope
 )
-from homeassistant.const import ( # type: ignore
+from homeassistant.const import ( 
     CONF_NAME,
     CONF_PASSWORD,
     CONF_USERNAME,
@@ -21,14 +24,14 @@ from homeassistant.const import ( # type: ignore
 
 _LOGGER = logging.getLogger(__name__)
 
-CONNECTION_SCHEMA = vol.Schema(
+CONFIG_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_NAME): cv.string,
         vol.Required(CONF_USERNAME): cv.string,
         vol.Required(CONF_PASSWORD): cv.string,
+        vol.Required(CONF_SINGLEBATCHMODE): cv.boolean,
     }
 )
-OPTIONS_SCHEMA = vol.Schema({vol.Optional("Update interval", default=3600): cv.Number})
 
 async def validate_auth(username:str, password:str) -> dict[str, any]:
     """Validate the user input allows us to connect."""
@@ -39,8 +42,8 @@ async def validate_auth(username:str, password:str) -> dict[str, any]:
     
 class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle a config flow for Brewfather."""
-    VERSION = 1
-    MINOR_VERSION = 2
+    VERSION = VERSION_MAJOR
+    MINOR_VERSION = VERSION_MINOR
     
     # Pick one of the available connection classes in homeassistant/config_entries.py
     # This tells HA if it should be asking for updates, or it'll be notified of updates
@@ -80,5 +83,5 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             return self.async_create_entry(title="Brewfather", data=self.data)
         
         return self.async_show_form(
-            step_id="user", data_schema=CONNECTION_SCHEMA, errors=errors
+            step_id="user", data_schema=CONFIG_SCHEMA, errors=errors
         )        
