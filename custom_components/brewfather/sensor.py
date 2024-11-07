@@ -35,7 +35,6 @@ async def async_setup_entry(
     sensors.append(
         BrewfatherSensor(
             coordinator,
-            0,
             SensorKinds.fermenting_name,
             SensorEntityDescription(
                 key="batch_recipe_name",
@@ -48,13 +47,12 @@ async def async_setup_entry(
     sensors.append(
         BrewfatherSensor(
             coordinator,
-            1,
             SensorKinds.fermenting_current_temperature,
             SensorEntityDescription(
                 key="batch_target_temperature",
                 name="Batch target temperature",
                 icon="mdi:thermometer",
-                native_unit_of_measurement=UnitOfTemperature.CELSIUS, #Should we support fahrenheit?
+                #native_unit_of_measurement=UnitOfTemperature.CELSIUS, #Should we support fahrenheit?
                 device_class=SensorDeviceClass.TEMPERATURE,
                 state_class=SensorStateClass.MEASUREMENT,
             )
@@ -64,7 +62,6 @@ async def async_setup_entry(
     sensors.append(
         BrewfatherSensor(
             coordinator,
-            2,
             SensorKinds.fermenting_next_temperature,
             SensorEntityDescription(
                 key="batch_upcoming_target_temperature",
@@ -80,7 +77,6 @@ async def async_setup_entry(
     sensors.append(
         BrewfatherSensor(
             coordinator,
-            3,
             SensorKinds.fermenting_next_date,
             SensorEntityDescription(
                 key="batch_upcoming_target_temperature_change",
@@ -122,13 +118,11 @@ class BrewfatherSensor(CoordinatorEntity, SensorEntity):
     def __init__(
         self,
         coordinator: DataUpdateCoordinator,
-        idx,
         sensorKind: SensorKinds,
         description: SensorEntityDescription,
     ):
         """Pass coordinator to CoordinatorEntity."""
-        super().__init__(coordinator, context=idx)
-        self.idx = idx
+        super().__init__(coordinator)
 
         self._entity_description = description
         self._sensor_type = sensorKind
@@ -169,7 +163,7 @@ class BrewfatherSensor(CoordinatorEntity, SensorEntity):
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
         """Update Sensor Entity."""
-        _LOGGER.debug("Updating state of the sensors.")
+        _LOGGER.debug(" _handle_coordinator_update Updating state of the sensors.")
         #await self.coordinator.async_request_refresh()
         brewfatherCoordinator: BrewfatherCoordinator = self.coordinator
         data = brewfatherCoordinator.data
@@ -215,14 +209,16 @@ class BrewfatherSensor(CoordinatorEntity, SensorEntity):
                     f"Invalid datetime: {self.entity_id} has a timestamp device class"
                     f"but does not provide a datetime state but {type(value)}"
                 ) from err
+        
+        self.async_write_ha_state()
 
             
 
-    async def async_added_to_hass(self):
-        """Subscribe to updates."""
-        self.async_on_remove(
-            self.coordinator.async_add_listener(self.async_write_ha_state)
-        )
+    # async def async_added_to_hass(self):
+    #     """Subscribe to updates."""
+    #     self.async_on_remove(
+    #         self.coordinator.async_add_listener(self.async_write_ha_state)
+    #     )
 
 
 class SensorKinds(enum.Enum):
