@@ -27,11 +27,12 @@ async def async_setup_entry(hass: core.HomeAssistant, config_entry: config_entri
     update_interval = timedelta(seconds=UPDATE_INTERVAL)
     coordinator = BrewfatherCoordinator(hass, config_entry, update_interval)
 
-    ## On Home Assistant startup we want to grab data so all sensors are running and up to date 
+    # On Home Assistant startup we want to grab data so all sensors are running and up to date 
     #await coordinator.async_refresh()
+    await coordinator.async_config_entry_first_refresh()
 
-    # if not coordinator.last_update_success:
-    #     raise ConfigEntryNotReady
+    if not coordinator.last_update_success:
+        raise ConfigEntryNotReady
 
     """Set up platform from a ConfigEntry."""
     hass.data.setdefault(DOMAIN, {})

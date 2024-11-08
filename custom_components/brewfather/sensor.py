@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 import enum
 import logging
-from typing import cast
+from typing import cast, Any
 from homeassistant.core import callback
 from homeassistant.config_entries import ConfigEntry
 from .const import (
@@ -11,7 +11,7 @@ from .const import (
     COORDINATOR
 )
 from homeassistant.const import UnitOfTemperature
-from .coordinator import BrewfatherCoordinator
+from .coordinator import BrewfatherCoordinator, BrewfatherCoordinatorData
 from homeassistant.components.sensor import SensorEntity, SensorStateClass, SensorEntityDescription, SensorDeviceClass
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -22,15 +22,14 @@ from homeassistant.helpers.update_coordinator import (
 )
 
 _LOGGER = logging.getLogger(__name__)
-# See: https://github.com/cyberjunky/home-assistant-toon_smartmeter/blob/master/custom_components/toon_smartmeter/sensor.py#L286
 SENSOR_PREFIX = "Brewfather"
 async def async_setup_entry(
     hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
 ):
     """Set up the sensor platforms."""
     coordinator = hass.data[DOMAIN][entry.entry_id][COORDINATOR]
-    #connectionName = hass.data[DOMAIN][entry.entry_id][CONNECTION_NAME]
     sensors = []
+
 
     sensors.append(
         BrewfatherSensor(
@@ -99,11 +98,11 @@ async def async_setup_entry(
     # async_add_entities(
     #     BrewfatherSensor(coordinator, idx, ent) for idx, ent in enumerate(sensors)
     # )
+    #coordinator.async_add_listener
+    async_add_entities(sensors, update_before_add=False)
 
-    async_add_entities(sensors, True)
 
-
-class BrewfatherSensor(CoordinatorEntity, SensorEntity):
+class BrewfatherSensor(CoordinatorEntity[BrewfatherCoordinator], SensorEntity):
     """An entity using CoordinatorEntity.
 
     The CoordinatorEntity class provides:
@@ -135,9 +134,14 @@ class BrewfatherSensor(CoordinatorEntity, SensorEntity):
         self._attr_state_class = self._entity_description.state_class
         self._attr_native_unit_of_measurement = self._entity_description.native_unit_of_measurement
         self._attr_device_class = self._entity_description.device_class
-        self._state = None
+        #self._state = None
         self._discovery = False
         self._dev_id = {}
+
+        brewfatherCoordinator: BrewfatherCoordinator = coordinator
+        sensor_data = self._refresh_sensor_data(brewfatherCoordinator.data, self._sensor_type, self.device_class, self.entity_id)
+        self._state = sensor_data.state
+        self._attr_available = sensor_data.attr_available
         
     @property
     def state(self) -> StateType:
@@ -166,34 +170,45 @@ class BrewfatherSensor(CoordinatorEntity, SensorEntity):
         _LOGGER.debug(" _handle_coordinator_update Updating state of the sensors.")
         #await self.coordinator.async_request_refresh()
         brewfatherCoordinator: BrewfatherCoordinator = self.coordinator
-        data = brewfatherCoordinator.data
+        sensor_data = self._refresh_sensor_data(brewfatherCoordinator.data, self._sensor_type, self.device_class, self.entity_id)
+        self._state = sensor_data.state
+        self._attr_available = sensor_data.attr_available
+        self.async_write_ha_state()
+
+    @staticmethod
+    def _refresh_sensor_data(
+        data: BrewfatherCoordinatorData,
+        sensor_type: str,
+        device_class: SensorDeviceClass,
+        entity_id: str
+    ) -> SensorUpdateData:
+        """Get sensor data."""
+        sensor_data = SensorUpdateData()
         if data is None:
-            self._state = None
-            self._attr_available = False
-            return
+            return sensor_data
         
-        self._attr_available = True
-        if self._sensor_type == SensorKinds.fermenting_name:
-            self._state = data.brew_name
-        elif self._sensor_type == SensorKinds.fermenting_current_temperature:
-            self._state = data.current_step_temperature
-        elif self._sensor_type == SensorKinds.fermenting_next_date:
-            self._state = data.next_step_date
-        elif self._sensor_type == SensorKinds.fermenting_next_temperature:
-            self._state = data.next_step_temperature
-        elif self._sensor_type == SensorKinds.fermenting_batches:
-            self._state = len(data.batches)
-            self.batches = data.batches
+        sensor_data.attr_available = True
+        if sensor_type == SensorKinds.fermenting_name:
+            sensor_data.state = data.brew_name
+        elif sensor_type == SensorKinds.fermenting_current_temperature:
+            sensor_data.state = data.current_step_temperature
+        elif sensor_type == SensorKinds.fermenting_next_date:
+            sensor_data.state = data.next_step_date
+        elif sensor_type == SensorKinds.fermenting_next_temperature:
+            sensor_data.state = data.next_step_temperature
+        elif sensor_type == SensorKinds.fermenting_batches:
+            sensor_data.state = len(data.batches)
+            #batches = data.batches
 
         # Received a datetime
-        if self._state is not None and self.device_class == SensorDeviceClass.TIMESTAMP:
+        if sensor_data.state is not None and device_class == SensorDeviceClass.TIMESTAMP:
             try:
                 # We cast the value, to avoid using isinstance, but satisfy
                 # typechecking. The errors are guarded in this try.
-                value = cast(datetime, self._state)
+                value = cast(datetime, sensor_data.state)
                 if value.tzinfo is None:
                     raise ValueError(
-                        f"Invalid datetime: {self.entity_id} provides state '{value}', "
+                        f"Invalid datetime: {entity_id} provides state '{value}', "
                         "which is missing timezone information"
                     )
 
@@ -203,15 +218,14 @@ class BrewfatherSensor(CoordinatorEntity, SensorEntity):
                 _LOGGER.debug("value %s, %s", value, value.tzinfo)
 
                 #return value.isoformat(timespec="seconds")
-                self._state =value.isoformat(timespec="seconds")
+                sensor_data.state =value.isoformat(timespec="seconds")
             except (AttributeError, TypeError) as err:
                 raise ValueError(
-                    f"Invalid datetime: {self.entity_id} has a timestamp device class"
+                    f"Invalid datetime: {entity_id} has a timestamp device class"
                     f"but does not provide a datetime state but {type(value)}"
                 ) from err
-        
-        self.async_write_ha_state()
-
+            
+        return sensor_data
             
 
     # async def async_added_to_hass(self):
@@ -220,6 +234,9 @@ class BrewfatherSensor(CoordinatorEntity, SensorEntity):
     #         self.coordinator.async_add_listener(self.async_write_ha_state)
     #     )
 
+class SensorUpdateData:
+    state: Any
+    attr_available: bool
 
 class SensorKinds(enum.Enum):
     fermenting_name = 1
