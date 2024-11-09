@@ -189,17 +189,19 @@ class BrewfatherCoordinator(DataUpdateCoordinator[BrewfatherCoordinatorData]):
                 hours_left = (seconds_left_for_ramp.days * 24) + (seconds_left_for_ramp.seconds / 3600)
                 _LOGGER.debug("We have %s hours left to reach %sC", hours_left, nextStep.step_temp)
 
-                number_of_degrees_to_change = math.floor(hours_left / one_degree_each_hours)
-                
+                # subtract 1 because the last degree change we want to skip (since we are getting very close to the nextStep target)
+                number_of_degrees_to_change = math.floor(hours_left / one_degree_each_hours) - 1
+
                 if temperature_difference < 0:
                     number_of_degrees_to_change = number_of_degrees_to_change * -1
-                
-                new_temp = round(nextStep.step_temp - number_of_degrees_to_change)
-                _LOGGER.debug("Overwrite current step temperature because of ramp to next temperature, setting temp from %s to: %sC", currentStep.step_temp, new_temp)
 
-                #new_temp = round(nextStep.step_temp - (hours_left * temperature_increase_each_hour), ndigits=1)
-                #_LOGGER.debug("Overwrite current step temperature because of ramp to next temperature, setting temp to: %s C", new_temp)
-                data.current_step_temperature = new_temp
+                new_temp = round(nextStep.step_temp - number_of_degrees_to_change, ndigits=1)
+                if new_temp != data.current_step_temperature:
+                    _LOGGER.debug("Overwrite current step temperature because of ramp to next temperature, setting temp from %s to: %sC", data.current_step_temperature, new_temp)
+
+                    #new_temp = round(nextStep.step_temp - (hours_left * temperature_increase_each_hour), ndigits=1)
+                    #_LOGGER.debug("Overwrite current step temperature because of ramp to next temperature, setting temp to: %s C", new_temp)
+                    data.current_step_temperature = new_temp
         else:
             _LOGGER.debug("No next step")
 
