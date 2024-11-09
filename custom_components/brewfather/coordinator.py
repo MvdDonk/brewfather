@@ -153,11 +153,10 @@ class BrewfatherCoordinator(DataUpdateCoordinator[BrewfatherCoordinatorData]):
                 data.next_step_date,
                 nextStep.ramp
             )
-            if(nextStep.ramp is not None and nextStep.ramp > 0):
+            if(currentStep is not None and nextStep.ramp is not None and nextStep.ramp > 0):
 
                 #instead of calculating what the temperature increase should be every hour, we will calculate how often we have to increase of decrease 1 whole degree C
                 _LOGGER.debug("Next temperature has a ramp value of %s days", nextStep.ramp)
-                time_between_steps = nextStep.actual_time - currentStep.actual_time
                 ramp_hours = nextStep.ramp * 24
 
 
