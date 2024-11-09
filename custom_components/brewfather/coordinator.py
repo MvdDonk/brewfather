@@ -199,7 +199,7 @@ class BrewfatherCoordinator(DataUpdateCoordinator[BrewfatherCoordinatorData]):
 
                 #new_temp = round(nextStep.step_temp - (hours_left * temperature_increase_each_hour), ndigits=1)
                 #_LOGGER.debug("Overwrite current step temperature because of ramp to next temperature, setting temp to: %s C", new_temp)
-                #data.current_step_temperature = new_temp
+                data.current_step_temperature = new_temp
         else:
             _LOGGER.debug("No next step")
 
