@@ -6,7 +6,8 @@ from .connection import Connection
 from .models.batch_item import (
     Fermentation,
     BatchItem,
-    Step
+    Step,
+    Reading
 )
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
 from homeassistant.core import HomeAssistant
@@ -27,6 +28,7 @@ class BrewfatherCoordinatorData:
     current_step_temperature: Optional[float]
     next_step_date: Optional[datetime.datetime]
     next_step_temperature: Optional[float]
+    last_reading: Optional[Reading]
     batches: Optional[list[BatchItem]]
 
     def __init__(self):
@@ -35,7 +37,18 @@ class BrewfatherCoordinatorData:
         self.current_step_temperature = None
         self.next_step_date = None
         self.next_step_temperature = None
+        self.last_reading = None
 
+
+class BatchInfo:
+    batch: BatchItem
+    #readings: list[Reading]
+    last_reading: Reading
+    
+    #def __init__(self, batch: BatchItem, readings: list[Reading]):
+    def __init__(self, batch: BatchItem, last_reading: Reading):
+        self.batch = batch
+        self.last_reading = last_reading
 
 class BrewfatherCoordinator(DataUpdateCoordinator[BrewfatherCoordinatorData]):
     """Class to manage fetching data from the API."""
@@ -58,15 +71,16 @@ class BrewfatherCoordinator(DataUpdateCoordinator[BrewfatherCoordinatorData]):
         _LOGGER.debug("Updating data...")
         allBatches = await self.connection.get_batches()
 
-        fermentingBatches:list[BatchItem] = []
+        fermentingBatches:list[BatchInfo] = []
+
         for batch in allBatches:
-            fermentingBatch = await self.connection.get_batch(batch.id)
-            readings = await self.connection.get_readings(batch.id)
-            fermentingBatch.readings = readings
-            
-            fermentingBatches.append(
-                fermentingBatch
-            )
+            batchData = await self.connection.get_batch(batch.id)
+            #readings = await self.connection.get_readings(batch.id)
+            last_reading = await self.connection.get_last_reading(batch.id)
+
+            #fermentingBatches.append(BatchInfo(batchData, readings))
+            fermentingBatches.append(BatchInfo(batchData, last_reading))
+
             if self.single_batch_mode:
                 break
 
@@ -82,17 +96,17 @@ class BrewfatherCoordinator(DataUpdateCoordinator[BrewfatherCoordinatorData]):
             raise Exception("Multibatch is not implemented")
         
         currentBatch = fermentingBatches[0]
-
+        
         fermenting_start: int | None = None
-        for note in currentBatch.notes:
+        for note in currentBatch.batch.notes:
             if note.status == "Fermenting":
                 fermenting_start = note.timestamp
 
         _LOGGER.debug("currentTimeUtc: %s", currentTimeUtc.strftime("%m/%d/%Y, %H:%M:%S"))
 
-        if currentBatch.recipe is not None and currentBatch.recipe.fermentation is not None and currentBatch.recipe.fermentation.steps is not None:
+        if currentBatch.batch.recipe is not None and currentBatch.batch.recipe.fermentation is not None and currentBatch.batch.recipe.fermentation.steps is not None:
             for (index, step) in enumerate[Step](
-                currentBatch.recipe.fermentation.steps
+                currentBatch.batch.recipe.fermentation.steps
             ):
                 step_start_datetime_utc = self.datetime_fromtimestamp_with_fermentingstart(
                     step.actual_time, fermenting_start
@@ -116,7 +130,10 @@ class BrewfatherCoordinator(DataUpdateCoordinator[BrewfatherCoordinatorData]):
 
         data = BrewfatherCoordinatorData()
         data.batches = fermentingBatches
-        data.brew_name = currentBatch.recipe.name
+        data.brew_name = currentBatch.batch.recipe.name
+        data.last_reading = currentBatch.last_reading
+        # if currentBatch.readings is not None and len(currentBatch.readings) > 0:
+        #     data.last_reading = sorted(currentBatch.readings, key=lambda r: r.time, reverse=True)[0]
 
         if currentStep is not None:
             data.current_step_temperature = currentStep.step_temp
@@ -156,3 +173,4 @@ class BrewfatherCoordinator(DataUpdateCoordinator[BrewfatherCoordinatorData]):
             )
 
         return datetime_value
+

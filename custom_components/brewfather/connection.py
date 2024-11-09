@@ -14,7 +14,8 @@ from .const import (
     TEST_URI,
     BATCH_URI,
     READINGS_URI,
-    DRY_RUN
+    DRY_RUN,
+    LAST_READING_URI
 )
 from .testdata import (
     TESTDATA_BATCHES,
@@ -68,7 +69,15 @@ class Connection:
         else:
             reading = await self.get_api_response(url, readings_from_dict)
             return reading
-
+        
+    async def get_last_reading(self, batchId: str) -> Reading:
+        url = LAST_READING_URI.format(batchId)
+        if DRY_RUN:
+            raise Exception("Not implemented")
+        else:
+            reading = await self.get_api_response(url, Reading.from_dict)
+            return reading
+        
     async def get_api_response(self, url: str, parseJson:Callable[[str], T]) -> T:
         _LOGGER.debug("Making api call to: %s", url)
         async with aiohttp.ClientSession() as session:

@@ -3,7 +3,8 @@ from __future__ import annotations
 from datetime import datetime, timezone
 import enum
 import logging
-from typing import cast, Any
+from typing import Mapping, cast, Any
+from custom_components.brewfather.models.reading_item import Reading
 from homeassistant.core import callback
 from homeassistant.config_entries import ConfigEntry
 from .const import (
@@ -68,7 +69,6 @@ async def async_setup_entry(
                 icon="mdi:thermometer-chevron-up",
                 native_unit_of_measurement=UnitOfTemperature.CELSIUS, #Should we support fahrenheit?
                 device_class=SensorDeviceClass.TEMPERATURE,
-                state_class=SensorStateClass.MEASUREMENT,
             )
         )
     )
@@ -82,6 +82,19 @@ async def async_setup_entry(
                 name="Batch upcoming target temperature change",
                 icon="mdi:clock",
                 device_class=SensorDeviceClass.TIMESTAMP,
+            )
+        )
+    )
+
+    sensors.append(
+        BrewfatherSensor(
+            coordinator,
+            SensorKinds.fermenting_last_reading,
+            SensorEntityDescription(
+                key="batch_last_reading",
+                name="Batch last reading",
+                icon="mdi:chart-line",
+                state_class=SensorStateClass.MEASUREMENT,
             )
         )
     )
@@ -142,6 +155,7 @@ class BrewfatherSensor(CoordinatorEntity[BrewfatherCoordinator], SensorEntity):
         sensor_data = self._refresh_sensor_data(brewfatherCoordinator.data, self._sensor_type, self.device_class, self.entity_id)
         self._state = sensor_data.state
         self._attr_available = sensor_data.attr_available
+        self._attr_extra_state_attributes = sensor_data.extra_state_attributes
         
     @property
     def state(self) -> StateType:
@@ -188,6 +202,8 @@ class BrewfatherSensor(CoordinatorEntity[BrewfatherCoordinator], SensorEntity):
             return sensor_data
         
         sensor_data.attr_available = True
+        custom_attributes:dict[str, Any] = dict()
+
         if sensor_type == SensorKinds.fermenting_name:
             sensor_data.state = data.brew_name
         elif sensor_type == SensorKinds.fermenting_current_temperature:
@@ -196,9 +212,19 @@ class BrewfatherSensor(CoordinatorEntity[BrewfatherCoordinator], SensorEntity):
             sensor_data.state = data.next_step_date
         elif sensor_type == SensorKinds.fermenting_next_temperature:
             sensor_data.state = data.next_step_temperature
+        elif sensor_type == SensorKinds.fermenting_last_reading:
+            sensor_data.state = data.last_reading.sg
+
+            custom_attributes["angle"] = data.last_reading.angle
+            custom_attributes["temp"] = data.last_reading.temp
+            custom_attributes["time_ms"] = data.last_reading.time
+            custom_attributes["time"] = datetime.fromtimestamp(data.last_reading.time / 1000, timezone.utc)
+
         elif sensor_type == SensorKinds.fermenting_batches:
             sensor_data.state = len(data.batches)
             #batches = data.batches
+
+        sensor_data.extra_state_attributes = custom_attributes
 
         # Received a datetime
         if sensor_data.state is not None and device_class == SensorDeviceClass.TIMESTAMP:
@@ -237,6 +263,12 @@ class BrewfatherSensor(CoordinatorEntity[BrewfatherCoordinator], SensorEntity):
 class SensorUpdateData:
     state: Any
     attr_available: bool
+    extra_state_attributes: dict[str, Any]
+    
+    def __init__(self):
+        self.state = None
+        self.attr_available = False
+        self.extra_state_attributes = dict()
 
 class SensorKinds(enum.Enum):
     fermenting_name = 1
@@ -244,3 +276,4 @@ class SensorKinds(enum.Enum):
     fermenting_next_temperature = 3
     fermenting_next_date = 4
     fermenting_batches = 5
+    fermenting_last_reading = 6
