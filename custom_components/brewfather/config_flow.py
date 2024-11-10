@@ -6,7 +6,7 @@ from homeassistant import config_entries
 import homeassistant.helpers.config_validation as cv 
 from .const import (
     DOMAIN,
-    CONF_SINGLEBATCHMODE,
+    CONF_TEMP_RAMP_CORRECTION,
     VERSION_MAJOR,
     VERSION_MINOR
 )
@@ -29,7 +29,7 @@ CONFIG_SCHEMA = vol.Schema(
         vol.Required(CONF_NAME): cv.string,
         vol.Required(CONF_USERNAME): cv.string,
         vol.Required(CONF_PASSWORD): cv.string,
-        vol.Required(CONF_SINGLEBATCHMODE): cv.boolean,
+        vol.Required(CONF_TEMP_RAMP_CORRECTION): cv.boolean,
     }
 )
 

@@ -12,7 +12,7 @@ READINGS_URI = "https://api.brewfather.app/v2/batches/{}/readings"
 LAST_READING_URI = "https://api.brewfather.app/v2/batches/{}/readings/last"
 
 DRY_RUN = False
-CONF_SINGLEBATCHMODE = "single_batch_mode"
+CONF_TEMP_RAMP_CORRECTION = "temp_ramp_correction"
 
 VERSION_MAJOR = 1
-VERSION_MINOR = 5
+VERSION_MINOR = 6

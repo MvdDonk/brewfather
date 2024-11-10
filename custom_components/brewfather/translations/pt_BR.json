@@ -9,7 +9,7 @@
           "name": "Nome da Conexão",
           "username": "ID de usuário",
           "password": "API-Key",
-          "single_batch_mode": "Single batch mode"
+          "temp_ramp_correction": "Enable temperature ramping"
         }
       }
     },

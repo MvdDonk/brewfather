@@ -13,7 +13,7 @@ from .const import (
     COORDINATOR,
     CONNECTION_NAME,
     UPDATE_INTERVAL,
-    CONF_SINGLEBATCHMODE,
+    CONF_TEMP_RAMP_CORRECTION,
     VERSION_MAJOR,
     VERSION_MINOR
 )
@@ -60,8 +60,8 @@ async def async_migrate_entry(hass, config_entry: config_entries.ConfigEntry):
     if config_entry.version == 1:
 
         new_data = {**config_entry.data}
-        if config_entry.minor_version < 5:
-            new_data[CONF_SINGLEBATCHMODE] = True
+        if config_entry.minor_version < 6:
+            new_data[CONF_TEMP_RAMP_CORRECTION] = False
             pass
 
         hass.config_entries.async_update_entry(config_entry, data=new_data, minor_version=VERSION_MINOR, version=VERSION_MAJOR)

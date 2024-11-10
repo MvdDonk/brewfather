@@ -4,12 +4,12 @@
     "step": {
       "user": {
         "title": "Connection details",
-        "description": "To make an connection to Brewfather you will need to fill in all fields below. Make sure the API-Key has the correct scopes.\n\nEnable \"single batch mode\" if you are always fermenting just one drink at the time.",
+        "description": "To make an connection to Brewfather you will need to fill in all fields below. Make sure the API-Key has the correct scopes.",
         "data": {
           "name": "Connection name",
           "username": "User ID",
           "password": "API-Key",
-          "single_batch_mode": "Single batch mode"
+          "temp_ramp_correction": "Enable temperature ramping"
         }
       }
     },

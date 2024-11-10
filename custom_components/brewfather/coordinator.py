@@ -17,7 +17,7 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 from .const import (
     DOMAIN,
     MS_IN_DAY,
-    CONF_SINGLEBATCHMODE
+    CONF_TEMP_RAMP_CORRECTION
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -56,7 +56,8 @@ class BrewfatherCoordinator(DataUpdateCoordinator[BrewfatherCoordinatorData]):
     """Class to manage fetching data from the API."""
 
     def __init__(self, hass: HomeAssistant, entry, update_interval: timedelta):
-        self.single_batch_mode = entry.data[CONF_SINGLEBATCHMODE]
+        self.single_batch_mode = True
+        self.temperature_correction_enabled = entry.data[CONF_TEMP_RAMP_CORRECTION]
         self.connection = Connection(
             entry.data[CONF_USERNAME], entry.data[CONF_PASSWORD]
         )
@@ -122,7 +123,7 @@ class BrewfatherCoordinator(DataUpdateCoordinator[BrewfatherCoordinatorData]):
                 )
 
                 actual_start_time_utc = step_start_datetime_utc
-                if step.ramp is not None and step.ramp > 0:
+                if self.temperature_correction_enabled and step.ramp is not None and step.ramp > 0:
                     actual_start_time_utc = step_start_datetime_utc + timedelta(days = -1 * step.ramp)
 
                 _LOGGER.debug("| %s\tstarts: %s\tends: %s\tramp: %s\tactualstart: %s |", step.step_temp, step_start_datetime_utc.strftime("%m/%d/%Y, %H:%M:%S"), step_end_datetime_utc.strftime("%m/%d/%Y, %H:%M:%S"), step.ramp, actual_start_time_utc.strftime("%m/%d/%Y, %H:%M:%S"))
@@ -155,7 +156,7 @@ class BrewfatherCoordinator(DataUpdateCoordinator[BrewfatherCoordinatorData]):
 
             rampingStep = currentStep
             stepBeforeRamp = prevStep
-            if curren_step_is_ramping and stepBeforeRamp is not None and rampingStep.ramp is not None and rampingStep.ramp > 0:
+            if self.temperature_correction_enabled and curren_step_is_ramping and stepBeforeRamp is not None and rampingStep.ramp is not None and rampingStep.ramp > 0:
                 #instead of calculating what the temperature increase should be every hour, we will calculate how often we have to increase of decrease 1 whole degree C
                 _LOGGER.debug("Next temperature has a ramp value of %s days", rampingStep.ramp)
                 
@@ -191,8 +192,9 @@ class BrewfatherCoordinator(DataUpdateCoordinator[BrewfatherCoordinatorData]):
                     time_already_ramping:timedelta = (current_step_actual_start_time_utc - currentTimeUtc)
                     hours_already_ramping  = abs((time_already_ramping.days * 24) + (time_already_ramping.seconds / 3600))
                     current_ramp_step = math.floor(hours_already_ramping / hours_per_ramp)
+                    current_ramp_step_exact = hours_already_ramping / hours_per_ramp
                     temp_increase = current_ramp_step
-                    _LOGGER.debug("We have been ramping %s hours, we are in ramp step: %s", round(hours_already_ramping, ndigits=2), current_ramp_step)
+                    _LOGGER.debug("We have been ramping %s hours, we are in ramp step: %s (%s)", round(hours_already_ramping, ndigits=2), current_ramp_step, current_ramp_step_exact)
 
                     if current_ramp_step > number_of_steps:
                         _LOGGER.error("Invalid temperature ramping step found!")
@@ -200,7 +202,7 @@ class BrewfatherCoordinator(DataUpdateCoordinator[BrewfatherCoordinatorData]):
 
                     elif temp_increase > 0:
                         new_temp = round(stepBeforeRamp.step_temp + temp_increase, ndigits=1)
-                        _LOGGER.debug("Overwrite current step temperature because of ramp to next temperature, setting temp from %s to: %s (%s)", data.current_step_temperature, new_temp, temp_increase)
+                        _LOGGER.debug("Overwrite current step temperature because of ramp to next temperature, setting temp from %s to: %s (%s)", data.current_step_temperature, new_temp, hours_per_ramp)
                         data.current_step_temperature = new_temp
         else:
             _LOGGER.error("Unable to determing current fermenting step!")
