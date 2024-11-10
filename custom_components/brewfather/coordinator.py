@@ -1,5 +1,6 @@
 from __future__ import annotations
 import logging
+from logging import DEBUG
 from datetime import datetime, timezone, timedelta
 import math
 from typing import Optional
@@ -92,6 +93,9 @@ class BrewfatherCoordinator(DataUpdateCoordinator[BrewfatherCoordinatorData]):
 
         currentStep: Step | None = None
         nextStep: Step | None = None
+        prevStep: Step | None = None
+        curren_step_is_ramping = False
+        current_step_actual_start_time_utc: datetime|None
 
         if not self.single_batch_mode:
             raise Exception("Multibatch is not implemented")
@@ -103,8 +107,9 @@ class BrewfatherCoordinator(DataUpdateCoordinator[BrewfatherCoordinatorData]):
             if note.status == "Fermenting":
                 fermenting_start = note.timestamp
 
-        _LOGGER.debug("currentTimeUtc: %s", currentTimeUtc.strftime("%m/%d/%Y, %H:%M:%S"))
 
+        _LOGGER.debug("CurrentTimeUtc: %s", currentTimeUtc.strftime("%m/%d/%Y, %H:%M:%S"))
+        _LOGGER.debug("---------------------------------------------------- Fermentation steps -----------------------------------------------------")
         if currentBatch.batch.recipe is not None and currentBatch.batch.recipe.fermentation is not None and currentBatch.batch.recipe.fermentation.steps is not None:
             for (index, step) in enumerate[Step](
                 currentBatch.batch.recipe.fermentation.steps
@@ -116,16 +121,26 @@ class BrewfatherCoordinator(DataUpdateCoordinator[BrewfatherCoordinatorData]):
                     step.actual_time + step.step_time * MS_IN_DAY, fermenting_start
                 )
 
-                _LOGGER.debug("step_start_datetime_utc (%s C): %s [%s]", step.step_temp, step_start_datetime_utc.strftime("%m/%d/%Y, %H:%M:%S"), step.ramp)
-                _LOGGER.debug("step_end_datetime_utc (%s C): %s", step.step_temp, step_end_datetime_utc.strftime("%m/%d/%Y, %H:%M:%S"))
-                
+                actual_start_time_utc = step_start_datetime_utc
+                if step.ramp is not None and step.ramp > 0:
+                    actual_start_time_utc = step_start_datetime_utc + timedelta(days = -1 * step.ramp)
+
+                _LOGGER.debug("| %s\tstarts: %s\tends: %s\tramp: %s\tactualstart: %s |", step.step_temp, step_start_datetime_utc.strftime("%m/%d/%Y, %H:%M:%S"), step_end_datetime_utc.strftime("%m/%d/%Y, %H:%M:%S"), step.ramp, actual_start_time_utc.strftime("%m/%d/%Y, %H:%M:%S"))
+
                 # check if start date is in past, also check if end date (start date + step_time * MS_IN_DAY) is in future
-                if step_start_datetime_utc < currentTimeUtc and step_end_datetime_utc > currentTimeUtc:
+                if actual_start_time_utc <= currentTimeUtc and step_end_datetime_utc > currentTimeUtc:
                     currentStep = step
+                    current_step_actual_start_time_utc = actual_start_time_utc
+                    if step_start_datetime_utc > currentTimeUtc:
+                        curren_step_is_ramping = True
+                    if index > 0:
+                        prevStep = currentBatch.batch.recipe.fermentation.steps[index - 1]
                 # check if start date is in future
-                elif step_start_datetime_utc > currentTimeUtc:
+                elif actual_start_time_utc > currentTimeUtc:
                     nextStep = step
                     break
+
+        _LOGGER.debug("-----------------------------------------------------------------------------------------------------------------------------")
 
         data = BrewfatherCoordinatorData()
         data.batches = fermentingBatches
@@ -136,9 +151,93 @@ class BrewfatherCoordinator(DataUpdateCoordinator[BrewfatherCoordinatorData]):
 
         if currentStep is not None:
             data.current_step_temperature = currentStep.step_temp
-            _LOGGER.debug("Current step: %s", currentStep.step_temp)
+            _LOGGER.debug("Current step: %s, ramp days: %s", currentStep.step_temp, currentStep.ramp)
+
+            rampingStep = currentStep
+            stepBeforeRamp = prevStep
+            degrees_per_ramp_step = 1
+            if curren_step_is_ramping and stepBeforeRamp is not None and rampingStep.ramp is not None and rampingStep.ramp > 0:
+                #instead of calculating what the temperature increase should be every hour, we will calculate how often we have to increase of decrease 1 whole degree C
+                _LOGGER.debug("Next temperature has a ramp value of %s days", rampingStep.ramp)
+                
+                #from 20 to 25 in 24 hours
+                #5 steps in 24 hour
+                #24 / 5  = 4.8 hour 
+                #each step will last 4.8 hours
+                #step       temp        increase    new temp    start time, hours
+                #0          20          0           20          0
+                #1          20          1           21          4.8
+                #2          20          2           22          9.6
+                #3          20          3           23          14.4
+                #4          20          4           24          19.2
+                #end        25          0           0           24 (or 0 since the new step has started)
+
+                number_of_steps = math.floor(rampingStep.step_temp - stepBeforeRamp.step_temp)
+                if number_of_steps > 0:
+                    ramp_hours = rampingStep.ramp * 24
+                    hours_per_ramp = ramp_hours / number_of_steps
+
+                    if _LOGGER.isEnabledFor(DEBUG):
+                        _LOGGER.debug("------------------------------ Ramping schedule ----------------------------")
+                        _LOGGER.debug("| Step\tTemp\tIncrease\tNew temp\tStart time (hours delta) |")
+                        for x in range(number_of_steps):
+                            ramp_step_temp = stepBeforeRamp.step_temp
+                            ramp_step_increase = round(x, ndigits=1)
+                            ramp_step_new_temp = round(stepBeforeRamp.step_temp + ramp_step_increase, ndigits=1)
+                            ramp_step_time = round(x * hours_per_ramp, ndigits=1)
+                            _LOGGER.debug("| #%s\t%s\t%s\t\t%s\t\t%s\t\t\t |", x, ramp_step_temp, ramp_step_increase, ramp_step_new_temp, ramp_step_time )
+
+                        _LOGGER.debug("----------------------------------------------------------------------------")
+
+                    time_already_ramping:timedelta = (current_step_actual_start_time_utc - currentTimeUtc)
+                    hours_already_ramping  = abs((time_already_ramping.days * 24) + (time_already_ramping.seconds / 3600))
+                    current_ramp_step = math.floor(hours_already_ramping / hours_per_ramp)
+                    temp_increase = current_ramp_step * degrees_per_ramp_step
+                    _LOGGER.debug("hours_already_ramping %s, we are in ramp step: %s", hours_already_ramping, current_ramp_step)
+
+                    if current_ramp_step > number_of_steps:
+                        _LOGGER.error("Invalid temperature ramping step found!")
+                        _LOGGER.debug("Somehow we have found a ramp step that is too high, ignoring any temp changes to prevent weird temperatures. Ramp step found: %s, max steps: %s", current_ramp_step, number_of_steps)
+
+                    elif temp_increase > 0:
+                        new_temp = round(stepBeforeRamp.step_temp - temp_increase, ndigits=1)
+                        _LOGGER.debug("Overwrite current step temperature because of ramp to next temperature, setting temp from %s to: %sC", data.current_step_temperature, new_temp)
+                        data.current_step_temperature = new_temp
+
+                    # temperature_difference = rampingStep.step_temp - stepBeforeRamp.step_temp
+                    # one_degree_each_hours = ramp_hours / abs(temperature_difference)
+                    # _LOGGER.debug("We have to go from %sC to %sC in %s hours", stepBeforeRamp.step_temp, rampingStep.step_temp, ramp_hours)
+                    # _LOGGER.debug("1 degree each: %s / %s = %s hours", ramp_hours, abs(temperature_difference), one_degree_each_hours)
+
+
+                    # #seconds_left_for_ramp:timedelta = (data.next_step_date - self.datetime_fromtimestamp_with_fermentingstart(stapBeforeRamp.actual_time, fermenting_start))
+                    # #temperature_steps = data.next_step_date
+
+
+                    # #_LOGGER.debug("Time between current step and next: %s, number of hours to ramp: %s", time_between_steps, ramp_hours)
+                    # #temperature_increase_each_hour = (rampingStep.step_temp - stapBeforeRamp.step_temp) / ramp_hours
+
+                    # time_alread_ramping:timedelta = (currentStep.actual_start_time_utc - currentTimeUtc)
+                    # hours_alread_ramping  = (time_alread_ramping.days * 24) + (time_alread_ramping.seconds / 3600)
+                    # _LOGGER.debug("We have %s hours left to reach %sC", hours_alread_ramping, rampingStep.step_temp)
+
+                    
+                    # # subtract 1 because the last degree change we want to skip (since we are getting very close to the rampingStep target)
+                    # temp_to_increase = math.floor(hours_alread_ramping * hours_alread_ramping)
+                    # number_of_degrees_to_change = math.floor(hours_alread_ramping / one_degree_each_hours) - 1
+
+                    # if temperature_difference < 0:
+                    #     number_of_degrees_to_change = number_of_degrees_to_change * -1
+
+                    # new_temp = round(rampingStep.step_temp - number_of_degrees_to_change, ndigits=1)
+                    # if new_temp != data.current_step_temperature:
+                    #     _LOGGER.debug("Overwrite current step temperature because of ramp to next temperature, setting temp from %s to: %sC", data.current_step_temperature, new_temp)
+
+                    #     #new_temp = round(rampingStep.step_temp - (hours_left * temperature_increase_each_hour), ndigits=1)
+                    #     #_LOGGER.debug("Overwrite current step temperature because of ramp to next temperature, setting temp to: %s C", new_temp)
+                    #     data.current_step_temperature = new_temp
         else:
-            _LOGGER.debug("No current step")
+            _LOGGER.error("Unable to determing current fermenting step!")
 
         if nextStep is not None:
             data.next_step_temperature = nextStep.step_temp
@@ -152,59 +251,20 @@ class BrewfatherCoordinator(DataUpdateCoordinator[BrewfatherCoordinatorData]):
                 nextStep.step_temp,
                 data.next_step_date,
                 nextStep.ramp
-            )
-            if(currentStep is not None and nextStep.ramp is not None and nextStep.ramp > 0):
-
-                #instead of calculating what the temperature increase should be every hour, we will calculate how often we have to increase of decrease 1 whole degree C
-                _LOGGER.debug("Next temperature has a ramp value of %s days", nextStep.ramp)
-                ramp_hours = nextStep.ramp * 24
-
-
-                #from 20 to 25 in 24 hours
-                #5 degree in 24 hour
-                #24 / 5  = 4.8 hour 
-                #each 4.8 hour 1 degree increase
-
-
-                #from 25 to 20 in 24 hours
-                #-5 degree in 24 hour
-                #24 / 5  = 4.8 hour 
-                #each 4.8 hour -1 degree increase
-
-                temperature_difference = nextStep.step_temp - currentStep.step_temp
-                one_degree_each_hours = ramp_hours / abs(temperature_difference)
-                _LOGGER.debug("We have to go from %sC to %sC in %s hours", currentStep.step_temp, nextStep.step_temp, ramp_hours)
-                _LOGGER.debug("1 degree each: %s / %s = %s hours", ramp_hours, abs(temperature_difference), one_degree_each_hours)
-
-
-                #seconds_left_for_ramp:timedelta = (data.next_step_date - self.datetime_fromtimestamp_with_fermentingstart(currentStep.actual_time, fermenting_start))
-                #temperature_steps = data.next_step_date
-
-
-                #_LOGGER.debug("Time between current step and next: %s, number of hours to ramp: %s", time_between_steps, ramp_hours)
-                #temperature_increase_each_hour = (nextStep.step_temp - currentStep.step_temp) / ramp_hours
-
-                seconds_left_for_ramp:timedelta = (data.next_step_date - currentTimeUtc)
-                hours_left = (seconds_left_for_ramp.days * 24) + (seconds_left_for_ramp.seconds / 3600)
-                _LOGGER.debug("We have %s hours left to reach %sC", hours_left, nextStep.step_temp)
-
-                # subtract 1 because the last degree change we want to skip (since we are getting very close to the nextStep target)
-                number_of_degrees_to_change = math.floor(hours_left / one_degree_each_hours) - 1
-
-                if temperature_difference < 0:
-                    number_of_degrees_to_change = number_of_degrees_to_change * -1
-
-                new_temp = round(nextStep.step_temp - number_of_degrees_to_change, ndigits=1)
-                if new_temp != data.current_step_temperature:
-                    _LOGGER.debug("Overwrite current step temperature because of ramp to next temperature, setting temp from %s to: %sC", data.current_step_temperature, new_temp)
-
-                    #new_temp = round(nextStep.step_temp - (hours_left * temperature_increase_each_hour), ndigits=1)
-                    #_LOGGER.debug("Overwrite current step temperature because of ramp to next temperature, setting temp to: %s C", new_temp)
-                    data.current_step_temperature = new_temp
+            )            
         else:
             _LOGGER.debug("No next step")
 
         return data
+    
+    # def calculate_ramp_temperature(start_temp: float, step_number: int, hours_per_ramp: float  ) -> float:
+    #     ramp_step_temp = start_temp
+    #     ramp_step_increase = round(step_number, ndigits=1)
+    #     ramp_step_new_temp = round(start_temp + ramp_step_increase, ndigits=1)
+    #     ramp_step_time = round(step_number * hours_per_ramp, ndigits=1)
+    #     _LOGGER.debug("| #%s\t%s\t%s\t\t%s\t\t%s\t\t\t|", step_number, ramp_step_temp, ramp_step_increase, ramp_step_new_temp, ramp_step_time)
+    #     return 
+
 
     def datetime_fromtimestamp_with_fermentingstart(
         self, epoch: int | None, fermenting_start: int | None
