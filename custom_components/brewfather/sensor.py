@@ -98,20 +98,7 @@ async def async_setup_entry(
             )
         )
     )
-
-    # sensors.append(
-    #     BrewfatherSensor(
-    #         coordinator,
-    #         "Fermenting batches",
-    #         SensorKinds.fermenting_batches,
-    #         "mdi:glass-mug",
-    #         connectionName,
-    #     )
-    # )
-    # async_add_entities(
-    #     BrewfatherSensor(coordinator, idx, ent) for idx, ent in enumerate(sensors)
-    # )
-    #coordinator.async_add_listener
+  
     async_add_entities(sensors, update_before_add=False)
 
 
@@ -206,19 +193,78 @@ class BrewfatherSensor(CoordinatorEntity[BrewfatherCoordinator], SensorEntity):
 
         if sensor_type == SensorKinds.fermenting_name:
             sensor_data.state = data.brew_name
+            custom_attributes["batch_id"] = data.batch_id
+
+            other_batches_data = []
+            for other_batch_data in data.other_batches:
+                other_batches_data.append({
+                    "batch_id": other_batch_data.batch_id,
+                    "state": other_batch_data.brew_name
+                })
+            if len(other_batches_data)  > 0:
+                custom_attributes["other_batches"] = other_batches_data
+
         elif sensor_type == SensorKinds.fermenting_current_temperature:
             sensor_data.state = data.current_step_temperature
+            custom_attributes["batch_id"] = data.batch_id
+
+            other_batches_data = []
+            for other_batch_data in data.other_batches:
+                other_batches_data.append({
+                    "batch_id": other_batch_data.batch_id,
+                    "state": other_batch_data.current_step_temperature
+                })
+            if len(other_batches_data)  > 0:
+                custom_attributes["other_batches"] = other_batches_data
+
         elif sensor_type == SensorKinds.fermenting_next_date:
             sensor_data.state = data.next_step_date
+            custom_attributes["batch_id"] = data.batch_id
+
+            other_batches_data = []
+            for other_batch_data in data.other_batches:
+                other_batches_data.append({
+                    "batch_id": other_batch_data.batch_id,
+                    "state": other_batch_data.next_step_date
+                })
+            if len(other_batches_data)  > 0:
+                custom_attributes["other_batches"] = other_batches_data
+
         elif sensor_type == SensorKinds.fermenting_next_temperature:
             sensor_data.state = data.next_step_temperature
+            custom_attributes["batch_id"] = data.batch_id
+
+            other_batches_data = []
+            for other_batch_data in data.other_batches:
+                other_batches_data.append({
+                    "batch_id": other_batch_data.batch_id,
+                    "state": other_batch_data.next_step_temperature
+                })
+            if len(other_batches_data)  > 0:
+                custom_attributes["other_batches"] = other_batches_data
+
         elif sensor_type == SensorKinds.fermenting_last_reading:
             sensor_data.state = data.last_reading.sg
+            custom_attributes["batch_id"] = data.batch_id
 
             custom_attributes["angle"] = data.last_reading.angle
             custom_attributes["temp"] = data.last_reading.temp
             custom_attributes["time_ms"] = data.last_reading.time
             custom_attributes["time"] = datetime.fromtimestamp(data.last_reading.time / 1000, timezone.utc)
+            
+            other_batches_data = []
+            for other_batch_data in data.other_batches:
+                other_batches_data.append({
+                    "state": other_batch_data.last_reading.sg,
+                    "batch_id": other_batch_data.batch_id,
+                    "angle": other_batch_data.last_reading.angle,
+                    "temp": other_batch_data.last_reading.temp,
+                    "time_ms": other_batch_data.last_reading.time,
+                    "time": datetime.fromtimestamp(data.last_reading.time / 1000, timezone.utc)
+                })
+                
+            if len(other_batches_data)  > 0:
+                custom_attributes["other_batches"] = other_batches_data
 
         elif sensor_type == SensorKinds.fermenting_batches:
             sensor_data.state = len(data.batches)

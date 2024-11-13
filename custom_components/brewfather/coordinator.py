@@ -17,7 +17,8 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 from .const import (
     DOMAIN,
     MS_IN_DAY,
-    CONF_RAMP_TEMP_CORRECTION
+    CONF_RAMP_TEMP_CORRECTION,
+    CONF_MULTI_BATCH
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -26,20 +27,23 @@ def sort_by_actual_time(entity: Fermentation):
     return entity.actual_time
 
 class BrewfatherCoordinatorData:
+    batch_id: Optional[str]
     brew_name: Optional[str]
     current_step_temperature: Optional[float]
     next_step_date: Optional[datetime.datetime]
     next_step_temperature: Optional[float]
     last_reading: Optional[Reading]
-    batches: Optional[list[BatchItem]]
+    other_batches: list[BrewfatherCoordinatorData]
 
     def __init__(self):
         # set defaults to None
+        self.batch_id = None
         self.brew_name = None
         self.current_step_temperature = None
         self.next_step_date = None
         self.next_step_temperature = None
         self.last_reading = None
+        self.other_batches = []
 
 
 class BatchInfo:
@@ -56,7 +60,7 @@ class BrewfatherCoordinator(DataUpdateCoordinator[BrewfatherCoordinatorData]):
     """Class to manage fetching data from the API."""
 
     def __init__(self, hass: HomeAssistant, entry, update_interval: timedelta):
-        self.single_batch_mode = True
+        self.multi_batch_mode = entry.data.get(CONF_MULTI_BATCH, False)
         self.temperature_correction_enabled = entry.data.get(CONF_RAMP_TEMP_CORRECTION, False)
         self.connection = Connection(
             entry.data.get(CONF_USERNAME, 'no-username-found-in-config'), 
@@ -85,34 +89,46 @@ class BrewfatherCoordinator(DataUpdateCoordinator[BrewfatherCoordinatorData]):
             #fermentingBatches.append(BatchInfo(batchData, readings))
             fermentingBatches.append(BatchInfo(batchData, last_reading))
 
-            if self.single_batch_mode:
+            if not self.multi_batch_mode:
                 break
 
         if len(fermentingBatches) == 0:
             return None
         
         currentTimeUtc = datetime.now().astimezone()
-
+        main_batch_data: BrewfatherCoordinatorData = None
+        #batch_data:list[BrewfatherCoordinatorData] = []
+        for fermenting_batch in fermentingBatches:
+            batch_data = self.get_batch_data(fermenting_batch, currentTimeUtc)
+            
+            if main_batch_data is None:
+                main_batch_data = batch_data
+            else:
+                if self.multi_batch_mode:
+                    main_batch_data.other_batches.append(batch_data)
+                else:
+                    break
+        
+        return main_batch_data
+    
+    def get_batch_data(self, currentBatch: BatchInfo, currentTimeUtc: datetime) -> BrewfatherCoordinatorData | None:
+        fermenting_start: int | None = None
+        for note in currentBatch.batch.notes:
+            if note.status == "Fermenting":
+                fermenting_start = note.timestamp
+        
+        if fermenting_start is None:
+            return None
+        
         currentStep: Step | None = None
         nextStep: Step | None = None
         prevStep: Step | None = None
         curren_step_is_ramping = False
         current_step_actual_start_time_utc: datetime|None
 
-        if not self.single_batch_mode:
-            raise Exception("Multibatch is not implemented")
-        
-        currentBatch = fermentingBatches[0]
-        
-        fermenting_start: int | None = None
-        for note in currentBatch.batch.notes:
-            if note.status == "Fermenting":
-                fermenting_start = note.timestamp
-
-
-        _LOGGER.debug("CurrentTimeUtc: %s", currentTimeUtc.strftime("%m/%d/%Y, %H:%M:%S"))
-        _LOGGER.debug("-------------------------------------- Fermentation steps -------- (tce:\t%s)---------------------------------------------", self.temperature_correction_enabled)
         if currentBatch.batch.recipe is not None and currentBatch.batch.recipe.fermentation is not None and currentBatch.batch.recipe.fermentation.steps is not None:
+            _LOGGER.debug("%s (%s) | CurrentTimeUtc: %s", currentBatch.batch.recipe.name, currentBatch.batch.id, currentTimeUtc.strftime("%m/%d/%Y, %H:%M:%S"))
+            _LOGGER.debug("-------------------------------------- Fermentation steps -------- (tce:\t%s)---------------------------------------------", self.temperature_correction_enabled)
             for (index, step) in enumerate[Step](
                 sorted(currentBatch.batch.recipe.fermentation.steps, key=lambda x: x.actual_time)
             ):
@@ -146,7 +162,7 @@ class BrewfatherCoordinator(DataUpdateCoordinator[BrewfatherCoordinatorData]):
         _LOGGER.debug("-----------------------------------------------------------------------------------------------------------------------------")
 
         data = BrewfatherCoordinatorData()
-        data.batches = fermentingBatches
+        data.batch_id = currentBatch.batch.id
         data.brew_name = currentBatch.batch.recipe.name
         data.last_reading = currentBatch.last_reading
         # if currentBatch.readings is not None and len(currentBatch.readings) > 0:
@@ -226,6 +242,7 @@ class BrewfatherCoordinator(DataUpdateCoordinator[BrewfatherCoordinatorData]):
             _LOGGER.debug("No next step")
 
         return data
+        
 
     def datetime_fromtimestamp_with_fermentingstart(
         self, epoch: int | None, fermenting_start: int | None

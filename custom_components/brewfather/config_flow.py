@@ -92,7 +92,9 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             self._abort_if_unique_id_configured()
 
             temp_correction = user_input.get(CONF_RAMP_TEMP_CORRECTION, False)
-            self.data = ConfigFlow.get_config_entry(name, username, password, temp_correction)
+            multi_batch = user_input.get(CONF_MULTI_BATCH, False)
+
+            self.data = ConfigFlow.get_config_entry(name, username, password, temp_correction, multi_batch)
             return self.async_create_entry(title=name, data=self.data)
         
         return self.async_show_form(
@@ -108,7 +110,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         return OptionsFlowHandler(config_entry)
     
     @staticmethod
-    def get_config_entry(name:str, username: str, password: str, temp_correction: bool
+    def get_config_entry(name:str, username: str, password: str, temp_correction: bool, multi_batch: bool
     ) -> dict[str, Any]:
         """Create the config object."""
         config:dict[str, Any] = {
@@ -116,6 +118,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 CONF_USERNAME: username,
                 CONF_PASSWORD: password,
                 CONF_RAMP_TEMP_CORRECTION: temp_correction,
+                CONF_MULTI_BATCH: multi_batch
             }
         return config
 
@@ -133,7 +136,8 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                 self.config_entry.data.get(CONF_NAME),
                 self.config_entry.data.get(CONF_USERNAME),
                 self.config_entry.data.get(CONF_PASSWORD),
-                user_input.get(CONF_RAMP_TEMP_CORRECTION)
+                user_input.get(CONF_RAMP_TEMP_CORRECTION),
+                user_input.get(CONF_MULTI_BATCH)
             )
 
             # update config entry
