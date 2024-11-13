@@ -11,6 +11,7 @@ from .const import (
     CONF_RAMP_TEMP_CORRECTION,
     VERSION_MAJOR,
     VERSION_MINOR,
+    CONF_MULTI_BATCH,
 )
 from .connection import (
     Connection,
@@ -32,12 +33,14 @@ CONFIG_SCHEMA = vol.Schema(
         vol.Required(CONF_USERNAME): cv.string,
         vol.Required(CONF_PASSWORD): cv.string,
         vol.Required(CONF_RAMP_TEMP_CORRECTION): cv.boolean,
+        vol.Required(CONF_MULTI_BATCH): cv.boolean,
     }
 )
 
 OPTIONS_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_RAMP_TEMP_CORRECTION): cv.boolean,
+        vol.Required(CONF_MULTI_BATCH): cv.boolean,
     }
 )
 

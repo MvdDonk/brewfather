@@ -27,7 +27,8 @@
     "step": {
       "init": {
         "data": {
-          "ramp_temp_correction": "Enable temperature ramping"
+          "ramp_temp_correction": "Enable temperature ramping",
+          "multi_batch": "Enable multiple batch support (experimental)"
         }
       }
     }

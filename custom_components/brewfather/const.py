@@ -12,6 +12,7 @@ LAST_READING_URI = "https://api.brewfather.app/v2/batches/{}/readings/last"
 
 DRY_RUN = False
 CONF_RAMP_TEMP_CORRECTION = "ramp_temp_correction"
+CONF_MULTI_BATCH = "multi_batch"
 
 VERSION_MAJOR = 1
-VERSION_MINOR = 2
+VERSION_MINOR = 3
