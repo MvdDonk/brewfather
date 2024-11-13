@@ -57,9 +57,10 @@ class BrewfatherCoordinator(DataUpdateCoordinator[BrewfatherCoordinatorData]):
 
     def __init__(self, hass: HomeAssistant, entry, update_interval: timedelta):
         self.single_batch_mode = True
-        self.temperature_correction_enabled = entry.data[CONF_RAMP_TEMP_CORRECTION]
+        self.temperature_correction_enabled = entry.data.get(CONF_RAMP_TEMP_CORRECTION, False)
         self.connection = Connection(
-            entry.data[CONF_USERNAME], entry.data[CONF_PASSWORD]
+            entry.data.get(CONF_USERNAME, 'no-username-found-in-config'), 
+            entry.data.get(CONF_PASSWORD, 'no-password-found-in-config')
         )
 
         super().__init__(hass, _LOGGER, name=DOMAIN, update_interval=update_interval)
