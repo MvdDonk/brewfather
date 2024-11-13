@@ -1,7 +1,7 @@
 DOMAIN = "brewfather"
 COORDINATOR = "coordinator"
 
-UPDATE_INTERVAL = 60 #15 minutes
+UPDATE_INTERVAL = 900 #15 minutes
 MS_IN_DAY = 86400000
 
 TEST_URI = "https://api.brewfather.app/v2/batches/"
