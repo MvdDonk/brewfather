@@ -22,5 +22,14 @@
     "abort": {
       "already_configured": "Api key is already configured"
     }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "data": {
+          "ramp_temp_correction": "Enable temperature ramping"
+        }
+      }
+    }
   }
 }

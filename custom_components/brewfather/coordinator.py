@@ -17,7 +17,7 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 from .const import (
     DOMAIN,
     MS_IN_DAY,
-    CONF_TEMP_RAMP_CORRECTION
+    CONF_RAMP_TEMP_CORRECTION
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -57,7 +57,7 @@ class BrewfatherCoordinator(DataUpdateCoordinator[BrewfatherCoordinatorData]):
 
     def __init__(self, hass: HomeAssistant, entry, update_interval: timedelta):
         self.single_batch_mode = True
-        self.temperature_correction_enabled = entry.data[CONF_TEMP_RAMP_CORRECTION]
+        self.temperature_correction_enabled = entry.data[CONF_RAMP_TEMP_CORRECTION]
         self.connection = Connection(
             entry.data[CONF_USERNAME], entry.data[CONF_PASSWORD]
         )
@@ -126,7 +126,10 @@ class BrewfatherCoordinator(DataUpdateCoordinator[BrewfatherCoordinatorData]):
                 if self.temperature_correction_enabled and step.ramp is not None and step.ramp > 0:
                     actual_start_time_utc = step_start_datetime_utc + timedelta(days = -1 * step.ramp)
 
-                _LOGGER.debug("| %s\tstarts: %s\tends: %s\tramp: %s\tactualstart: %s |", step.step_temp, step_start_datetime_utc.strftime("%m/%d/%Y, %H:%M:%S"), step_end_datetime_utc.strftime("%m/%d/%Y, %H:%M:%S"), step.ramp, actual_start_time_utc.strftime("%m/%d/%Y, %H:%M:%S"))
+                if self.temperature_correction_enabled:
+                    _LOGGER.debug("| %s\tstarts: %s\tends: %s\tramp: %s\tactualstart: %s |", step.step_temp, step_start_datetime_utc.strftime("%m/%d/%Y, %H:%M:%S"), step_end_datetime_utc.strftime("%m/%d/%Y, %H:%M:%S"), step.ramp, actual_start_time_utc.strftime("%m/%d/%Y, %H:%M:%S"))
+                else:
+                    _LOGGER.debug("| %s\tstarts: %s\tends: %s\tramp: %s\t\t\t|", step.step_temp, step_start_datetime_utc.strftime("%m/%d/%Y, %H:%M:%S"), step_end_datetime_utc.strftime("%m/%d/%Y, %H:%M:%S"), step.ramp)
 
                 # check if start date is in past, also check if end date (start date + step_time * MS_IN_DAY) is in future
                 if actual_start_time_utc <= currentTimeUtc and step_end_datetime_utc > currentTimeUtc:

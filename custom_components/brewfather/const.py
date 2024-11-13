@@ -1,8 +1,7 @@
 DOMAIN = "brewfather"
 COORDINATOR = "coordinator"
-CONNECTION_NAME = "connection_name"
 
-UPDATE_INTERVAL = 900 #15 minutes
+UPDATE_INTERVAL = 60 #15 minutes
 MS_IN_DAY = 86400000
 
 TEST_URI = "https://api.brewfather.app/v2/batches/"
@@ -12,7 +11,7 @@ READINGS_URI = "https://api.brewfather.app/v2/batches/{}/readings"
 LAST_READING_URI = "https://api.brewfather.app/v2/batches/{}/readings/last"
 
 DRY_RUN = False
-CONF_TEMP_RAMP_CORRECTION = "temp_ramp_correction"
+CONF_RAMP_TEMP_CORRECTION = "ramp_temp_correction"
 
 VERSION_MAJOR = 1
-VERSION_MINOR = 6
+VERSION_MINOR = 7

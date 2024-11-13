@@ -9,7 +9,7 @@
           "name": "Connection name",
           "username": "User ID",
           "password": "API-Key",
-          "temp_ramp_correction": "Enable temperature ramping"
+          "ramp_temp_correction": "Enable temperature ramping"
         }
       }
     },
@@ -21,6 +21,15 @@
     },
     "abort": {
       "already_configured": "Api key is already configured"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "data": {
+          "ramp_temp_correction": "Enable temperature ramping"
+        }
+      }
     }
   }
 }
