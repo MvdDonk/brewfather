@@ -77,7 +77,7 @@ async def async_migrate_entry(hass, config_entry: config_entries.ConfigEntry):
     if config_entry.version == 1:
 
         new_data = {**config_entry.data}
-        if config_entry.minor_version < 8:
+        if config_entry.minor_version < 2:
             new_data[CONF_RAMP_TEMP_CORRECTION] = False
             pass
 
