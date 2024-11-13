@@ -110,10 +110,10 @@ class BrewfatherCoordinator(DataUpdateCoordinator[BrewfatherCoordinatorData]):
 
 
         _LOGGER.debug("CurrentTimeUtc: %s", currentTimeUtc.strftime("%m/%d/%Y, %H:%M:%S"))
-        _LOGGER.debug("---------------------------------------------------- Fermentation steps -----------------------------------------------------")
+        _LOGGER.debug("-------------------------------------- Fermentation steps -------- (tce:\t%s)---------------------------------------------", self.temperature_correction_enabled)
         if currentBatch.batch.recipe is not None and currentBatch.batch.recipe.fermentation is not None and currentBatch.batch.recipe.fermentation.steps is not None:
             for (index, step) in enumerate[Step](
-                currentBatch.batch.recipe.fermentation.steps
+                sorted(currentBatch.batch.recipe.fermentation.steps, key=lambda x: x.actual_time)
             ):
                 step_start_datetime_utc = self.datetime_fromtimestamp_with_fermentingstart(
                     step.actual_time, fermenting_start
@@ -126,13 +126,11 @@ class BrewfatherCoordinator(DataUpdateCoordinator[BrewfatherCoordinatorData]):
                 if self.temperature_correction_enabled and step.ramp is not None and step.ramp > 0:
                     actual_start_time_utc = step_start_datetime_utc + timedelta(days = -1 * step.ramp)
 
-                if self.temperature_correction_enabled:
-                    _LOGGER.debug("| %s\tstarts: %s\tends: %s\tramp: %s\tactualstart: %s |", step.step_temp, step_start_datetime_utc.strftime("%m/%d/%Y, %H:%M:%S"), step_end_datetime_utc.strftime("%m/%d/%Y, %H:%M:%S"), step.ramp, actual_start_time_utc.strftime("%m/%d/%Y, %H:%M:%S"))
-                else:
-                    _LOGGER.debug("| %s\tstarts: %s\tends: %s\tramp: %s\t\t\t|", step.step_temp, step_start_datetime_utc.strftime("%m/%d/%Y, %H:%M:%S"), step_end_datetime_utc.strftime("%m/%d/%Y, %H:%M:%S"), step.ramp)
+                _LOGGER.debug("| %s\tstarts: %s\tends: %s\tramp: %s\tactualstart: %s |", step.step_temp, step_start_datetime_utc.strftime("%m/%d/%Y, %H:%M:%S"), step_end_datetime_utc.strftime("%m/%d/%Y, %H:%M:%S"), step.ramp, actual_start_time_utc.strftime("%m/%d/%Y, %H:%M:%S"))
 
-                # check if start date is in past, also check if end date (start date + step_time * MS_IN_DAY) is in future
-                if actual_start_time_utc <= currentTimeUtc and step_end_datetime_utc > currentTimeUtc:
+                # check if start date is in past, we will keep looping so the latest step that matches will be current step.
+                # this way it will also work for steps with ramping even if we have temperature_correction_enabled is disabled
+                if actual_start_time_utc <= currentTimeUtc:
                     currentStep = step
                     current_step_actual_start_time_utc = actual_start_time_utc
                     if step_start_datetime_utc > currentTimeUtc:
