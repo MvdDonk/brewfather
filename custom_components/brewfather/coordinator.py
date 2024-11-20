@@ -18,7 +18,8 @@ from .const import (
     DOMAIN,
     MS_IN_DAY,
     CONF_RAMP_TEMP_CORRECTION,
-    CONF_MULTI_BATCH
+    CONF_MULTI_BATCH,
+    CONF_ALL_BATCH_INFO_SENSOR
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -61,6 +62,7 @@ class BrewfatherCoordinator(DataUpdateCoordinator[BrewfatherCoordinatorData]):
 
     def __init__(self, hass: HomeAssistant, entry, update_interval: timedelta):
         self.multi_batch_mode = entry.data.get(CONF_MULTI_BATCH, False)
+        self.all_batch_info_sensor = entry.data.get(CONF_ALL_BATCH_INFO_SENSOR, False)
         self.temperature_correction_enabled = entry.data.get(CONF_RAMP_TEMP_CORRECTION, False)
         self.connection = Connection(
             entry.data.get(CONF_USERNAME, 'no-username-found-in-config'), 
@@ -89,7 +91,7 @@ class BrewfatherCoordinator(DataUpdateCoordinator[BrewfatherCoordinatorData]):
             #fermentingBatches.append(BatchInfo(batchData, readings))
             fermentingBatches.append(BatchInfo(batchData, last_reading))
 
-            if not self.multi_batch_mode:
+            if not self.multi_batch_mode and not self.all_batch_info_sensor:
                 break
 
         if len(fermentingBatches) == 0:
@@ -104,7 +106,7 @@ class BrewfatherCoordinator(DataUpdateCoordinator[BrewfatherCoordinatorData]):
             if main_batch_data is None:
                 main_batch_data = batch_data
             else:
-                if self.multi_batch_mode:
+                if self.multi_batch_mode or self.all_batch_info_sensor:
                     main_batch_data.other_batches.append(batch_data)
                 else:
                     break

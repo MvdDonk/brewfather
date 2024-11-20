@@ -1,5 +1,4 @@
 from __future__ import annotations
-from copy import deepcopy
 import logging
 from typing import Any, Dict, Optional
 import voluptuous as vol  # type: ignore
@@ -12,6 +11,7 @@ from .const import (
     VERSION_MAJOR,
     VERSION_MINOR,
     CONF_MULTI_BATCH,
+    CONF_ALL_BATCH_INFO_SENSOR,
 )
 from .connection import (
     Connection,
@@ -41,6 +41,7 @@ OPTIONS_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_RAMP_TEMP_CORRECTION): cv.boolean,
         vol.Required(CONF_MULTI_BATCH): cv.boolean,
+        vol.Required(CONF_ALL_BATCH_INFO_SENSOR): cv.boolean,
     }
 )
 
@@ -94,7 +95,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             temp_correction = user_input.get(CONF_RAMP_TEMP_CORRECTION, False)
             multi_batch = user_input.get(CONF_MULTI_BATCH, False)
 
-            self.data = ConfigFlow.get_config_entry(name, username, password, temp_correction, multi_batch)
+            self.data = ConfigFlow.get_config_entry(name, username, password, temp_correction, multi_batch, False)
             return self.async_create_entry(title=name, data=self.data)
         
         return self.async_show_form(
@@ -110,7 +111,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         return OptionsFlowHandler(config_entry)
     
     @staticmethod
-    def get_config_entry(name:str, username: str, password: str, temp_correction: bool, multi_batch: bool
+    def get_config_entry(name:str, username: str, password: str, temp_correction: bool, multi_batch: bool, all_batch_info_sensor: bool
     ) -> dict[str, Any]:
         """Create the config object."""
         config:dict[str, Any] = {
@@ -118,7 +119,8 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 CONF_USERNAME: username,
                 CONF_PASSWORD: password,
                 CONF_RAMP_TEMP_CORRECTION: temp_correction,
-                CONF_MULTI_BATCH: multi_batch
+                CONF_MULTI_BATCH: multi_batch,
+                CONF_ALL_BATCH_INFO_SENSOR: all_batch_info_sensor
             }
         return config
 
@@ -137,7 +139,8 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                 self.config_entry.data.get(CONF_USERNAME),
                 self.config_entry.data.get(CONF_PASSWORD),
                 user_input.get(CONF_RAMP_TEMP_CORRECTION),
-                user_input.get(CONF_MULTI_BATCH)
+                user_input.get(CONF_MULTI_BATCH),
+                user_input.get(CONF_ALL_BATCH_INFO_SENSOR)
             )
 
             # update config entry

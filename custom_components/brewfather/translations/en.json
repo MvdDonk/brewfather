@@ -9,7 +9,8 @@
           "name": "Connection name",
           "username": "User ID",
           "password": "API-Key",
-          "ramp_temp_correction": "Enable temperature ramping"
+          "ramp_temp_correction": "Enable temperature ramping",
+          "multi_batch": "Multiple batch support (preview)"
         }
       }
     },
@@ -28,7 +29,8 @@
       "init": {
         "data": {
           "ramp_temp_correction": "Enable temperature ramping",
-          "multi_batch": "Enable multiple batch support (experimental)"
+          "multi_batch": "Multiple batch support (preview)",
+          "all_batch_info_sensor": "All batches data sensor (experimental)"
         }
       }
     }

@@ -13,6 +13,7 @@ from .const import (
     UPDATE_INTERVAL,
     CONF_RAMP_TEMP_CORRECTION,
     CONF_MULTI_BATCH,
+    CONF_ALL_BATCH_INFO_SENSOR,
     VERSION_MAJOR,
     VERSION_MINOR
 )
@@ -80,9 +81,8 @@ async def async_migrate_entry(hass, config_entry: config_entries.ConfigEntry):
         new_data = {**config_entry.data}
         if config_entry.minor_version < 2:
             new_data[CONF_RAMP_TEMP_CORRECTION] = False
-            pass
-        if config_entry.minor_version < 3:
             new_data[CONF_MULTI_BATCH] = False
+            new_data[CONF_ALL_BATCH_INFO_SENSOR] = False
             pass
 
         hass.config_entries.async_update_entry(config_entry, data=new_data, minor_version=VERSION_MINOR, version=VERSION_MAJOR)

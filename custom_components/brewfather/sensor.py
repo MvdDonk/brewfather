@@ -3,13 +3,15 @@ from __future__ import annotations
 from datetime import datetime, timezone
 import enum
 import logging
-from typing import Mapping, cast, Any
+from copy import copy
+from typing import cast, Any
 from custom_components.brewfather.models.reading_item import Reading
 from homeassistant.core import callback
 from homeassistant.config_entries import ConfigEntry
 from .const import (
     DOMAIN,
-    COORDINATOR
+    COORDINATOR,
+    CONF_ALL_BATCH_INFO_SENSOR
 )
 from homeassistant.const import UnitOfTemperature
 from .coordinator import BrewfatherCoordinator, BrewfatherCoordinatorData
@@ -30,7 +32,6 @@ async def async_setup_entry(
     """Set up the sensor platforms."""
     coordinator = hass.data[DOMAIN][entry.entry_id][COORDINATOR]
     sensors = []
-
 
     sensors.append(
         BrewfatherSensor(
@@ -98,6 +99,20 @@ async def async_setup_entry(
             )
         )
     )
+
+    all_batch_info_sensor = entry.data.get(CONF_ALL_BATCH_INFO_SENSOR, False)
+    if all_batch_info_sensor:
+        sensors.append(
+            BrewfatherSensor(
+                coordinator,
+                SensorKinds.all_batch_info,
+                SensorEntityDescription(
+                    key="all_batches",
+                    name="All batches data",
+                    icon="mdi:database",
+                )
+            )
+        ) 
   
     async_add_entities(sensors, update_before_add=False)
 
@@ -266,9 +281,26 @@ class BrewfatherSensor(CoordinatorEntity[BrewfatherCoordinator], SensorEntity):
             if len(other_batches_data)  > 0:
                 custom_attributes["other_batches"] = other_batches_data
 
-        elif sensor_type == SensorKinds.fermenting_batches:
-            sensor_data.state = len(data.batches)
-            #batches = data.batches
+        elif sensor_type == SensorKinds.all_batch_info:
+            all_batches:list[AllBatchDataItem] = []
+            
+            first_batch = copy(data)
+            del first_batch.other_batches
+            all_batches.append(first_batch)
+
+# first_batch = copy(data)
+#             del first_batch.other_batches
+
+            #all_batches = list.copy(data.other_batches)
+            #all_batches.insert(0, first_batch)
+            
+            for other_batch in data.other_batches:
+                batch = copy(other_batch)
+                del batch.other_batches
+                all_batches.append(batch)
+
+            sensor_data.state = len(all_batches)
+            custom_attributes["batches"] = all_batches
 
         sensor_data.extra_state_attributes = custom_attributes
 
@@ -321,5 +353,22 @@ class SensorKinds(enum.Enum):
     fermenting_current_temperature = 2
     fermenting_next_temperature = 3
     fermenting_next_date = 4
-    fermenting_batches = 5
+    #fermenting_batches = 5
     fermenting_last_reading = 6
+    all_batch_info = 7
+
+class AllBatchDataItem:
+    batch_id: str
+    brew_name: str
+    current_step_temperature: float
+    next_step_date: datetime.datetime
+    next_step_temperature: float
+    #last_reading: Reading
+
+    def __init__(self, data:BrewfatherCoordinatorData):
+        self.batchbatch_id_id = data.batch_id
+        self.brew_name = data.brew_name
+        self.current_step_temperature = data.current_step_temperature
+        self.next_step_date = data.next_step_date
+        self.next_step_temperature = data.next_step_temperature
+        #self.last_reading = data.last_reading

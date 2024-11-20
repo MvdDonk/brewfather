@@ -2,11 +2,9 @@ from .reading_item import Reading
 from typing import Optional, Any, List, TypeVar, Callable, Type, cast
 import time
 import datetime
-from enum import Enum
-from dataclasses import dataclass
-from typing import Optional, Any, List, TypeVar, Type, Callable, cast
-MS_IN_DAY = 86400000
-
+from ..const import (
+    MS_IN_DAY
+)
 T = TypeVar("T")
 
 
