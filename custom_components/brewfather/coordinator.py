@@ -1,6 +1,7 @@
 from __future__ import annotations
 import logging
 from logging import DEBUG
+from copy import copy
 from datetime import datetime, timezone, timedelta
 import math
 from typing import Optional
@@ -35,6 +36,7 @@ class BrewfatherCoordinatorData:
     next_step_temperature: Optional[float]
     last_reading: Optional[Reading]
     other_batches: list[BrewfatherCoordinatorData]
+    all_batches_data: Optional[list[BatchItem]]
 
     def __init__(self):
         # set defaults to None
@@ -45,6 +47,7 @@ class BrewfatherCoordinatorData:
         self.next_step_temperature = None
         self.last_reading = None
         self.other_batches = []
+        self.all_batches_data = None
 
 
 class BatchInfo:
@@ -82,16 +85,20 @@ class BrewfatherCoordinator(DataUpdateCoordinator[BrewfatherCoordinatorData]):
         allBatches = await self.connection.get_batches()
 
         fermentingBatches:list[BatchInfo] = []
+        all_batches_data:list[BatchInfo] = []
 
         for batch in allBatches:
             batchData = await self.connection.get_batch(batch.id)
-            #readings = await self.connection.get_readings(batch.id)
             last_reading = await self.connection.get_last_reading(batch.id)
-
-            #fermentingBatches.append(BatchInfo(batchData, readings))
             fermentingBatches.append(BatchInfo(batchData, last_reading))
 
-            if not self.multi_batch_mode and not self.all_batch_info_sensor:
+            if self.all_batch_info_sensor:
+                readings = await self.connection.get_readings(batch.id)
+                all_batch_data = copy(batchData)
+                all_batch_data.readings = readings
+
+                all_batches_data.append(all_batch_data)
+            elif not self.multi_batch_mode:
                 break
 
         if len(fermentingBatches) == 0:
@@ -106,11 +113,14 @@ class BrewfatherCoordinator(DataUpdateCoordinator[BrewfatherCoordinatorData]):
             if main_batch_data is None:
                 main_batch_data = batch_data
             else:
-                if self.multi_batch_mode or self.all_batch_info_sensor:
+                if self.multi_batch_mode:
                     main_batch_data.other_batches.append(batch_data)
                 else:
                     break
         
+        if self.all_batch_info_sensor:
+            main_batch_data.all_batches_data = all_batches_data
+            
         return main_batch_data
     
     def get_batch_data(self, currentBatch: BatchInfo, currentTimeUtc: datetime) -> BrewfatherCoordinatorData | None:
