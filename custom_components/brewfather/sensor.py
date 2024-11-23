@@ -36,8 +36,8 @@ async def async_setup_entry(
             coordinator,
             SensorKinds.fermenting_name,
             SensorEntityDescription(
-                key="batch_recipe_name",
-                name="Batch recipe name",
+                key="recipe_name",
+                name="Recipe name",
                 icon="mdi:glass-mug",
             )
         )
@@ -48,8 +48,8 @@ async def async_setup_entry(
             coordinator,
             SensorKinds.fermenting_current_temperature,
             SensorEntityDescription(
-                key="batch_target_temperature",
-                name="Batch target temperature",
+                key="target_temperature",
+                name="Target temperature",
                 icon="mdi:thermometer",
                 #native_unit_of_measurement=UnitOfTemperature.CELSIUS, #Should we support fahrenheit?
                 device_class=SensorDeviceClass.TEMPERATURE,
@@ -63,8 +63,8 @@ async def async_setup_entry(
             coordinator,
             SensorKinds.fermenting_next_temperature,
             SensorEntityDescription(
-                key="batch_upcoming_target_temperature",
-                name="Batch upcoming target temperature",
+                key="upcoming_target_temperature",
+                name="Upcoming target temperature",
                 icon="mdi:thermometer-chevron-up",
                 native_unit_of_measurement=UnitOfTemperature.CELSIUS, #Should we support fahrenheit?
                 device_class=SensorDeviceClass.TEMPERATURE,
@@ -77,8 +77,8 @@ async def async_setup_entry(
             coordinator,
             SensorKinds.fermenting_next_date,
             SensorEntityDescription(
-                key="batch_upcoming_target_temperature_change",
-                name="Batch upcoming target temperature change",
+                key="upcoming_target_temperature_change",
+                name="Upcoming target temperature change",
                 icon="mdi:clock",
                 device_class=SensorDeviceClass.TIMESTAMP,
             )
@@ -90,8 +90,8 @@ async def async_setup_entry(
             coordinator,
             SensorKinds.fermenting_last_reading,
             SensorEntityDescription(
-                key="batch_last_reading",
-                name="Batch last reading",
+                key="last_reading",
+                name="Last reading",
                 icon="mdi:chart-line",
                 state_class=SensorStateClass.MEASUREMENT,
             )
@@ -138,11 +138,10 @@ class BrewfatherSensor(CoordinatorEntity[BrewfatherCoordinator], SensorEntity):
 
         self._entity_description = description
         self._sensor_type = sensorKind
-        self.device_type = self._entity_description.key
 
-        self._attr_name = f"{SENSOR_PREFIX} {self._entity_description.name}"
-        self._attr_unique_id = f"{SENSOR_PREFIX}_{self._entity_description.name}"
-
+        self._attr_name = self._entity_description.name
+        self._attr_unique_id = f"{SENSOR_PREFIX}_{self._entity_description.key}"
+        
         self._attr_icon = self._entity_description.icon
         self._attr_state_class = self._entity_description.state_class
         self._attr_native_unit_of_measurement = self._entity_description.native_unit_of_measurement
