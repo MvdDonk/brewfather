@@ -1,4 +1,4 @@
-/*
+.vscode
 !hacs.json
 !readme.md
 !dev_notes.md
@@ -8,5 +8,6 @@
 !/dashboards
 !/template_sensors
 !*.png
-custom_components/brewfather/__pycache__/
-custom_components/brewfather/models/__pycache__/
+
+__pycache__/
+__pycache__/**

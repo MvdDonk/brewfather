@@ -122,3 +122,11 @@ export USER_ID=your_user_id
 export API_KEY=your_api_key
 pytest
 ```
+
+
+
+| V1 Name                     | V1 alias                           | V2 Name                                             | V2 alias                                                   |   |
+|-----------------------------|------------------------------------|-----------------------------------------------------|------------------------------------------------------------|---|
+| Upcoming temperature        | sensor.upcoming_temperature        | Brewfather Batch upcoming target temperature        | sensor.brewfather_batch_upcoming_target_temperature        |   |
+| Upcoming temperature change | sensor.upcoming_temperature_change | Brewfather Batch upcoming target temperature change | sensor.brewfather_batch_upcoming_target_temperature_change |   |
+| Recipe name                 | sensor.recipe_name                 | Brewfather Batch recipe name                        | sensor.brewfather_batch_recipe_name                        |   |
