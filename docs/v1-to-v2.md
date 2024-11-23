@@ -20,3 +20,4 @@ if you are only fermenting a single batch at the same time you will not need thi
 
 #### Experimental
 The usage of "All batches data sensor" is marked experimental because it might be removed in the future (if I have found a better way to support multiple batches).
+![Options menu](images/v2/configure_options-popup.png)
