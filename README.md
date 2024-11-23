@@ -1,6 +1,14 @@
 # Brewfather integration for Home Assistant
 A Home Assistant custom Integration for getting Brewfather batch information in Home Assistant for all homebrewers!
 
+TODO Add some images
+
+## Sensors
+TODO  
+
+## Options
+TODO  
+
 The following sensors will be added after setup:
 - **Recipe name**
 
