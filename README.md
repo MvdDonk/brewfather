@@ -1,17 +1,15 @@
 # Brewfather integration for Home Assistant
 A Home Assistant custom Integration for getting Brewfather batch information in Home Assistant for all homebrewers!
 
-TODO Add some images
-
-
-## Single Batch Support
-
-The integration produces a sensor for recipe name, current temperature, upcoming temperature and upcoming temperature change date for the most recently started batch. This can be displayed in Home Assistant by creating a new dashboard and copying the contents of the `dashboard/dashboard-single-batch.png` file into it.
+## Single Batch Support  
+The integration produces a sensor for recipe name, current temperature, upcoming temperature and upcoming temperature change date for the most recently started batch. This can be displayed in Home Assistant by creating a new dashboard and copying the contents of the `dashboard/dashboard.yaml` file into it.
 
 ![dashboard-single-batch.png](dashboard-single-batch.png)
 
-## Multiple Batch Support
+## Multiple Batch Support  
+TODO Native basic support (preview)
 
+Alternative using all Brewfather API data sensor
 Multiple batch support is available through the use of custom templates and a custom dashboard. All the data for all currently fermenting batches is stored in the `fermenting_batches` sensor. The `fermenting_batches` sensor as a `data` attribute that contains a list of all fermenting batches. The `data` attribute is a list of dictionaries. You can follow the below steps to add the custom templates and dashboard to display all fermenting batch information in your Home Assistant.
 
 Copy the `custom_templates` folder and all of its contents into your Home Assistant's custom_templates folder, this should be in the config directory next to custom_components. If the custom_templates folder does not exist, create it.
