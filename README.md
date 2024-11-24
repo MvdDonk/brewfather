@@ -1,29 +1,26 @@
 # Brewfather integration for Home Assistant
 A Home Assistant custom Integration for getting Brewfather batch information in Home Assistant for all homebrewers!
+![dashboard-multi-batch.png)](dashboard-multi-batch.png)
 
-## Single Batch Support  
+# Single Batch Support  
 The integration produces a sensor for recipe name, current temperature, upcoming temperature and upcoming temperature change date for the most recently started batch. This can be displayed in Home Assistant by creating a new dashboard and copying the contents of the `dashboard/dashboard.yaml` file into it.
 
 ![dashboard-single-batch.png](dashboard-single-batch.png)
 
-## Multiple Batch Support  
+# Multiple Batch Support  
 TODO Native basic support (preview)
 
 Alternative using all Brewfather API data sensor
 Multiple batch support is available through the use of custom templates and a custom dashboard. All the data for all currently fermenting batches is stored in the `fermenting_batches` sensor. The `fermenting_batches` sensor as a `data` attribute that contains a list of all fermenting batches. The `data` attribute is a list of dictionaries. You can follow the below steps to add the custom templates and dashboard to display all fermenting batch information in your Home Assistant.
 
-Copy the `custom_templates` folder and all of its contents into your Home Assistant's custom_templates folder, this should be in the config directory next to custom_components. If the custom_templates folder does not exist, create it.
+Copy the `custom_templates` contents into your Home Assistant's custom_templates folder, this should be in the config directory next to custom_components. If the custom_templates folder does not exist, create it.
 
 Copy the contents of the `template_sensors/template_sensors.yaml` file and paste it on to the end of the `config/configuration.yaml` file. If you already have a `template` and `sensor` section, just copy the contents of the `template_sensors.yaml` file excluding the first 2 lines and paste it into your existing `template` / `sensor` section.
 
 A `dashboard/dashboard-multi-batch.png` file has been included in this repository. To use it, create a new dashboard amd copy the contents of the `dashboard-multi-batch.png` file into it. The dashboard shows up to 4 batches, if you have more than 4 batches you will need to add more cards to the dashboard and template_sensors.yaml.
 
-### Dashboard
-![dashboard-multi-batch.png)](dashboard-multi-batch.png)
 
-
-## Getting batch information
-
+# Getting batch information  
 Setup a markdown card with the following content to get the batch information in Home Assistant:
 
 ```
@@ -48,12 +45,7 @@ content: |-
   {% endfor %}
 ```
 
-## Sensors
-TODO  
-
-## Options
-TODO  
-
+# Sensors
 The following sensors will be added after setup:
 - **Recipe name**
 
@@ -92,6 +84,29 @@ The following sensors will be added after setup:
     
         The current temperature of the fermentation based on readings entered into the app or through a connected device
 
+# Options
+## Enable temperature ramping
+When enabled and used with temperature ramping in Brewfather the target temperature will slowly increase towards the next temperature during the ramping period. For example: current fermenting step temperature is 20c and the next step is 24°C with a ramp of 2 days it will increase the temperature 1c every (2 * 24) / (24-20) = 12 hours. This will result in the following temperature schedule:
+| Date | Target temp | Hours into ramp | Step status |
+|--------|--------|--------|--------|
+| 11/02/2024 13:00 | 20°C | 0 |  |
+| 11/03/2024 01:00 | 21°C | 12| Ramping |
+| 11/03/2024 13:00 | 22°C | 24| Ramping |
+| 11/04/2024 01:00 | 23°C | 36| Ramping |
+| 11/04/2024 13:00 | 24°C | 0 | Ramping stopped, target temperature set |
+
+## Multiple batch support (preview)
+This is a work in progress (that's why it's in preview) but it's the first easy out of the box multi batch support. Each sensor will get an additional attribute "other_batches" which will contain the same category data as the sensor but for all other active batches. For example `brewfather_recipe_name` will have the following extra attribute data:
+```
+other_batches:
+  - batch_id: sVFLpIADPYj612oIwnTaNX2sFgUtna
+    state: Hoppy weizen
+```
+## All batches data sensor (experimental)
+Enabling this will give you a extra sensor `brewfather_all_batches_data` containing all the Brewfather API data just like in v1. Take a look at the custom templates of Multiple Batch Support how to use this data. This setting is experimental because it might be dropped in the future if better multi batch support is implemented.  
+You can only enable this option by going to the Brewfather integration and clicking configure.   
+<a href="docs/images/v2/configure_options-popup.png"><img src="docs/images/v2/configure_options-popup.png" width="300"></a>  
+*In v1 this used to be enabled by default but to limit the amount of data it is now configurable and disabled by default.*  
 
 # Installation
 Installing using [HACS](https://hacs.xyz/) is <u>recommended</u>. It is the easiest way to install and keep your integration up to date.
