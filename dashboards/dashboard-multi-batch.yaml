@@ -1,22 +1,15 @@
-title: Home
 views:
-  - path: default_view
-    title: Home
-    layout:
-      width: 400
-      max_cols: 10
-    type: custom:horizontal-layout
-    badges: []
-    cards:
-      - type: custom:layout-card
-        layout_type: custom:masonry-layout
-        layout: {}
+  - title: Home
+    type: sections
+    max_columns: 10
+    sections:
+      - type: grid
         cards:
           - type: markdown
             content: |-
               # Batch status
               ---
-              {% for batch in state_attr('sensor.brewfather_all_batches_data', 'data') %}
+              {% for batch in state_attr('sensor.fermenting_batches', 'data') %}
                 ## Batch \#{{ batch.batchNo }}, recipe: {{ batch.name }}
                 **Start Date**: {{ batch.fermentingStart.strftime('%a, %d %b %Y') }}
                 **End Date:** {{ batch.fermentingEnd.strftime('%a, %d %b %Y') }}
@@ -31,105 +24,103 @@ views:
                 {% endif %}</ha-alert>
 
               {% endfor %}
-      - type: conditional
-        conditions:
-          - entity: sensor.batch_1_name
+      - type: grid
+        cards:
+          - type: vertical-stack
+            cards:
+              - type: entity
+                entity: sensor.batch_1_name
+              - chart_type: line
+                period: hour
+                type: statistics-graph
+                entities:
+                  - sensor.batch_1_temperature
+                stat_types:
+                  - mean
+              - type: gauge
+                entity: sensor.batch_1_target_temperature
+                needle: false
+              - type: entity
+                entity: sensor.batch_1_target_temperature
+              - type: entity
+                entity: sensor.batch_1_left
+                unit: days
+        visibility:
+          - condition: state
+            entity: sensor.batch_1_name
             state_not: '0'
-        card:
-          type: custom:layout-card
-          layout_type: custom:masonry-layout
-          layout: {}
-          cards:
-            - type: entity
-              entity: sensor.batch_1_name
-            - chart_type: line
-              period: hour
-              type: statistics-graph
-              entities:
-                - sensor.batch_1_temperature
-              stat_types:
-                - mean
-            - type: gauge
-              entity: sensor.batch_1_temperature
-              needle: false
-            - type: entity
-              entity: sensor.batch_1_target_temperature
-            - type: entity
-              entity: sensor.batch_1_left
-              unit: days
-      - type: conditional
-        conditions:
-          - entity: sensor.batch_2_name
+      - type: grid
+        cards:
+          - type: vertical-stack
+            cards:
+              - type: entity
+                entity: sensor.batch_2_name
+              - chart_type: line
+                period: hour
+                type: statistics-graph
+                entities:
+                  - sensor.batch_2_temperature
+                stat_types:
+                  - mean
+              - type: gauge
+                entity: sensor.batch_2_target_temperature
+                needle: false
+              - type: entity
+                entity: sensor.batch_2_target_temperature
+              - type: entity
+                entity: sensor.batch_2_left
+                unit: days
+        visibility:
+          - condition: state
+            entity: sensor.batch_2_name
             state_not: '0'
-        card:
-          type: custom:layout-card
-          layout_type: custom:masonry-layout
-          layout: {}
-          cards:
-            - type: entity
-              entity: sensor.batch_2_name
-            - chart_type: line
-              period: hour
-              type: statistics-graph
-              entities:
-                - sensor.batch_2_temperature
-              stat_types:
-                - mean
-            - type: gauge
-              entity: sensor.batch_2_temperature
-            - type: entity
-              entity: sensor.batch_2_target_temperature
-            - type: entity
-              entity: sensor.batch_2_left
-      - type: conditional
-        conditions:
-          - entity: sensor.batch_3_name
+      - type: grid
+        cards:
+          - type: vertical-stack
+            cards:
+              - type: entity
+                entity: sensor.batch_3_name
+              - chart_type: line
+                period: hour
+                type: statistics-graph
+                entities:
+                  - sensor.batch_3_temperature
+                stat_types:
+                  - mean
+              - type: gauge
+                entity: sensor.batch_3_target_temperature
+                needle: false
+              - type: entity
+                entity: sensor.batch_3_target_temperature
+              - type: entity
+                entity: sensor.batch_3_left
+                unit: days
+        visibility:
+          - condition: state
+            entity: sensor.batch_3_name
             state_not: '0'
-        card:
-          type: custom:layout-card
-          layout_type: custom:masonry-layout
-          layout: {}
-          cards:
-            - type: custom:layout-card
-              layout_type: custom:masonry-layout
-              layout: {}
-              cards:
-                - type: entity
-                  entity: sensor.batch_3_name
-                - chart_type: line
-                  period: hour
-                  type: statistics-graph
-                  entities:
-                    - sensor.batch_3_temperature
-                  stat_types:
-                    - mean
-                - type: gauge
-                  entity: sensor.batch_3_temperature
-                - type: entity
-                  entity: sensor.batch_3_target_temperature
-                - type: entity
-                  entity: sensor.batch_3_left
-      - type: conditional
-        conditions:
-          - entity: sensor.batch_4_name
+      - type: grid
+        cards:
+          - type: vertical-stack
+            cards:
+              - type: entity
+                entity: sensor.batch_4_name
+              - chart_type: line
+                period: hour
+                type: statistics-graph
+                entities:
+                  - sensor.batch_4_temperature
+                stat_types:
+                  - mean
+              - type: gauge
+                entity: sensor.batch_4_target_temperature
+                needle: false
+              - type: entity
+                entity: sensor.batch_4_target_temperature
+              - type: entity
+                entity: sensor.batch_4_left
+                unit: days
+        visibility:
+          - condition: state
+            entity: sensor.batch_4_name
             state_not: '0'
-        card:
-          type: custom:layout-card
-          layout_type: custom:masonry-layout
-          layout: {}
-          cards:
-            - type: entity
-              entity: sensor.batch_4_name
-            - chart_type: line
-              period: hour
-              type: statistics-graph
-              entities:
-                - sensor.batch_4_temperature
-              stat_types:
-                - mean
-            - type: gauge
-              entity: sensor.batch_4_temperature
-            - type: entity
-              entity: sensor.batch_4_target_temperature
-            - type: entity
-              entity: sensor.batch_4_left
