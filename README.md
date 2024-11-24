@@ -8,9 +8,12 @@ The integration produces a sensor for recipe name, current temperature, upcoming
 ![dashboard-single-batch.png](dashboard-single-batch.png)
 
 # Multiple Batch Support  
-TODO Native basic support (preview)
+You can track multiple batches by either using the [Multiple batch support (preview)](#multi-batches) option, see below or  by using custom template and sensors:
 
-Alternative using all Brewfather API data sensor
+
+## Alternative using all Brewfather API data sensor
+*In order to use the Brewfather API data the option [All batches data sensor (experimental)](#all-batches-data) must be enabled.*  
+
 Multiple batch support is available through the use of custom templates and a custom dashboard. All the data for all currently fermenting batches is stored in the `fermenting_batches` sensor. The `fermenting_batches` sensor as a `data` attribute that contains a list of all fermenting batches. The `data` attribute is a list of dictionaries. You can follow the below steps to add the custom templates and dashboard to display all fermenting batch information in your Home Assistant.
 
 Copy the `custom_templates` contents into your Home Assistant's custom_templates folder, this should be in the config directory next to custom_components. If the custom_templates folder does not exist, create it.
@@ -20,7 +23,7 @@ Copy the contents of the `template_sensors/template_sensors.yaml` file and paste
 A `dashboard/dashboard-multi-batch.png` file has been included in this repository. To use it, create a new dashboard amd copy the contents of the `dashboard-multi-batch.png` file into it. The dashboard shows up to 4 batches, if you have more than 4 batches you will need to add more cards to the dashboard and template_sensors.yaml.
 
 
-# Getting batch information  
+### Getting batch information  
 Setup a markdown card with the following content to get the batch information in Home Assistant:
 
 ```
@@ -45,43 +48,40 @@ content: |-
   {% endfor %}
 ```
 
-# Sensors
+# Sensors list
 The following sensors will be added after setup:
-- **Recipe name**
-
-  Name of the beer you are fermenting
-- **Current temperature**
-
-  Temperature the fermentation should have following the recipe
-- **Upcoming temperature**
-
-  The temperature of the next step in the fermentation profile from the recipe
-- **Upcoming temperature change**
-
-  The date and time when the upcoming temperature will be activated
-- **Fermenting batches**
-
-    A list of all batches that are fermenting. This sensor contains the following attributes:
-    - **batchNo**
-    
+- **Recipe name**  
+  Name of the beer you are fermenting.  
+  `sensor.brewfather_recipe_name`  
+- **Current temperature**  
+  Temperature the fermentation should have following the recipe  
+  `sensor.brewfather_target_temperature`  
+- **Upcoming temperature**  
+  The temperature of the next step in the fermentation profile from the recipe  
+  `sensor.brewfather_upcoming_target_temperature`  
+- **Upcoming temperature change**  
+  The date and time when the upcoming temperature will be activated  
+  `sensor.brewfather_upcoming_target_temperature_change`  
+- **Latest reading**  
+  Latest reading (if available in Brewfather) in points sg. The history of this sensor will be kept in Home Assistant allowing you to render a graph.
+  `sensor.brewfather_last_reading`  
+- **Fermenting batches**  
+    *To use this sensor you have to enable "All batches data sensor (experimental)", see below*  
+    A list of all batches that are fermenting. This sensor contains the following attributes:      
+    `sensor.brewfather_all_batches_data`  
+    - **batchNo**      
         The batch number of the batch
-    - **name**
-    
+    - **name**      
         The name of the recipe
-    - **fermentingStart**
-    
+    - **fermentingStart**      
         The date and time when the fermentation started
-    - **fermentingEnd**
-    
+    - **fermentingEnd**      
         The date and time when the fermentation should be finished
-    - **fermentingLeft**
-    
+    - **fermentingLeft**      
         The number of days left until the fermentation is finished
-    - **target_temperature**
-    
+    - **target_temperature**      
         The temperature the fermentation should have following the recipe
-    - **current_temperature**
-    
+    - **current_temperature**      
         The current temperature of the fermentation based on readings entered into the app or through a connected device
 
 # Options
@@ -95,14 +95,15 @@ When enabled and used with temperature ramping in Brewfather the target temperat
 | 11/04/2024 01:00 | 23°C | 36| Ramping |
 | 11/04/2024 13:00 | 24°C | 0 | Ramping stopped, target temperature set |
 
-## Multiple batch support (preview)
+## <a name="multi-batches"></a>Multiple batch support (preview)
 This is a work in progress (that's why it's in preview) but it's the first easy out of the box multi batch support. Each sensor will get an additional attribute "other_batches" which will contain the same category data as the sensor but for all other active batches. For example `brewfather_recipe_name` will have the following extra attribute data:
 ```
 other_batches:
   - batch_id: sVFLpIADPYj612oIwnTaNX2sFgUtna
     state: Hoppy weizen
 ```
-## All batches data sensor (experimental)
+
+## <a name="all-batches-data"></a>All batches data sensor (experimental)
 Enabling this will give you a extra sensor `brewfather_all_batches_data` containing all the Brewfather API data just like in v1. Take a look at the custom templates of Multiple Batch Support how to use this data. This setting is experimental because it might be dropped in the future if better multi batch support is implemented.  
 You can only enable this option by going to the Brewfather integration and clicking configure.   
 <a href="docs/images/v2/configure_options-popup.png"><img src="docs/images/v2/configure_options-popup.png" width="300"></a>  
@@ -141,24 +142,5 @@ Copy the `custom_components/brewfather` folder and all of its contents into your
 ## Creating a Brewfather API-Key  
 To create a Brewfather API-key follow the documentation on [Brewfather - docs](https://docs.brewfather.app/api#generate-api-key). Make sure to give the API-key at least the "Read Batches" [scope](https://docs.brewfather.app/api#scopes).
 
-
-
-
-New sensor
-shows current batch sg points, latest  reading
-
-brewfather_batch_last_reading
-state: 1.029
-
-state_class: measurement
-icon: mdi:chart-line
-friendly_name: Brewfather Batch last reading
-batch_id: FWEf1kryZXbaovkHOaaDqyROqoy19S
-angle: null
-temp: 21
-time_ms: 1731236447317
-time: "2024-11-10T11:00:47.317000+00:00"
-
-
-optional sensor:
-all batches info, same attribute data as v1
+# Upgrading from v1 to v2 - breaking changes!
+All sensors are renamed so there are some breaking changes. Please take a look at the [upgrade docs](docs/v1-to-v2.md).
