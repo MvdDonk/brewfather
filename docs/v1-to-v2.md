@@ -13,6 +13,8 @@ The addon has been rebuilt from the ground up and I had to rename the sensors wh
 
 \* *Only available after manually enabling in options, see [info](#all-batches-data)*
 
+### Jinja template
+If you are using the Jinja template from `custom_templates/coalesce_fermenting_batch_property.jinja` make sure to rename the sensor from `sensor.fermenting_batches` to `sensor.brewfather_all_batches_data`.
 
 ### Removing old sensors
 Because of the sensor renames you have to manually remove the old (v1) sensors that are still in your Home Assistant. Go to the <a href="https://my.home-assistant.io/redirect/integration/?domain=brewfather">integration</a> and entities. There you will see some sensors with a red explanation mark.  
