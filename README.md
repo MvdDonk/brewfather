@@ -1,6 +1,6 @@
 # Brewfather integration for Home Assistant
 ### A Home Assistant custom Integration for getting Brewfather batch information in Home Assistant for all homebrewers!  
-<a href="https://www.buymeacoffee.com/mvddonk"><img src="https://img.buymeacoffee.com/button-api/?text=Buy me a beer&emoji=🍺&slug=mvddonk&button_colour=737373&font_colour=ffffff&font_family=Lato&outline_colour=000000&coffee_colour=FFDD00" /></a>    
+<a href="https://www.buymeacoffee.com/mvddonk"><img src="https://img.buymeacoffee.com/button-api/?text=Buy me a beer&emoji=🍺&slug=mvddonk&button_colour=5F7FFF&font_colour=ffffff&font_family=Lato&outline_colour=000000&coffee_colour=FFDD00" /></a>    
 ![dashboard-multi-batch.png)](dashboard-multi-batch.png)
 
 # Single Batch Support  
