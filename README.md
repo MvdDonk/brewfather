@@ -32,7 +32,7 @@ type: markdown
 content: |-
   # Batch status
   ---
-  {% for batch in state_attr('sensor.fermenting_batches', 'data') %}
+  {% for batch in state_attr('sensor.brewfather_all_batches_data', 'data') %}
     ## Batch \#{{ batch.batchNo }}, recipe: {{ batch.name }}
     **Start Date**: {{ batch.fermentingStart.strftime('%a, %d %b %Y') }}
     **End Date:** {{ batch.fermentingEnd.strftime('%a, %d %b %Y') }}
