@@ -4,11 +4,13 @@
     "step": {
       "user": {
         "title": "Connection details",
-        "description": "To make an connection to Brewfather you will need to fill in all fields below. Make sure the API-Key has the correct scopes",
+        "description": "To make an connection to Brewfather you will need to fill in all fields below. Make sure the API-Key has the correct scopes.",
         "data": {
           "name": "Connection name",
           "username": "User ID",
-          "password": "API-Key"
+          "password": "API-Key",
+          "ramp_temp_correction": "Enable temperature ramping",
+          "multi_batch": "Multiple batch support (preview)"
         }
       }
     },
@@ -16,10 +18,21 @@
       "cannot_connect": "Failed to register, please try again",
       "invalid_scope": "The API-Key doesn't have the correct scopes.",
       "invalid_api_key": "Unable to authenticate with given credentials.",
-      "unknown":"Something went wrong."
+      "unknown":"Something went wrong, please check the log files."
     },
     "abort": {
       "already_configured": "Api key is already configured"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "data": {
+          "ramp_temp_correction": "Enable temperature ramping",
+          "multi_batch": "Multiple batch support (preview)",
+          "all_batch_info_sensor": "All batches data sensor (experimental)"
+        }
+      }
     }
   }
 }

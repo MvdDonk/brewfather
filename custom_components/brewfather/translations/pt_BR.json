@@ -8,19 +8,31 @@
         "data": {
           "name": "Nome da Conexão",
           "username": "ID de usuário",
-          "password": "API-Key"
+          "password": "API-Key",
+          "ramp_temp_correction": "Enable temperature ramping",
+          "multi_batch": "Multiple batch support (preview)"
         }
       }
     },
     "error": {
       "cannot_connect": "Falha no registro, por favor tente novamente.",
-      "invalid_scope": "The API-Key doesn't have the correct scopes.",
       "invalid_scope": "A API-Key não tem acesso aos escopos corretos",
       "invalid_api_key": "Não foi possível autenticar com as credenciais fornecidas",
       "unknown": "Algo errado aconteceu"
     },
     "abort": {
       "already_configured": "API-Key já configurada"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "data": {
+          "ramp_temp_correction": "Enable temperature ramping",
+          "multi_batch": "Multiple batch support (preview)",
+          "all_batch_info_sensor": "All batches data sensor (experimental)"
+        }
+      }
     }
   }
 }
