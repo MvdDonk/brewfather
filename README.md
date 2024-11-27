@@ -107,7 +107,7 @@ other_batches:
 ## <a name="all-batches-data"></a>All batches data sensor (experimental)
 Enabling this will give you a extra sensor `brewfather_all_batches_data` containing all the Brewfather API data just like in v1. Take a look at the custom templates of Multiple Batch Support how to use this data. This setting is experimental because it might be dropped in the future if better multi batch support is implemented.  
 You can only enable this option by going to the Brewfather integration and clicking configure.   
-<a href="docs/images/v2/configure_options-popup.png"><img src="docs/images/v2/configure_options-popup.png" width="300"></a>  
+<a href="docs/images/v2/configure_options-popup.png"><img src="docs/images/v2/configure_options-popup.png" width="500"></a>  
 *In v1 this used to be enabled by default but to limit the amount of data it is now configurable and disabled by default.*  
 
 # Installation
@@ -119,16 +119,16 @@ Copy the `custom_components/brewfather` folder and all of its contents into your
 ## HACS installation (easy and supports automated updates)
 1. First make sure you have [HACS](https://hacs.xyz/) installed and running.
 1. Go to the HACS dashboard, click the menu (three dots) in the top right and select "Custom repositories"  
-<a href="docs/images/hacs_custom-repo.png"><img src="docs/images/hacs_custom-repo.png" width="300"></a>
+<a href="docs/images/hacs_custom-repo.png"><img src="docs/images/hacs_custom-repo.png" width="500"></a>
 1. In the field "Repository" add the following value: https://github.com/MvdDonk/brewfather  
    For "Type" choose "Integration"  
-<a href="docs/images/hacs_custom-repo-popup.png"><img src="docs/images/hacs_custom-repo-popup.png" width="300"></a>
+<a href="docs/images/hacs_custom-repo-popup.png"><img src="docs/images/hacs_custom-repo-popup.png" width="500"></a>
 1. After clicking "ADD" you should see the repository added and a red trash can  
-<a href="docs/images/hacs_repo-added.png"><img src="docs/images/hacs_repo-added.png" width="300"></a>
+<a href="docs/images/hacs_repo-added.png"><img src="docs/images/hacs_repo-added.png" width="500"></a>
 1. In the HACS dashboard search for Brewfather or click on this <a href="https://my.home-assistant.io/redirect/hacs_repository/?owner=MvdDonk&repository=Brewfather">link</link> and click on the "DOWNLOAD" button  
-<a href="docs/images/hacs_download-addon.png"><img src="docs/images/hacs_download-addon.png" width="300"></a>
+<a href="docs/images/hacs_download-addon.png"><img src="docs/images/hacs_download-addon.png" width="500"></a>
 1. After downloading you might have to restart Home Assistant (HACS will tell you if so). After Home Assistant has restarted install the Brewfather integration by clicking <a href="https://my.home-assistant.io/redirect/integration/?domain=brewfather">here</a> or go to integrations ans search for Brewfather  
-<a href="docs/images/integration_install-via-link.png"><img src="docs/images/integration_install-via-link.png" width="300"></a>
+<a href="docs/images/integration_install-via-link.png"><img src="docs/images/integration_install-via-link.png" width="500"></a>
 1. A dialog will popup containing the following fields:  
 **Connection name**  
   A unique name for your Brewfather connection that will be used in Home Assistant  
@@ -136,9 +136,9 @@ Copy the `custom_components/brewfather` folder and all of its contents into your
   User ID used for API-access. You can get this in the Brewfather app under Settings -> Api -> Generate API-Key.  
   **API-Key**  
   API-Key with the correct scopes. This is also located in Settings -> Api -> Generate API-Key. For more info on how to create a correct key see the section "Creating a Brewfather API-key" below.   
-<a href="docs/images/integration_setup.png"><img src="docs/images/integration_setup.png" width="300"></a>  
+<a href="docs/images/integration_setup.png"><img src="docs/images/integration_setup.png" width="500"></a>  
 1. The integration will test your connection and if everything succeeded you will see the following popup. Brewfather is now connected to your Home Assistant instance!  
-<a href="docs/images/integration_success.png"><img src="docs/images/integration_success.png" width="300"></a>
+<a href="docs/images/integration_success.png"><img src="docs/images/integration_success.png" width="500"></a>
 
 ## Creating a Brewfather API-Key  
 To create a Brewfather API-key follow the documentation on [Brewfather - docs](https://docs.brewfather.app/api#generate-api-key). Make sure to give the API-key at least the "Read Batches" [scope](https://docs.brewfather.app/api#scopes).
