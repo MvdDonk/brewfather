@@ -19,9 +19,11 @@ from .const import (
 )
 from .testdata import (
     TESTDATA_BATCHES,
-    TESTDATA_BATCH_1,
+    #TESTDATA_BATCH_1,
     #TESTDATA_BATCH_2,
-    TESTDATA_READINGS
+    TESTDATA_BATCH_3,
+    TESTDATA_READINGS,
+    TESTDATA_LAST_READINGS_1
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -54,7 +56,7 @@ class Connection:
             batch = await self.get_api_response(url, batches_item_from_dict)
             return batch
 
-    async def get_batch(self, batchId: str, testData=TESTDATA_BATCH_1) -> BatchItem:
+    async def get_batch(self, batchId: str, testData=TESTDATA_BATCH_3) -> BatchItem:
         url = BATCH_URI.format(batchId)
         if DRY_RUN:
             return batch_item_from_dict(json.loads(testData))
@@ -73,7 +75,8 @@ class Connection:
     async def get_last_reading(self, batchId: str) -> Reading:
         url = LAST_READING_URI.format(batchId)
         if DRY_RUN:
-            raise Exception("Not implemented")
+            return Reading.from_dict(json.loads(TESTDATA_LAST_READINGS_1))
+            #raise Exception("Not implemented")
         else:
             reading = await self.get_api_response(url, Reading.from_dict)
             return reading

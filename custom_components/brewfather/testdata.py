@@ -2368,3 +2368,11 @@ TESTDATA_READINGS = r"""[
         "type": "manual"
     }
 ]"""
+
+TESTDATA_BATCH_3 = r"""
+{"_id":"tXyKX8BIL3jBVKT93g56UQ6VvWd9w1","name":"Batch","batchNo":34,"status":"Fermenting","brewer":"Jo H","brewDate":1733526000000,"recipe":{"name":"Kauk cerveza sour edition","fermentation":{"_id":"ROH9v0qw1fSb4toWwCSAigYpCpIScc","name":"Sour + novalager","steps":[{"actualTime":1733526000000,"pressure":0,"stepTemp":25,"displayPressure":0,"stepTime":1,"name":"Sour","type":"Primary","displayStepTemp":25,"ramp":null},{"name":"novalager","pressure":0,"actualTime":1733612400000,"ramp":0,"type":"Primary","stepTemp":18,"displayPressure":0,"displayStepTemp":18,"stepTime":5},{"actualTime":1734217200000,"name":"Diacetyl","displayStepTemp":19,"stepTime":2,"pressure":10.152642,"type":"Primary","ramp":2,"displayPressure":0.7,"stepTemp":19,"actualRampTime":1734044400000},{"stepTemp":2,"actualRampTime":1734390000000,"pressure":17.404529,"stepTime":2,"actualTime":1734735600000,"name":"Cold crash","type":"Cold Crash","displayPressure":1.2,"displayStepTemp":2,"ramp":4}],"pressurized":true}},"notes":[{"timestamp":1733580762888,"note":"","type":"statusChanged","status":"Fermenting"},{"timestamp":1733566571144,"note":"","type":"statusChanged","status":"Brewing"}]}
+"""
+
+TESTDATA_LAST_READINGS_1 = r"""
+{"comment":"","id":"manual","type":"manual","temp":21,"sg":1.029,"time":1731236447317}
+"""
