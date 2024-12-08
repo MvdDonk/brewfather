@@ -1,68 +1,92 @@
-"""The Candy integration."""
+"""The Brewfather integration."""
 from __future__ import annotations
-import datetime
-
-# https://github.com/robinostlund/homeassistant-volkswagencarnet/blob/master/custom_components/volkswagencarnet/__init__.py
 import logging
-from datetime import datetime, timezone, timedelta
-from typing import TypedDict, Optional
-
-from dataclasses import dataclass
-from typing import Any, List, TypeVar, Type, cast, Callable
-
-import aiohttp
-import json
-
-# voorbeeld https://github.com/black-roland/homeassistant-microsoft-todo/tree/master/custom_components/microsoft_todo
-from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import CONF_IP_ADDRESS, CONF_NAME, CONF_PASSWORD, CONF_USERNAME
-from homeassistant.core import HomeAssistant
-from homeassistant.helpers.aiohttp_client import async_get_clientsession
-from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
-from homeassistant.exceptions import ConfigEntryNotReady
+from homeassistant import config_entries, core
+from datetime import timedelta
+from homeassistant.exceptions import ConfigEntryNotReady 
+from homeassistant.const import Platform 
 
 from .coordinator import BrewfatherCoordinator
-from .const import *
-from .testdata import TESTDATA_BATCH_1
+from .const import (
+    DOMAIN,
+    COORDINATOR,
+    UPDATE_INTERVAL,
+    CONF_RAMP_TEMP_CORRECTION,
+    CONF_MULTI_BATCH,
+    CONF_ALL_BATCH_INFO_SENSOR,
+    VERSION_MAJOR,
+    VERSION_MINOR
+)
 
 _LOGGER = logging.getLogger(__name__)
-PLATFORMS = ["sensor"]
-REQUEST_TIMEOUT = 10
-UPDATE_INTERVAL = 3600
-MS_IN_DAY = 86400000
-BATCHES_URI = "https://api.brewfather.app/v1/batches/"
-BATCH_URI = "https://api.brewfather.app/v1/batches/{}"
+PLATFORMS = [Platform.SENSOR]
 
-
-async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
-    """Setup our skeleton component."""
-    # States are in the format DOMAIN.OBJECT_ID.
-    # hass.states.async_set("brewfather.Hello_World", "Works!2")
+async def async_setup_entry(hass: core.HomeAssistant, config_entry: config_entries.ConfigEntry) -> bool:
+    # """Setup our skeleton component."""
 
     update_interval = timedelta(seconds=UPDATE_INTERVAL)
     coordinator = BrewfatherCoordinator(hass, config_entry, update_interval)
 
-    await coordinator.async_refresh()
+    #Signal updates from options flow
+    config_entry.async_on_unload(config_entry.add_update_listener(options_update_listener))
+
+    # On Home Assistant startup we want to grab data so all sensors are running and up to date 
+    #await coordinator.async_refresh()
+    await coordinator.async_config_entry_first_refresh()
 
     if not coordinator.last_update_success:
         raise ConfigEntryNotReady
+
+    """Set up platform from a ConfigEntry."""
     hass.data.setdefault(DOMAIN, {})
-    _LOGGER.debug("%s", config_entry.data[CONF_NAME])
     hass.data[DOMAIN][config_entry.entry_id] = {
         COORDINATOR: coordinator,
-        CONNECTION_NAME: config_entry.data[CONF_NAME],
     }
 
-    for component in PLATFORMS:
-        _LOGGER.info("Setting up platform: %s", component)
-        hass.async_create_task(
-            hass.config_entries.async_forward_entry_setup(config_entry, component)
-        )
-
-    # Return boolean to indicate that initialization was successfully.
+    # This creates each HA object for each platform your device requires.
+    # It's done by calling the `async_setup_entry` function in each platform module.
+    await hass.config_entries.async_forward_entry_setups(config_entry, PLATFORMS)
     return True
 
+async def options_update_listener(hass: core.HomeAssistant, config_entry: config_entries.ConfigEntry):
+    """Handle options update."""
+    _LOGGER.debug("options changed")
+    await hass.config_entries.async_reload(config_entry.entry_id)
 
 def update_callback(hass, coordinator):
-    _LOGGER.debug("CALLBACK!")
     hass.async_create_task(coordinator.async_request_refresh())
+
+async def async_unload_entry(
+    hass: core.HomeAssistant, entry: config_entries.ConfigEntry
+) -> bool:
+    """Unload a config entry."""
+    unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
+
+    # Pop add-on data
+    hass.data[DOMAIN].pop(entry.entry_id)
+    #hass.data.pop(ADDONS_COORDINATOR, None)
+
+    return unload_ok
+
+async def async_migrate_entry(hass, config_entry: config_entries.ConfigEntry):
+    """Migrate old entry."""
+    _LOGGER.debug("Migrating configuration from version %s.%s", config_entry.version, config_entry.minor_version)
+
+    if config_entry.version > 1:
+        # This means the user has downgraded from a future version
+        return False
+
+    if config_entry.version == 1:
+
+        new_data = {**config_entry.data}
+        if config_entry.minor_version < 2:
+            new_data[CONF_RAMP_TEMP_CORRECTION] = False
+            new_data[CONF_MULTI_BATCH] = False
+            new_data[CONF_ALL_BATCH_INFO_SENSOR] = False
+            pass
+
+        hass.config_entries.async_update_entry(config_entry, data=new_data, minor_version=VERSION_MINOR, version=VERSION_MAJOR)
+
+    _LOGGER.debug("Migration to configuration version %s.%s successful", config_entry.version, config_entry.minor_version)
+
+    return True
