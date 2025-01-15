@@ -68,8 +68,8 @@ class BrewfatherCoordinator(DataUpdateCoordinator[BrewfatherCoordinatorData]):
         self.all_batch_info_sensor = entry.data.get(CONF_ALL_BATCH_INFO_SENSOR, False)
         self.temperature_correction_enabled = entry.data.get(CONF_RAMP_TEMP_CORRECTION, False)
         self.connection = Connection(
-            entry.data.get(CONF_USERNAME, 'no-username-found-in-config'), 
-            entry.data.get(CONF_PASSWORD, 'no-password-found-in-config')
+            entry.data.get(CONF_USERNAME), 
+            entry.data.get(CONF_PASSWORD)
         )
 
         super().__init__(hass, _LOGGER, name=DOMAIN, update_interval=update_interval)

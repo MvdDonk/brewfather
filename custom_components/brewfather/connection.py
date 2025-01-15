@@ -78,10 +78,10 @@ class Connection:
             return Reading.from_dict(json.loads(TESTDATA_LAST_READINGS_1))
             #raise Exception("Not implemented")
         else:
-            reading = await self.get_api_response(url, Reading.from_dict)
+            reading = await self.get_api_response(url, Reading.from_dict, accept_404 = True)
             return reading
         
-    async def get_api_response(self, url: str, parseJson:Callable[[str], T]) -> T:
+    async def get_api_response(self, url: str, parseJson:Callable[[str], T], accept_404: bool = False) -> T:
         _LOGGER.debug("Making api call to: %s", url)
         async with aiohttp.ClientSession() as session:
             async with session.get(url, auth=self.auth) as response:
@@ -97,6 +97,9 @@ class Connection:
                         exit(1)
                     
                 else:
+                    if accept_404 and response.status == 404:
+                        return None
+
                     _LOGGER.debug("Failed getting correct api call result, got status: %s", response.status)
                     raise UpdateFailed(
                         f"Error communicating with API: {response.status}, URL: {url}"
