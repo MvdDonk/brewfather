@@ -7,6 +7,7 @@ from homeassistant import exceptions
 from .models.batches_item import BatchesItemElement, batches_item_from_dict
 from .models.batch_item import BatchItem, batch_item_from_dict
 from .models.reading_item import Reading, readings_from_dict
+from .models.custom_stream_data import custom_stream_data
 
 from homeassistant.helpers.update_coordinator import UpdateFailed
 from .const import (
@@ -15,7 +16,8 @@ from .const import (
     BATCH_URI,
     READINGS_URI,
     DRY_RUN,
-    LAST_READING_URI
+    LAST_READING_URI,
+    LOG_CUSTOM_STREAM
 )
 from .testdata import (
     TESTDATA_BATCHES,
@@ -81,6 +83,30 @@ class Connection:
             reading = await self.get_api_response(url, Reading.from_dict, accept_404 = True)
             return reading
         
+    async def post_custom_stream(self, logging_id: str, data:custom_stream_data) -> bool:
+        url = LOG_CUSTOM_STREAM.format(logging_id)
+        if DRY_RUN:
+            raise Exception("Not implemented")
+        else:
+            success = await self.post(url, self.to_dict(data))
+            return success
+        
+    def to_dict(self, obj):
+        """
+        Convert an object to a dictionary.
+        Handles objects with __dict__, lists, tuples, and other types.
+        """
+        if isinstance(obj, dict):
+            return {k: self.to_dict(v) for k, v in obj.items()}
+        elif hasattr(obj, "__dict__"):
+            return {k: self.to_dict(v) for k, v in obj.__dict__.items()}
+        elif isinstance(obj, list):
+            return [self.to_dict(i) for i in obj]
+        elif isinstance(obj, tuple):
+            return tuple(self.to_dict(i) for i in obj)
+        else:
+            return obj
+        
     async def get_api_response(self, url: str, parseJson:Callable[[str], T], accept_404: bool = False) -> T:
         _LOGGER.debug("Making api call to: %s", url)
         async with aiohttp.ClientSession() as session:
@@ -101,6 +127,18 @@ class Connection:
                         return None
 
                     _LOGGER.debug("Failed getting correct api call result, got status: %s", response.status)
+                    raise UpdateFailed(
+                        f"Error communicating with API: {response.status}, URL: {url}"
+                    )
+
+    async def post(self, url: str, data: dict) -> bool:
+        _LOGGER.debug("Making api call to: %s, with body: %s", url, data)
+        async with aiohttp.ClientSession() as session:
+            async with session.post(url, json=data, auth=self.auth) as response:
+                if response.status == 200:
+                    return True
+                else:
+                    _LOGGER.debug("Failed posting to api, got status: %s", response.status)
                     raise UpdateFailed(
                         f"Error communicating with API: {response.status}, URL: {url}"
                     )

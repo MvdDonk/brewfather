@@ -12,6 +12,7 @@ from .models.batch_item import (
     Step,
     Reading
 )
+from .models.custom_stream_data import custom_stream_data
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
@@ -20,7 +21,11 @@ from .const import (
     MS_IN_DAY,
     CONF_RAMP_TEMP_CORRECTION,
     CONF_MULTI_BATCH,
-    CONF_ALL_BATCH_INFO_SENSOR
+    CONF_ALL_BATCH_INFO_SENSOR,
+    CONF_CUSTOM_STREAM_ENABLED,
+    CONF_CUSTOM_STREAM_LOGGING_ID,
+    CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_NAME,
+    CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_ATTRIBUTE
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -71,6 +76,12 @@ class BrewfatherCoordinator(DataUpdateCoordinator[BrewfatherCoordinatorData]):
             entry.data.get(CONF_USERNAME), 
             entry.data.get(CONF_PASSWORD)
         )
+        self.custom_stream_enabled = entry.data.get(CONF_CUSTOM_STREAM_ENABLED, False)
+        if self.custom_stream_enabled:
+            self.custom_stream_logging_id = entry.data.get(CONF_CUSTOM_STREAM_LOGGING_ID, None)
+
+            self.custom_stream_temperature_entity_name = entry.data.get(CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_NAME, None)
+            self.custom_stream_temperature_entity_attribute = entry.data.get(CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_ATTRIBUTE, None)
 
         super().__init__(hass, _LOGGER, name=DOMAIN, update_interval=update_interval)
 
@@ -86,6 +97,17 @@ class BrewfatherCoordinator(DataUpdateCoordinator[BrewfatherCoordinatorData]):
 
         fermentingBatches:list[BatchInfo] = []
         all_batches_data:list[BatchInfo] = []
+
+        #if custom stream enabled
+        if self.custom_stream_enabled:
+            stream_data = self.create_custom_stream_data()
+            if stream_data is not None:
+                _LOGGER.debug("No data was found to post to custom stream")
+            else:
+                _LOGGER.debug("Posting custom stream data")
+                success = await self.connection.post_custom_stream(self.custom_stream_logging_id, stream_data)
+                if not success:
+                    _LOGGER.error("Failed to post custom stream data")
 
         for batch in allBatches:
             batchData = await self.connection.get_batch(batch.id)
@@ -272,3 +294,23 @@ class BrewfatherCoordinator(DataUpdateCoordinator[BrewfatherCoordinatorData]):
 
         return datetime_value
 
+    def create_custom_stream_data(self) -> Optional[custom_stream_data]:
+        stream_data = custom_stream_data(name = "HomeAssistant")
+
+        stream_data.temp_unit = "C"
+        entity = self.hass.states.get(self.custom_stream_temperature_entity_name)
+        if entity is None:
+            return None
+        
+        if self.custom_stream_temperature_entity_attribute is None:
+            stream_data.temp = entity.state
+        else:
+            stream_data.temp_unit = entity.attributes.get(self.custom_stream_temperature_entity_attribute)
+        
+        if datetime.now().timestamp() % 2 == 0:
+            stream_data.temp = 14.2
+        else:
+            stream_data.temp = 16
+
+        #self.hass.states.get(temperature_sensor).attributes.get(temperature_sensor_attribute)
+        return stream_data

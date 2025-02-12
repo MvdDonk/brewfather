@@ -15,7 +15,11 @@ from .const import (
     CONF_MULTI_BATCH,
     CONF_ALL_BATCH_INFO_SENSOR,
     VERSION_MAJOR,
-    VERSION_MINOR
+    VERSION_MINOR,
+    CONF_CUSTOM_STREAM_ENABLED,
+    CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_NAME,
+    CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_ATTRIBUTE,
+    CONF_CUSTOM_STREAM_LOGGING_ID,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -83,6 +87,14 @@ async def async_migrate_entry(hass, config_entry: config_entries.ConfigEntry):
             new_data[CONF_RAMP_TEMP_CORRECTION] = False
             new_data[CONF_MULTI_BATCH] = False
             new_data[CONF_ALL_BATCH_INFO_SENSOR] = False
+            pass
+
+        if config_entry.minor_version < 4:
+            new_data[CONF_CUSTOM_STREAM_ENABLED] = False
+            new_data[CONF_CUSTOM_STREAM_LOGGING_ID] = ""
+
+            new_data[CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_NAME] = ""
+            new_data[CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_ATTRIBUTE] = ""
             pass
 
         hass.config_entries.async_update_entry(config_entry, data=new_data, minor_version=VERSION_MINOR, version=VERSION_MAJOR)

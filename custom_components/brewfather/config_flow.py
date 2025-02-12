@@ -12,6 +12,10 @@ from .const import (
     VERSION_MINOR,
     CONF_MULTI_BATCH,
     CONF_ALL_BATCH_INFO_SENSOR,
+    CONF_CUSTOM_STREAM_ENABLED,
+    CONF_CUSTOM_STREAM_LOGGING_ID,
+    CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_NAME,
+    CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_ATTRIBUTE,
 )
 from .connection import (
     Connection,
@@ -42,6 +46,10 @@ OPTIONS_SCHEMA = vol.Schema(
         vol.Required(CONF_RAMP_TEMP_CORRECTION): cv.boolean,
         vol.Required(CONF_MULTI_BATCH): cv.boolean,
         vol.Required(CONF_ALL_BATCH_INFO_SENSOR): cv.boolean,
+        vol.Required(CONF_CUSTOM_STREAM_ENABLED): cv.boolean,
+        vol.Optional(CONF_CUSTOM_STREAM_LOGGING_ID): cv.string,
+        vol.Optional(CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_NAME): cv.string,
+        vol.Optional(CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_ATTRIBUTE): cv.string,
     }
 )
 
@@ -132,6 +140,9 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
         self, user_input: dict[str, Any] | None = None
     ) -> config_entries.FlowResult:
         """Manage the options."""
+
+        errors: dict[str, str] = {}
+
         if user_input is not None:
 
             new_config = ConfigFlow.get_config_entry(
@@ -143,16 +154,37 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                 user_input.get(CONF_ALL_BATCH_INFO_SENSOR)
             )
 
-            # update config entry
-            self.hass.config_entries.async_update_entry(
-                self.config_entry, data=new_config, options=self.config_entry.options
-            )
+            if user_input.get(CONF_CUSTOM_STREAM_ENABLED):
+                return self.async_show_form(
+                    step_id="custom_stream",
+                    data_schema=self.add_suggested_values_to_schema(
+                        OPTIONS_SCHEMA, self.config_entry.data
+                    ),
+                    errors=errors,
+                )
+            
+                logging_id = user_input.get(CONF_CUSTOM_STREAM_LOGGING_ID)
+                if logging_id is None or logging_id == "":
+                    #errors = {CONF_CUSTOM_STREAM_LOGGING_ID: "empty"}
+                    errors["base"] = "dsadasdas"
+                    errors[CONF_CUSTOM_STREAM_ENABLED] = "zzzzxcxzc"
+                
+                entity_name = user_input.get(CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_NAME)
+                if entity_name is None or entity_name == "":
+                    errors[CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_NAME] = "moet!"
 
-            return self.async_create_entry(title="Brewfather", data=new_config)
+            if errors is None and errors.length == 0:
+                # update config entry
+                self.hass.config_entries.async_update_entry(
+                    self.config_entry, data=new_config, options=self.config_entry.options
+                )
+
+                return self.async_create_entry(title="Brewfather", data=new_config)
 
         return self.async_show_form(
             step_id="init",
             data_schema=self.add_suggested_values_to_schema(
                 OPTIONS_SCHEMA, self.config_entry.data
             ),
+            errors=errors,
         )
