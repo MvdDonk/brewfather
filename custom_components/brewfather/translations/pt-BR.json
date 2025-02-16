@@ -30,9 +30,23 @@
         "data": {
           "ramp_temp_correction": "Enable temperature ramping",
           "multi_batch": "Multiple batch support (preview)",
-          "all_batch_info_sensor": "All batches data sensor (experimental)"
+          "all_batch_info_sensor": "All batches data sensor (experimental)",
+          "custom_stream_enabled": "Enable custom stream"
+        }
+      },
+      "custom_stream": {
+        "data": {
+          "custom_stream_logging_id": "BrewFathers logging-id",
+          "custom_stream_temperature_entity_name": "Full entity name for temperature",
+          "custom_stream_temperature_entity_attribute": "Attribute name of the temperature entity"
         }
       }
+    },
+    "error": {
+      "invalid_logging_id": "Logging-id seems invalid, please check BrewFather App docs for \"Custom Stream\"",
+      "entity_not_found": "Unable to find entity with given name",
+      "attribute_not_found": "Unable to find attribute with given name",
+      "unknown": "Algo errado aconteceu"
     }
   }
 }
