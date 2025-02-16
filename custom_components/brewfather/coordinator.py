@@ -101,7 +101,7 @@ class BrewfatherCoordinator(DataUpdateCoordinator[BrewfatherCoordinatorData]):
         #if custom stream enabled
         if self.custom_stream_enabled:
             stream_data = self.create_custom_stream_data()
-            if stream_data is not None:
+            if stream_data is None:
                 _LOGGER.debug("No data was found to post to custom stream")
             else:
                 _LOGGER.debug("Posting custom stream data")
@@ -305,12 +305,6 @@ class BrewfatherCoordinator(DataUpdateCoordinator[BrewfatherCoordinatorData]):
         if self.custom_stream_temperature_entity_attribute is None:
             stream_data.temp = entity.state
         else:
-            stream_data.temp_unit = entity.attributes.get(self.custom_stream_temperature_entity_attribute)
-        
-        if datetime.now().timestamp() % 2 == 0:
-            stream_data.temp = 14.2
-        else:
-            stream_data.temp = 16
+            stream_data.temp = entity.attributes.get(self.custom_stream_temperature_entity_attribute)
 
-        #self.hass.states.get(temperature_sensor).attributes.get(temperature_sensor_attribute)
         return stream_data

@@ -47,18 +47,29 @@ OPTIONS_SCHEMA = vol.Schema(
         vol.Required(CONF_MULTI_BATCH): cv.boolean,
         vol.Required(CONF_ALL_BATCH_INFO_SENSOR): cv.boolean,
         vol.Required(CONF_CUSTOM_STREAM_ENABLED): cv.boolean,
-        vol.Optional(CONF_CUSTOM_STREAM_LOGGING_ID): cv.string,
-        vol.Optional(CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_NAME): cv.string,
+    }
+)
+
+OPTIONS_CUSTOM_STREAM_SCHEMA = vol.Schema(
+    {
+        vol.Required(CONF_CUSTOM_STREAM_LOGGING_ID): cv.string,
+        vol.Required(CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_NAME): cv.string,
         vol.Optional(CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_ATTRIBUTE): cv.string,
     }
 )
 
-
-async def validate_auth(username:str, password:str) -> dict[str, any]:
+async def validate_auth(username:str, password:str) -> bool:
     """Validate the user input allows us to connect."""
 
     connection = Connection(username, password)
     result = await connection.test_connection()
+    return result
+
+async def validate_custom_stream(username:str, password:str, logging_id:str) -> bool:
+    """Validate the user input allows connect to custom stream."""
+
+    connection = Connection(username, password)
+    result = await connection.test_custom_stream(logging_id=logging_id)
     return result
     
 class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
@@ -142,6 +153,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
         """Manage the options."""
 
         errors: dict[str, str] = {}
+        self.init_info: dict[str, Any] = {}
 
         if user_input is not None:
 
@@ -154,26 +166,22 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                 user_input.get(CONF_ALL_BATCH_INFO_SENSOR)
             )
 
-            if user_input.get(CONF_CUSTOM_STREAM_ENABLED):
+            custom_stream_enabled = user_input.get(CONF_CUSTOM_STREAM_ENABLED)
+            new_config[CONF_CUSTOM_STREAM_ENABLED] = custom_stream_enabled
+
+            if custom_stream_enabled:
+                # Store info to use in next step
+                self.init_info = new_config
+
                 return self.async_show_form(
                     step_id="custom_stream",
                     data_schema=self.add_suggested_values_to_schema(
-                        OPTIONS_SCHEMA, self.config_entry.data
+                        OPTIONS_CUSTOM_STREAM_SCHEMA, self.config_entry.data
                     ),
-                    errors=errors,
+                    last_step=True
                 )
             
-                logging_id = user_input.get(CONF_CUSTOM_STREAM_LOGGING_ID)
-                if logging_id is None or logging_id == "":
-                    #errors = {CONF_CUSTOM_STREAM_LOGGING_ID: "empty"}
-                    errors["base"] = "dsadasdas"
-                    errors[CONF_CUSTOM_STREAM_ENABLED] = "zzzzxcxzc"
-                
-                entity_name = user_input.get(CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_NAME)
-                if entity_name is None or entity_name == "":
-                    errors[CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_NAME] = "moet!"
-
-            if errors is None and errors.length == 0:
+            if errors is None or len(errors) == 0:
                 # update config entry
                 self.hass.config_entries.async_update_entry(
                     self.config_entry, data=new_config, options=self.config_entry.options
@@ -188,3 +196,58 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
             ),
             errors=errors,
         )
+
+    async def async_step_custom_stream(
+        self, user_input: dict[str, Any] | None = None
+    ) -> config_entries.FlowResult:
+        """Manage the options."""
+
+        errors: dict[str, str] = {}
+
+        if user_input is not None:
+            entity_name = user_input.get(CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_NAME)
+            if entity_name is None or entity_name == "":
+                errors[CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_NAME] = "entity_required"
+            else:
+                entity = self.hass.states.get(entity_name)
+                if entity is None:
+                    errors[CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_NAME] = "entity_not_found"
+                else:
+                    entity_attribute = user_input.get(CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_ATTRIBUTE)
+                    if entity_attribute is not None and entity_attribute != "" and entity.attributes.get(entity_attribute) is None:
+                        errors[CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_ATTRIBUTE] = "attribute_not_found"
+            
+            logging_id = user_input.get(CONF_CUSTOM_STREAM_LOGGING_ID)
+            try:
+                username = self.init_info[CONF_USERNAME]
+                password = self.init_info[CONF_PASSWORD]
+                valid_logging_id = await validate_custom_stream(username, password, logging_id)
+                if valid_logging_id is False:
+                    errors[CONF_CUSTOM_STREAM_LOGGING_ID] = "invalid_logging_id"
+
+            except Exception as ex:
+                _LOGGER.error("Unexpected exception when testing custom stream connection: %s", str(ex))
+                errors["base"] = "unknown"
+                
+            if errors is None or len(errors) == 0:
+                new_config = self.init_info
+                new_config[CONF_CUSTOM_STREAM_LOGGING_ID] = logging_id
+                new_config[CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_NAME] = entity_name
+                new_config[CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_ATTRIBUTE] = entity_attribute
+
+                # update config entry
+                self.hass.config_entries.async_update_entry(
+                    self.config_entry, data=new_config, options=self.config_entry.options
+                )
+
+                return self.async_create_entry(title="Brewfather", data=new_config)
+
+        return self.async_show_form(
+            step_id="custom_stream",
+            data_schema=self.add_suggested_values_to_schema(
+                OPTIONS_CUSTOM_STREAM_SCHEMA, user_input 
+            ),
+            errors=errors,
+            last_step=True
+        )
+    

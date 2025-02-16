@@ -50,6 +50,26 @@ class Connection:
 
         return False
     
+    async def test_custom_stream(self, logging_id:str) -> bool:
+        url = LOG_CUSTOM_STREAM.format(logging_id)
+        stream_data = custom_stream_data(name = "HomeAssistant")
+        stream_data.temp_unit = "C"
+        stream_data.temp = 1.2
+        data = self.to_dict(stream_data)
+
+        async with aiohttp.ClientSession() as session:
+            async with session.post(url, json=data, auth=self.auth) as response:
+                if response.status == 200:
+                    response_text = await response.text()
+                    _LOGGER.debug("POST request response: %s", response_text)
+                    try:
+                        response_json = json.loads(response_text)
+                        return response_json["result"] == "OK"
+                    except json.JSONDecodeError as ex:
+                        _LOGGER.error("Unable to parse JSON response: %s", str(ex))
+                        raise Exception("Failed to parse JSON response")
+        return False
+    
     async def get_batches(self) -> List[BatchesItemElement]:
         url = BATCHES_URI
         if DRY_RUN:
@@ -88,8 +108,18 @@ class Connection:
         if DRY_RUN:
             raise Exception("Not implemented")
         else:
-            success = await self.post(url, self.to_dict(data))
-            return success
+            success, response_text = await self.post(url, self.to_dict(data))
+            
+            if success == False:
+                return False
+            try:
+                response_json = json.loads(response_text)
+                return response_json["result"] == "OK"
+            except json.JSONDecodeError as ex:
+                _LOGGER.error("Unable to parse JSON response: %s", str(ex))
+                raise UpdateFailed(
+                    f"Failed to parse JSON response, URL: {url}"
+                )
         
     def to_dict(self, obj):
         """
@@ -131,12 +161,14 @@ class Connection:
                         f"Error communicating with API: {response.status}, URL: {url}"
                     )
 
-    async def post(self, url: str, data: dict) -> bool:
+    async def post(self, url: str, data: dict) -> (bool, str):
         _LOGGER.debug("Making api call to: %s, with body: %s", url, data)
         async with aiohttp.ClientSession() as session:
             async with session.post(url, json=data, auth=self.auth) as response:
                 if response.status == 200:
-                    return True
+                    response_text = await response.text()
+                    _LOGGER.debug("POST request response: %s", response_text)
+                    return (True, response_text)
                 else:
                     _LOGGER.debug("Failed posting to api, got status: %s", response.status)
                     raise UpdateFailed(
