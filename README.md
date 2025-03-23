@@ -54,6 +54,9 @@ The following sensors will be added after setup:
 - **Recipe name**  
   Name of the beer you are fermenting.  
   `sensor.brewfather_recipe_name`  
+- **Fermentation start date**  
+  Date and time when the fermentation has started  
+  `sensor.brewfather_fermentation_start_date`  
 - **Current temperature**  
   Temperature the fermentation should have following the recipe  
   `sensor.brewfather_target_temperature`  
