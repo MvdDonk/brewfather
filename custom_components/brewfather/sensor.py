@@ -112,6 +112,18 @@ async def async_setup_entry(
                 )
             )
         ) 
+
+    sensors.append(
+        BrewfatherSensor(
+            coordinator,
+            SensorKinds.fermenting_start_date,
+            SensorEntityDescription(
+                key="fermentation_start_date",
+                name="Fermentation start",
+                icon="mdi:clock",
+            )
+        )
+    )
   
     async_add_entities(sensors, update_before_add=False)
 
@@ -287,6 +299,20 @@ class BrewfatherSensor(CoordinatorEntity[BrewfatherCoordinator], SensorEntity):
             custom_attributes["data"] = all_batches
             sensor_data.state = len(all_batches)
 
+        elif sensor_type == SensorKinds.fermenting_start_date:
+            if data.start_date is not None:
+                sensor_data.state = data.start_date
+                custom_attributes["batch_id"] = data.batch_id
+                
+                other_batches_data = []
+                for other_batch_data in data.other_batches:
+                    other_batches_data.append({
+                        "batch_id": other_batch_data.batch_id,
+                        "state": other_batch_data.start_date
+                    })
+                if len(other_batches_data)  > 0:
+                    custom_attributes["other_batches"] = other_batches_data
+
         sensor_data.extra_state_attributes = custom_attributes
 
         # Received a datetime
@@ -341,3 +367,4 @@ class SensorKinds(enum.Enum):
     #fermenting_batches = 5
     fermenting_last_reading = 6
     all_batch_info = 7
+    fermenting_start_date = 8
