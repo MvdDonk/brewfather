@@ -42,6 +42,7 @@ class BrewfatherCoordinatorData:
     last_reading: Optional[Reading]
     other_batches: list[BrewfatherCoordinatorData]
     all_batches_data: Optional[list[BatchItem]]
+    start_date: Optional[datetime.datetime]
 
     def __init__(self):
         # set defaults to None
@@ -53,6 +54,7 @@ class BrewfatherCoordinatorData:
         self.last_reading = None
         self.other_batches = []
         self.all_batches_data = None
+        self.start_date = None
 
 
 class BatchInfo:
@@ -199,6 +201,8 @@ class BrewfatherCoordinator(DataUpdateCoordinator[BrewfatherCoordinatorData]):
         data.batch_id = currentBatch.batch.id
         data.brew_name = currentBatch.batch.recipe.name
         data.last_reading = currentBatch.last_reading
+        data.start_date = self.datetime_fromtimestamp(fermenting_start)
+
         # if currentBatch.readings is not None and len(currentBatch.readings) > 0:
         #     data.last_reading = sorted(currentBatch.readings, key=lambda r: r.time, reverse=True)[0]
 
@@ -277,11 +281,13 @@ class BrewfatherCoordinator(DataUpdateCoordinator[BrewfatherCoordinatorData]):
 
         return data
         
+    def datetime_fromtimestamp(self, epoch: int) -> datetime:
+        return datetime.fromtimestamp(epoch / 1000, timezone.utc)
 
     def datetime_fromtimestamp_with_fermentingstart(
         self, epoch: int | None, fermenting_start: int | None
     ) -> datetime:
-        datetime_value = datetime.fromtimestamp(epoch / 1000, timezone.utc)
+        datetime_value = self.datetime_fromtimestamp(epoch)
 
         if fermenting_start is not None:
             fermenting_start_date = datetime.fromtimestamp(fermenting_start / 1000)
