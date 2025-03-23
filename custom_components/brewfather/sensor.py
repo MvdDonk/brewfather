@@ -121,6 +121,7 @@ async def async_setup_entry(
                 key="fermentation_start_date",
                 name="Fermentation start",
                 icon="mdi:clock",
+                device_class=SensorDeviceClass.TIMESTAMP,
             )
         )
     )
