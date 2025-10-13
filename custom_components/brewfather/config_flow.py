@@ -238,6 +238,12 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                             errors[CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_NAME] = "entity_not_found"
             
             logging_id = user_input.get(CONF_CUSTOM_STREAM_LOGGING_ID)
+            
+            # Clean up entity_attribute - treat empty string as None
+            entity_attribute = user_input.get(CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_ATTRIBUTE)
+            if entity_attribute == "":
+                entity_attribute = None
+            
             try:
                 username = self.init_info[CONF_USERNAME]
                 password = self.init_info[CONF_PASSWORD]
