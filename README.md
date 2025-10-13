@@ -111,7 +111,43 @@ other_batches:
 Enabling this will give you a extra sensor `brewfather_all_batches_data` containing all the Brewfather API data just like in v1. Take a look at the custom templates of Multiple Batch Support how to use this data. This setting is experimental because it might be dropped in the future if better multi batch support is implemented.  
 You can only enable this option by going to the Brewfather integration and clicking configure.   
 <a href="docs/images/v2/configure_options-popup.png"><img src="docs/images/v2/configure_options-popup.png" width="500"></a>  
-*In v1 this used to be enabled by default but to limit the amount of data it is now configurable and disabled by default.*  
+*In v1 this used to be enabled by default but to limit the amount of data it is now configurable and disabled by default.*
+
+## <a name="custom-stream"></a>Custom Stream Support
+This integration supports posting temperature data to Brewfather's Custom Stream endpoint, allowing you to integrate external sensors with your Brewfather batch monitoring.
+
+### Setup Requirements
+1. **Brewfather Custom Stream Logging ID**: You need to get a logging ID from the Brewfather app:
+   - Open Brewfather mobile app
+   - Go to your batch settings
+   - Navigate to "Logging"
+   - Select "Custom Stream"
+   - Copy the logging ID from the URL (format: `http://log.brewfather.net/stream?id=YOUR_LOGGING_ID`)
+
+2. **Temperature Entity**: You need a Home Assistant entity that provides temperature readings:
+   - The entity can be any sensor that reports temperature values
+   - The value must be numeric (will be converted to Celsius for Brewfather)
+   - You can optionally specify an attribute of the entity instead of using the main state
+
+### Configuration Steps
+1. Go to the Brewfather integration configuration
+2. Enable "Custom Stream" option
+3. Fill in the required fields:
+   - **BrewFathers logging-id**: Enter just the ID portion from your Custom Stream URL
+   - **Full entity name for temperature**: Enter the complete entity ID (e.g., `sensor.fermentation_temperature`)
+   - **Attribute name** (optional): If your temperature is stored in an attribute instead of the main state
+
+### Example Configuration
+- **Logging ID**: `abc123def456` (from URL `http://log.brewfather.net/stream?id=abc123def456`)
+- **Entity name**: `sensor.fermentation_temperature`
+- **Attribute name**: Leave empty if using the main sensor state, or specify like `temperature` if the value is in an attribute
+
+### Troubleshooting
+- **"Logging-id seems invalid"**: Check that you've copied only the ID portion from the Brewfather Custom Stream URL
+- **"Entity not found"**: Verify the entity ID is correct and the entity exists in Home Assistant
+- **"Attribute not found"**: Check that the specified attribute exists and contains a numeric temperature value
+
+The integration will automatically post temperature updates to Brewfather during its regular update cycle (every 15 minutes by default).  
 
 # Installation
 Installing using [HACS](https://hacs.xyz/) is <u>recommended</u>. It is the easiest way to install and keep your integration up to date.

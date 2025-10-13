@@ -216,6 +216,26 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                     entity_attribute = user_input.get(CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_ATTRIBUTE)
                     if entity_attribute is not None and entity_attribute != "" and entity.attributes.get(entity_attribute) is None:
                         errors[CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_ATTRIBUTE] = "attribute_not_found"
+                    
+                    # Validate that we can get a numeric temperature value
+                    try:
+                        if entity_attribute is None or entity_attribute == "":
+                            temp_value = entity.state
+                        else:
+                            temp_value = entity.attributes.get(entity_attribute)
+                        
+                        if temp_value is None or temp_value in ("unknown", "unavailable", ""):
+                            if entity_attribute:
+                                errors[CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_ATTRIBUTE] = "attribute_not_found"
+                            else:
+                                errors[CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_NAME] = "entity_not_found"
+                        else:
+                            float(temp_value)  # Test if it's convertible to float
+                    except (ValueError, TypeError):
+                        if entity_attribute:
+                            errors[CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_ATTRIBUTE] = "attribute_not_found" 
+                        else:
+                            errors[CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_NAME] = "entity_not_found"
             
             logging_id = user_input.get(CONF_CUSTOM_STREAM_LOGGING_ID)
             try:
