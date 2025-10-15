@@ -1,0 +1,54 @@
+{
+  "title": "Brewfather",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Detalles de conexión",
+        "description": "Para establecer una conexión con Brewfather necesitas completar todos los campos a continuación. Asegúrate de que la clave API tenga los permisos correctos.",
+        "data": {
+          "name": "Nombre de la conexión",
+          "username": "ID de usuario",
+          "password": "Clave API",
+          "ramp_temp_correction": "Habilitar rampa de temperatura",
+          "multi_batch": "Soporte multi-lote (vista previa)"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Error al registrarse, por favor inténtalo de nuevo",
+      "invalid_scope": "La clave API no tiene los permisos correctos.",
+      "invalid_api_key": "No se puede autenticar con las credenciales proporcionadas.",
+      "unknown": "Algo salió mal, por favor revisa los archivos de registro."
+    },
+    "abort": {
+      "already_configured": "La clave API ya está configurada"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "data": {
+          "ramp_temp_correction": "Habilitar rampa de temperatura",
+          "multi_batch": "Soporte multi-lote (vista previa)",
+          "all_batch_info_sensor": "Sensor de datos de todos los lotes (experimental)",
+          "custom_stream_enabled": "Habilitar flujo personalizado"
+        }
+      },
+      "custom_stream": {
+        "data": {
+          "custom_stream_logging_id": "ID de registro de Brewfather",
+          "custom_stream_temperature_entity_name": "Nombre completo de la entidad de temperatura",
+          "custom_stream_temperature_entity_attribute": "Nombre del atributo de la entidad de temperatura"
+        }
+      }
+    },
+    "error": {
+      "invalid_logging_id": "El ID de registro parece inválido, por favor consulta la documentación de la app BrewFather para \"Custom Stream\"",
+      "entity_required": "El nombre de la entidad es obligatorio",
+      "entity_not_found": "No se puede encontrar la entidad con el nombre dado o la entidad no tiene un valor numérico válido",
+      "attribute_not_found": "No se puede encontrar el atributo con el nombre dado o el atributo no tiene un valor numérico válido",
+      "unsupported_temperature_unit": "La entidad debe reportar temperatura en Celsius (°C), Fahrenheit (°F), o Kelvin (K)",
+      "unknown": "Algo salió mal, por favor revisa los archivos de registro."
+    }
+  }
+}

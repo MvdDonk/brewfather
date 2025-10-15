@@ -1,0 +1,54 @@
+{
+  "title": "Brewfather",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Verbindingsdetails",
+        "description": "Om een verbinding met Brewfather te maken, moet je alle onderstaande velden invullen. Zorg ervoor dat de API-sleutel de juiste machtigingen heeft.",
+        "data": {
+          "name": "Verbindingsnaam",
+          "username": "Gebruikers-ID",
+          "password": "API-sleutel",
+          "ramp_temp_correction": "Temperatuurramping inschakelen",
+          "multi_batch": "Multi-batch ondersteuning (voorbeeld)"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Registratie mislukt, probeer het opnieuw",
+      "invalid_scope": "De API-sleutel heeft niet de juiste machtigingen.",
+      "invalid_api_key": "Kan niet authenticeren met de opgegeven inloggegevens.",
+      "unknown": "Er is iets misgegaan, controleer de logbestanden."
+    },
+    "abort": {
+      "already_configured": "API-sleutel is al geconfigureerd"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "data": {
+          "ramp_temp_correction": "Temperatuurramping inschakelen",
+          "multi_batch": "Multi-batch ondersteuning (voorbeeld)",
+          "all_batch_info_sensor": "Alle batch-gegevens sensor (experimenteel)",
+          "custom_stream_enabled": "Aangepaste stream inschakelen"
+        }
+      },
+      "custom_stream": {
+        "data": {
+          "custom_stream_logging_id": "Brewfather logging-ID",
+          "custom_stream_temperature_entity_name": "Volledige naam van temperatuurentiteit",
+          "custom_stream_temperature_entity_attribute": "Attribuutnaam van de temperatuurentiteit"
+        }
+      }
+    },
+    "error": {
+      "invalid_logging_id": "Logging-ID lijkt ongeldig, controleer de BrewFather App documentatie voor \"Custom Stream\"",
+      "entity_required": "Entiteitsnaam is verplicht",
+      "entity_not_found": "Kan entiteit met opgegeven naam niet vinden of entiteit heeft geen geldige numerieke waarde",
+      "attribute_not_found": "Kan attribuut met opgegeven naam niet vinden of attribuut heeft geen geldige numerieke waarde",
+      "unsupported_temperature_unit": "Entiteit moet temperatuur rapporteren in Celsius (°C), Fahrenheit (°F), of Kelvin (K)",
+      "unknown": "Er is iets misgegaan, controleer de logbestanden."
+    }
+  }
+}

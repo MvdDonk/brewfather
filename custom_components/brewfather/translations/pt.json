@@ -1,0 +1,54 @@
+{
+  "title": "Brewfather",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Detalhes da ligação",
+        "description": "Para estabelecer uma ligação com o Brewfather necessita de preencher todos os campos abaixo. Certifique-se de que a chave API tem as permissões corretas.",
+        "data": {
+          "name": "Nome da ligação",
+          "username": "ID de utilizador",
+          "password": "Chave API",
+          "ramp_temp_correction": "Activar rampa de temperatura",
+          "multi_batch": "Suporte multi-lote (pré-visualização)"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Falha no registo, por favor tente novamente",
+      "invalid_scope": "A chave API não tem as permissões correctas.",
+      "invalid_api_key": "Não foi possível autenticar com as credenciais fornecidas.",
+      "unknown": "Algo correu mal, por favor verifique os ficheiros de registo."
+    },
+    "abort": {
+      "already_configured": "A chave API já está configurada"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "data": {
+          "ramp_temp_correction": "Activar rampa de temperatura",
+          "multi_batch": "Suporte multi-lote (pré-visualização)",
+          "all_batch_info_sensor": "Sensor de dados de todos os lotes (experimental)",
+          "custom_stream_enabled": "Activar fluxo personalizado"
+        }
+      },
+      "custom_stream": {
+        "data": {
+          "custom_stream_logging_id": "ID de registo do Brewfather",
+          "custom_stream_temperature_entity_name": "Nome completo da entidade de temperatura",
+          "custom_stream_temperature_entity_attribute": "Nome do atributo da entidade de temperatura"
+        }
+      }
+    },
+    "error": {
+      "invalid_logging_id": "O ID de registo parece inválido, por favor consulte a documentação da aplicação BrewFather para \"Custom Stream\"",
+      "entity_required": "O nome da entidade é obrigatório",
+      "entity_not_found": "Não foi possível encontrar a entidade com o nome fornecido ou a entidade não tem um valor numérico válido",
+      "attribute_not_found": "Não foi possível encontrar o atributo com o nome fornecido ou o atributo não tem um valor numérico válido",
+      "unsupported_temperature_unit": "A entidade deve reportar temperatura em Celsius (°C), Fahrenheit (°F), ou Kelvin (K)",
+      "unknown": "Algo correu mal, por favor verifique os ficheiros de registo."
+    }
+  }
+}

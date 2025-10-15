@@ -1,0 +1,54 @@
+{
+  "title": "Brewfather",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Dettagli di connessione",
+        "description": "Per stabilire una connessione con Brewfather è necessario compilare tutti i campi sottostanti. Assicurati che la chiave API abbia le autorizzazioni corrette.",
+        "data": {
+          "name": "Nome della connessione",
+          "username": "ID utente",
+          "password": "Chiave API",
+          "ramp_temp_correction": "Abilita rampa di temperatura",
+          "multi_batch": "Supporto multi-lotto (anteprima)"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Registrazione fallita, riprova",
+      "invalid_scope": "La chiave API non ha le autorizzazioni corrette.",
+      "invalid_api_key": "Impossibile autenticarsi con le credenziali fornite.",
+      "unknown": "Qualcosa è andato storto, controlla i file di log."
+    },
+    "abort": {
+      "already_configured": "La chiave API è già configurata"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "data": {
+          "ramp_temp_correction": "Abilita rampa di temperatura",
+          "multi_batch": "Supporto multi-lotto (anteprima)",
+          "all_batch_info_sensor": "Sensore dati di tutti i lotti (sperimentale)",
+          "custom_stream_enabled": "Abilita flusso personalizzato"
+        }
+      },
+      "custom_stream": {
+        "data": {
+          "custom_stream_logging_id": "ID di registrazione Brewfather",
+          "custom_stream_temperature_entity_name": "Nome completo dell'entità temperatura",
+          "custom_stream_temperature_entity_attribute": "Nome dell'attributo dell'entità temperatura"
+        }
+      }
+    },
+    "error": {
+      "invalid_logging_id": "L'ID di registrazione sembra non valido, controlla la documentazione dell'app BrewFather per \"Custom Stream\"",
+      "entity_required": "Il nome dell'entità è obbligatorio",
+      "entity_not_found": "Impossibile trovare l'entità con il nome specificato o l'entità non ha un valore numerico valido",
+      "attribute_not_found": "Impossibile trovare l'attributo con il nome specificato o l'attributo non ha un valore numerico valido",
+      "unsupported_temperature_unit": "L'entità deve riportare la temperatura in Celsius (°C), Fahrenheit (°F), o Kelvin (K)",
+      "unknown": "Qualcosa è andato storto, controlla i file di log."
+    }
+  }
+}

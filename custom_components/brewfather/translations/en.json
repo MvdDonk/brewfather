@@ -44,8 +44,10 @@
     },
     "error": {
       "invalid_logging_id": "Logging-id seems invalid, please check BrewFather App docs for \"Custom Stream\"",
-      "entity_not_found": "Unable to find entity with given name",
-      "attribute_not_found": "Unable to find attribute with given name",
+      "entity_required": "Entity name is required",
+      "entity_not_found": "Unable to find entity with given name or entity does not have a valid numeric value",
+      "attribute_not_found": "Unable to find attribute with given name or attribute does not have a valid numeric value",
+      "unsupported_temperature_unit": "Entity must report temperature in Celsius (°C), Fahrenheit (°F), or Kelvin (K)",
       "unknown":"Something went wrong, please check the log files."
     }
   }

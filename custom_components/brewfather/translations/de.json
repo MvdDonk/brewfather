@@ -1,0 +1,54 @@
+{
+  "title": "Brewfather",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Verbindungsdetails",
+        "description": "Um eine Verbindung zu Brewfather herzustellen, müssen Sie alle Felder unten ausfüllen. Stellen Sie sicher, dass der API-Schlüssel die richtigen Berechtigungen hat.",
+        "data": {
+          "name": "Verbindungsname",
+          "username": "Benutzer-ID",
+          "password": "API-Schlüssel",
+          "ramp_temp_correction": "Temperaturrampe aktivieren",
+          "multi_batch": "Multi-Batch-Unterstützung (Vorschau)"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Registrierung fehlgeschlagen, bitte versuchen Sie es erneut",
+      "invalid_scope": "Der API-Schlüssel hat nicht die richtigen Berechtigungen.",
+      "invalid_api_key": "Authentifizierung mit den angegebenen Anmeldedaten nicht möglich.",
+      "unknown": "Etwas ist schiefgelaufen, bitte überprüfen Sie die Protokolldateien."
+    },
+    "abort": {
+      "already_configured": "API-Schlüssel ist bereits konfiguriert"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "data": {
+          "ramp_temp_correction": "Temperaturrampe aktivieren",
+          "multi_batch": "Multi-Batch-Unterstützung (Vorschau)",
+          "all_batch_info_sensor": "Alle Batch-Daten-Sensor (experimentell)",
+          "custom_stream_enabled": "Benutzerdefinierten Stream aktivieren"
+        }
+      },
+      "custom_stream": {
+        "data": {
+          "custom_stream_logging_id": "Brewfather Logging-ID",
+          "custom_stream_temperature_entity_name": "Vollständiger Name der Temperaturentität",
+          "custom_stream_temperature_entity_attribute": "Attributname der Temperaturentität"
+        }
+      }
+    },
+    "error": {
+      "invalid_logging_id": "Logging-ID scheint ungültig zu sein, bitte überprüfen Sie die BrewFather App-Dokumentation für \"Custom Stream\"",
+      "entity_required": "Entitätsname ist erforderlich",
+      "entity_not_found": "Entität mit dem angegebenen Namen kann nicht gefunden werden oder Entität hat keinen gültigen numerischen Wert",
+      "attribute_not_found": "Attribut mit dem angegebenen Namen kann nicht gefunden werden oder Attribut hat keinen gültigen numerischen Wert",
+      "unsupported_temperature_unit": "Entität muss Temperatur in Celsius (°C), Fahrenheit (°F) oder Kelvin (K) melden",
+      "unknown": "Etwas ist schiefgelaufen, bitte überprüfen Sie die Protokolldateien."
+    }
+  }
+}
