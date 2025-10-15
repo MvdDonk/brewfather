@@ -308,9 +308,19 @@ class BrewfatherCoordinator(DataUpdateCoordinator[BrewfatherCoordinatorData]):
         if entity is None:
             return None
         
-        if self.custom_stream_temperature_entity_attribute is None:
-            stream_data.temp = entity.state
-        else:
-            stream_data.temp = entity.attributes.get(self.custom_stream_temperature_entity_attribute)
+        try:
+            if self.custom_stream_temperature_entity_attribute is None or self.custom_stream_temperature_entity_attribute == "":
+                temp_value = entity.state
+            else:
+                temp_value = entity.attributes.get(self.custom_stream_temperature_entity_attribute)
+            
+            # Convert to float if possible
+            if temp_value is not None and temp_value != "unknown" and temp_value != "unavailable":
+                stream_data.temp = float(temp_value)
+            else:
+                return None
+        except (ValueError, TypeError) as ex:
+            _LOGGER.warning("Unable to convert temperature value '%s' to float: %s", temp_value, str(ex))
+            return None
 
         return stream_data
