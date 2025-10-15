@@ -13,7 +13,7 @@ from .models.batch_item import (
     Reading
 )
 from .models.custom_stream_data import custom_stream_data
-from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
+from homeassistant.const import CONF_PASSWORD, CONF_USERNAME, UnitOfTemperature
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 from .const import (
@@ -300,13 +300,31 @@ class BrewfatherCoordinator(DataUpdateCoordinator[BrewfatherCoordinatorData]):
 
         return datetime_value
 
+    def get_brewfather_temp_unit(self, ha_unit: str) -> str:
+        """Convert Home Assistant temperature unit to Brewfather custom stream unit."""
+        if ha_unit == UnitOfTemperature.CELSIUS:
+            return "C"
+        elif ha_unit == UnitOfTemperature.FAHRENHEIT:
+            return "F"
+        elif ha_unit == UnitOfTemperature.KELVIN:
+            return "K"
+        else:
+            _LOGGER.warning("Unsupported temperature unit '%s', defaulting to Celsius", ha_unit)
+            return "C"  # Default to Celsius
+
     def create_custom_stream_data(self) -> Optional[custom_stream_data]:
         stream_data = custom_stream_data(name = "HomeAssistant")
 
-        stream_data.temp_unit = "C"
         entity = self.hass.states.get(self.custom_stream_temperature_entity_name)
         if entity is None:
             return None
+        
+        # Get temperature unit from entity
+        entity_unit = entity.attributes.get("unit_of_measurement")
+        if entity_unit:
+            stream_data.temp_unit = self.get_brewfather_temp_unit(entity_unit)
+        else:
+            stream_data.temp_unit = "C"  # Default to Celsius if no unit specified
         
         try:
             if self.custom_stream_temperature_entity_attribute is None or self.custom_stream_temperature_entity_attribute == "":
