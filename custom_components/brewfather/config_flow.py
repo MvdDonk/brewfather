@@ -28,6 +28,7 @@ from homeassistant.const import (
     CONF_NAME,
     CONF_PASSWORD,
     CONF_USERNAME,
+    UnitOfTemperature,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -89,6 +90,36 @@ def extract_logging_id_from_url(input_value: str) -> str:
     except Exception as ex:
         _LOGGER.warning("Failed to parse URL %s: %s", input_value, str(ex))
         return input_value
+
+def validate_temperature_unit(entity, entity_attribute: str = None) -> bool:
+    """Validate that the entity reports temperature in a supported unit."""
+    # Supported temperature units for Brewfather custom stream
+    supported_units = [UnitOfTemperature.CELSIUS, UnitOfTemperature.FAHRENHEIT, UnitOfTemperature.KELVIN]
+    
+    # Get the unit of measurement from the entity
+    unit_of_measurement = entity.attributes.get("unit_of_measurement")
+    
+    if unit_of_measurement is None:
+        _LOGGER.warning("Entity %s has no unit_of_measurement attribute", entity.entity_id)
+        return False
+    
+    if unit_of_measurement not in supported_units:
+        _LOGGER.warning("Entity %s has unsupported temperature unit: %s. Supported units: %s", 
+                       entity.entity_id, unit_of_measurement, supported_units)
+        return False
+    
+    return True
+
+def get_brewfather_temp_unit(ha_unit: str) -> str:
+    """Convert Home Assistant temperature unit to Brewfather custom stream unit."""
+    if ha_unit == UnitOfTemperature.CELSIUS:
+        return "C"
+    elif ha_unit == UnitOfTemperature.FAHRENHEIT:
+        return "F"
+    elif ha_unit == UnitOfTemperature.KELVIN:
+        return "K"
+    else:
+        return "C"  # Default to Celsius
     
 class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle a config flow for Brewfather."""
@@ -215,79 +246,65 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
             errors=errors,
         )
 
-    async def async_step_custom_stream(
-        self, user_input: dict[str, Any] | None = None
-    ) -> config_entries.FlowResult:
-        """Manage the options."""
+    def _validate_entity_name(self, entity_name: str) -> tuple[str | None, bool, dict]:
+        """Validate entity name and return entity state, success flag, and errors."""
+        if not entity_name:
+            return None, False, {CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_NAME: "entity_required"}
+        
+        entity = self.hass.states.get(entity_name)
+        if entity is None:
+            return None, False, {CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_NAME: "entity_not_found"}
+        
+        return entity, True, {}
 
-        errors: dict[str, str] = {}
+    def _validate_entity_attribute(self, entity, entity_attribute: str) -> tuple[bool, dict]:
+        """Validate entity attribute exists if specified."""
+        if entity_attribute and entity.attributes.get(entity_attribute) is None:
+            return False, {CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_ATTRIBUTE: "attribute_not_found"}
+        return True, {}
 
-        if user_input is not None:
-            entity_name = user_input.get(CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_NAME)
-            if entity_name is None or entity_name == "":
-                errors[CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_NAME] = "entity_required"
-            else:
-                entity = self.hass.states.get(entity_name)
-                if entity is None:
-                    errors[CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_NAME] = "entity_not_found"
-                else:
-                    entity_attribute = user_input.get(CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_ATTRIBUTE)
-                    if entity_attribute is not None and entity_attribute != "" and entity.attributes.get(entity_attribute) is None:
-                        errors[CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_ATTRIBUTE] = "attribute_not_found"
-                    
-                    # Validate that we can get a numeric temperature value
-                    try:
-                        if entity_attribute is None or entity_attribute == "":
-                            temp_value = entity.state
-                        else:
-                            temp_value = entity.attributes.get(entity_attribute)
-                        
-                        if temp_value is None or temp_value in ("unknown", "unavailable", ""):
-                            if entity_attribute:
-                                errors[CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_ATTRIBUTE] = "attribute_not_found"
-                            else:
-                                errors[CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_NAME] = "entity_not_found"
-                        else:
-                            float(temp_value)  # Test if it's convertible to float
-                    except (ValueError, TypeError):
-                        if entity_attribute:
-                            errors[CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_ATTRIBUTE] = "attribute_not_found" 
-                        else:
-                            errors[CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_NAME] = "entity_not_found"
+    def _validate_temperature_value(self, entity, entity_attribute: str) -> tuple[bool, dict]:
+        """Validate that temperature value is numeric and available."""
+        try:
+            temp_value = entity.state if not entity_attribute else entity.attributes.get(entity_attribute)
             
-            logging_id = user_input.get(CONF_CUSTOM_STREAM_LOGGING_ID)
+            if temp_value is None or temp_value in ("unknown", "unavailable", ""):
+                field = CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_ATTRIBUTE if entity_attribute else CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_NAME
+                return False, {field: "attribute_not_found" if entity_attribute else "entity_not_found"}
             
-            # Clean up entity_attribute - treat empty string as None
-            entity_attribute = user_input.get(CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_ATTRIBUTE)
-            if entity_attribute == "":
-                entity_attribute = None
-            # Extract logging_id from URL if input starts with http
-            extracted_logging_id = extract_logging_id_from_url(logging_id)
+            float(temp_value)  # Test if it's convertible to float
+            return True, {}
             
-            try:
-                username = self.init_info[CONF_USERNAME]
-                password = self.init_info[CONF_PASSWORD]
-                valid_logging_id = await validate_custom_stream(username, password, extracted_logging_id)
-                if valid_logging_id is False:
-                    errors[CONF_CUSTOM_STREAM_LOGGING_ID] = "invalid_logging_id"
+        except (ValueError, TypeError):
+            field = CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_ATTRIBUTE if entity_attribute else CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_NAME
+            return False, {field: "attribute_not_found" if entity_attribute else "entity_not_found"}
 
-            except Exception as ex:
-                _LOGGER.error("Unexpected exception when testing custom stream connection: %s", str(ex))
-                errors["base"] = "unknown"
-                
-            if errors is None or len(errors) == 0:
-                new_config = self.init_info
-                new_config[CONF_CUSTOM_STREAM_LOGGING_ID] = extracted_logging_id
-                new_config[CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_NAME] = entity_name
-                new_config[CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_ATTRIBUTE] = entity_attribute
+    def _validate_temperature_unit(self, entity) -> tuple[bool, dict]:
+        """Validate that entity uses supported temperature unit."""
+        if not validate_temperature_unit(entity):
+            return False, {CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_NAME: "unsupported_temperature_unit"}
+        return True, {}
 
-                # update config entry
-                self.hass.config_entries.async_update_entry(
-                    self.config_entry, data=new_config, options=self.config_entry.options
-                )
+    async def _validate_logging_id(self, logging_id: str) -> tuple[str, bool, dict]:
+        """Validate and extract logging ID."""
+        extracted_logging_id = extract_logging_id_from_url(logging_id)
+        
+        try:
+            username = self.init_info[CONF_USERNAME]
+            password = self.init_info[CONF_PASSWORD]
+            valid_logging_id = await validate_custom_stream(username, password, extracted_logging_id)
+            
+            if not valid_logging_id:
+                return extracted_logging_id, False, {CONF_CUSTOM_STREAM_LOGGING_ID: "invalid_logging_id"}
+            
+            return extracted_logging_id, True, {}
+            
+        except Exception as ex:
+            _LOGGER.error("Unexpected exception when testing custom stream connection: %s", str(ex))
+            return extracted_logging_id, False, {"base": "unknown"}
 
-                return self.async_create_entry(title="Brewfather", data=new_config)
-
+    def _show_custom_stream_form(self, user_input: dict[str, Any] | None, errors: dict[str, str]) -> config_entries.FlowResult:
+        """Show the custom stream configuration form."""
         return self.async_show_form(
             step_id="custom_stream",
             data_schema=self.add_suggested_values_to_schema(
@@ -296,4 +313,67 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
             errors=errors,
             last_step=True
         )
+
+    async def async_step_custom_stream(
+        self, user_input: dict[str, Any] | None = None
+    ) -> config_entries.FlowResult:
+        """Manage the custom stream configuration options."""
+        errors: dict[str, str] = {}
+
+        if user_input is None:
+            return self._show_custom_stream_form(user_input, errors)
+
+        # Validate entity name and get entity
+        entity_name = user_input.get(CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_NAME)
+        entity, entity_valid, entity_errors = self._validate_entity_name(entity_name)
+        errors.update(entity_errors)
+
+        if not entity_valid:
+            return self._show_custom_stream_form(user_input, errors)
+
+        # Clean up entity_attribute - treat empty string as None
+        entity_attribute = user_input.get(CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_ATTRIBUTE)
+        if entity_attribute == "":
+            entity_attribute = None
+
+        # Validate entity attribute
+        attribute_valid, attribute_errors = self._validate_entity_attribute(entity, entity_attribute)
+        errors.update(attribute_errors)
+
+        if not attribute_valid:
+            return self._show_custom_stream_form(user_input, errors)
+
+        # Validate temperature value
+        temp_value_valid, temp_value_errors = self._validate_temperature_value(entity, entity_attribute)
+        errors.update(temp_value_errors)
+
+        if not temp_value_valid:
+            return self._show_custom_stream_form(user_input, errors)
+
+        # Validate temperature unit
+        temp_unit_valid, temp_unit_errors = self._validate_temperature_unit(entity)
+        errors.update(temp_unit_errors)
+
+        if not temp_unit_valid:
+            return self._show_custom_stream_form(user_input, errors)
+
+        # Validate logging ID
+        logging_id = user_input.get(CONF_CUSTOM_STREAM_LOGGING_ID)
+        extracted_logging_id, logging_valid, logging_errors = await self._validate_logging_id(logging_id)
+        errors.update(logging_errors)
+
+        if not logging_valid:
+            return self._show_custom_stream_form(user_input, errors)
+
+        # All validations passed - save configuration
+        new_config = self.init_info.copy()
+        new_config[CONF_CUSTOM_STREAM_LOGGING_ID] = extracted_logging_id
+        new_config[CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_NAME] = entity_name
+        new_config[CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_ATTRIBUTE] = entity_attribute
+
+        self.hass.config_entries.async_update_entry(
+            self.config_entry, data=new_config, options=self.config_entry.options
+        )
+
+        return self.async_create_entry(title="Brewfather", data=new_config)
     
