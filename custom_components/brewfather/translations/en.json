@@ -36,7 +36,7 @@
       },
       "custom_stream": {
         "data": {
-          "custom_stream_logging_id": "BrewFathers logging-id",
+          "custom_stream_logging_id": "Brewfather logging-id",
           "custom_stream_temperature_entity_name": "Full entity name for temperature",
           "custom_stream_temperature_entity_attribute": "Attribute name of the temperature entity"
         }

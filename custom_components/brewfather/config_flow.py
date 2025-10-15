@@ -1,6 +1,7 @@
 from __future__ import annotations
 import logging
 from typing import Any, Dict, Optional
+from urllib.parse import urlparse, parse_qs
 import voluptuous as vol  # type: ignore
 from homeassistant import config_entries 
 from homeassistant.core import callback
@@ -71,6 +72,23 @@ async def validate_custom_stream(username:str, password:str, logging_id:str) -> 
     connection = Connection(username, password)
     result = await connection.test_custom_stream(logging_id=logging_id)
     return result
+
+def extract_logging_id_from_url(input_value: str) -> str:
+    """Extract logging_id from Brewfather stream URL if input starts with http."""
+    if not input_value.startswith("http"):
+        return input_value
+    
+    try:
+        parsed_url = urlparse(input_value)
+        query_params = parse_qs(parsed_url.query)
+        if "id" in query_params:
+            return query_params["id"][0]
+        else:
+            _LOGGER.warning("No 'id' parameter found in URL: %s", input_value)
+            return input_value
+    except Exception as ex:
+        _LOGGER.warning("Failed to parse URL %s: %s", input_value, str(ex))
+        return input_value
     
 class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle a config flow for Brewfather."""
@@ -218,10 +236,13 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                         errors[CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_ATTRIBUTE] = "attribute_not_found"
             
             logging_id = user_input.get(CONF_CUSTOM_STREAM_LOGGING_ID)
+            # Extract logging_id from URL if input starts with http
+            extracted_logging_id = extract_logging_id_from_url(logging_id)
+            
             try:
                 username = self.init_info[CONF_USERNAME]
                 password = self.init_info[CONF_PASSWORD]
-                valid_logging_id = await validate_custom_stream(username, password, logging_id)
+                valid_logging_id = await validate_custom_stream(username, password, extracted_logging_id)
                 if valid_logging_id is False:
                     errors[CONF_CUSTOM_STREAM_LOGGING_ID] = "invalid_logging_id"
 
@@ -231,7 +252,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                 
             if errors is None or len(errors) == 0:
                 new_config = self.init_info
-                new_config[CONF_CUSTOM_STREAM_LOGGING_ID] = logging_id
+                new_config[CONF_CUSTOM_STREAM_LOGGING_ID] = extracted_logging_id
                 new_config[CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_NAME] = entity_name
                 new_config[CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_ATTRIBUTE] = entity_attribute
 
