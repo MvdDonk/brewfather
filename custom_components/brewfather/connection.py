@@ -64,7 +64,8 @@ class Connection:
                     _LOGGER.debug("POST request response: %s", response_text)
                     try:
                         response_json = json.loads(response_text)
-                        return response_json["result"] == "OK"
+                        result_value = response_json.get("result", "").lower()
+                        return result_value in ["ok", "success"]
                     except json.JSONDecodeError as ex:
                         _LOGGER.error("Unable to parse JSON response: %s", str(ex))
                         raise Exception("Failed to parse JSON response")
@@ -114,7 +115,8 @@ class Connection:
                 return False
             try:
                 response_json = json.loads(response_text)
-                return response_json["result"] == "OK"
+                result_value = response_json.get("result", "").lower()
+                return result_value in ["ok", "success"]
             except json.JSONDecodeError as ex:
                 _LOGGER.error("Unable to parse JSON response: %s", str(ex))
                 raise UpdateFailed(
