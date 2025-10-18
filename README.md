@@ -145,7 +145,7 @@ This integration supports posting temperature data to Brewfather's Custom Stream
 
 The integration will automatically post temperature updates to Brewfather during its regular update cycle (every 15 minutes by default).  
 
-## <a name="multi-batches"></a>Multiple batch support (preview)
+## <a name="multi-batches"></a>Multiple batch support (experimental)
 This is a work in progress (that's why it's in preview) but it's the first easy out of the box multi batch support. Each sensor will get an additional attribute "other_batches" which will contain the same category data as the sensor but for all other active batches. For example `brewfather_recipe_name` will have the following extra attribute data:
 ```
 other_batches:
@@ -197,15 +197,31 @@ Installing using [HACS](https://hacs.xyz/) is <u>recommended</u>. It is the easi
 1. Go to the HACS dashboard, search for "Brewfather" and click "DOWNLOAD"
 1. After downloading you might have to restart Home Assistant (HACS will tell you if so). After Home Assistant has restarted install the Brewfather integration by clicking <a href="https://my.home-assistant.io/redirect/integration/?domain=brewfather">here</a> or go to integrations ans search for Brewfather  
 [![Install using link](integration_install-via-link_small.png)](integration_install-via-link.png)
-1. A dialog will popup containing the following fields:  
-**Connection name**  
-  A unique name for your Brewfather connection that will be used in Home Assistant  
-  **User ID**  
-  User ID used for API-access. You can get this in the Brewfather app under Settings -> Api -> Generate API-Key.  
-  **API-Key**  
-  API-Key with the correct scopes. This is also located in Settings -> Api -> Generate API-Key. For more info on how to create a correct key see the section "Creating a Brewfather API-key" below.   
+
+## Setup Wizard 🧙‍♂️
+The integration now features a comprehensive setup wizard:
+
+### Step 1: Connection Details
+A dialog will popup containing the following fields:  
+- **Connection name**: A unique name for your Brewfather connection in Home Assistant  
+- **User ID**: Your Brewfather UserId (not email address)
+- **API-Key**: Your API key with correct scopes from Settings → API → Generate API-Key  
 [![Setup](integration_setup_small.png)](integration_setup.png)
-1. The integration will test your connection and if everything succeeded you will see the following popup. Brewfather is now connected to your Home Assistant instance!  
+
+### Step 2: Choose Features  
+Select which Brewfather features to enable:
+- **Enable temperature ramping**: Adjust target temperatures during ramped fermentation steps
+- **Enable custom stream**: Automatically send temperature readings to Brewfather
+- **Multiple batch support**: Monitor multiple fermenting batches simultaneously  
+- **All batches data sensor**: Create sensor with detailed information about all batches
+
+### Step 3: Custom Stream Configuration (if enabled)
+Configure automatic temperature streaming:
+- **Brewfather Logging ID or Stream URL**: Enter ID or paste complete URL from Brewfather
+- **Temperature Sensor**: Select from available temperature entities
+- Real-time validation ensures your configuration works correctly
+
+1. The integration will test your connection and if everything succeeded, Brewfather is now connected to your Home Assistant instance!  
 [![Success](integration_success_small.png)](integration_success.png")
 
 ## Manual installation (not recommended)
