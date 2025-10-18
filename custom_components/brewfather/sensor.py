@@ -66,7 +66,7 @@ class BrewfatherStatusSensor(CoordinatorEntity, SensorEntity):
         """Return additional state attributes."""
         attrs = {
             "api_connection": "✅ Connected" if self.coordinator.last_update_success else "❌ Disconnected",
-            "last_update": self.coordinator.last_update_time.isoformat() if self.coordinator.last_update_time else None,
+            "last_update": self.coordinator.last_update_success_time.isoformat() if self.coordinator.last_update_success_time else None,
         }
         
         if self._entry.data.get("custom_stream_enabled", False):

@@ -15,7 +15,7 @@ from .models.batch_item import (
 from .models.custom_stream_data import custom_stream_data
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME, UnitOfTemperature
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
+from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 from .const import (
     DOMAIN,
     MS_IN_DAY,
@@ -79,6 +79,7 @@ class BrewfatherCoordinator(DataUpdateCoordinator[BrewfatherCoordinatorData]):
             entry.data.get(CONF_PASSWORD)
         )
         self.custom_stream_enabled = entry.data.get(CONF_CUSTOM_STREAM_ENABLED, False)
+        self.last_update_success_time: Optional[datetime] = None
         if self.custom_stream_enabled:
             self.custom_stream_logging_id = entry.data.get(CONF_CUSTOM_STREAM_LOGGING_ID, None)
 
@@ -89,9 +90,15 @@ class BrewfatherCoordinator(DataUpdateCoordinator[BrewfatherCoordinatorData]):
 
     async def _async_update_data(self) -> BrewfatherCoordinatorData:
         """Update data via library."""
-        _LOGGER.debug("Updating data via library")
-        data = await self.update()
-        return data
+        try:
+            _LOGGER.debug("Updating data via library")
+            data = await self.update()
+            # Update the last successful update time
+            self.last_update_success_time = datetime.now(timezone.utc)
+            return data
+        except Exception as ex:
+            _LOGGER.error("Error updating Brewfather data: %s", str(ex))
+            raise UpdateFailed(f"Error communicating with Brewfather API: {ex}") from ex
 
     async def update(self) -> BrewfatherCoordinatorData:
         _LOGGER.debug("Updating data...")
