@@ -5,7 +5,8 @@ from urllib.parse import urlparse, parse_qs
 import voluptuous as vol  # type: ignore
 from homeassistant import config_entries 
 from homeassistant.core import callback
-import homeassistant.helpers.config_validation as cv 
+import homeassistant.helpers.config_validation as cv
+from homeassistant.helpers import selector 
 from .const import (
     DOMAIN,
     CONF_RAMP_TEMP_CORRECTION,
@@ -16,7 +17,6 @@ from .const import (
     CONF_CUSTOM_STREAM_ENABLED,
     CONF_CUSTOM_STREAM_LOGGING_ID,
     CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_NAME,
-    CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_ATTRIBUTE,
 )
 from .connection import (
     Connection,
@@ -38,8 +38,8 @@ CONFIG_SCHEMA = vol.Schema(
         vol.Required(CONF_NAME): cv.string,
         vol.Required(CONF_USERNAME): cv.string,
         vol.Required(CONF_PASSWORD): cv.string,
-        vol.Required(CONF_RAMP_TEMP_CORRECTION): cv.boolean,
-        vol.Required(CONF_MULTI_BATCH): cv.boolean,
+        # vol.Required(CONF_RAMP_TEMP_CORRECTION): cv.boolean,
+        # vol.Required(CONF_MULTI_BATCH): cv.boolean,
     }
 )
 
@@ -55,8 +55,12 @@ OPTIONS_SCHEMA = vol.Schema(
 OPTIONS_CUSTOM_STREAM_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_CUSTOM_STREAM_LOGGING_ID): cv.string,
-        vol.Required(CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_NAME): cv.string,
-        vol.Optional(CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_ATTRIBUTE): cv.string,
+        vol.Required(CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_NAME): selector.EntitySelector(
+            selector.EntitySelectorConfig(
+                domain=["sensor", "climate", "number"],
+                device_class=["temperature"]
+            )
+        ),
     }
 )
 
@@ -81,9 +85,17 @@ def extract_logging_id_from_url(input_value: str) -> str:
     
     try:
         parsed_url = urlparse(input_value)
+        
+        # Validate it's a Brewfather URL
+        if "brewfather" not in parsed_url.netloc.lower():
+            _LOGGER.warning("URL does not appear to be a Brewfather URL: %s", input_value)
+            return input_value
+            
         query_params = parse_qs(parsed_url.query)
         if "id" in query_params:
-            return query_params["id"][0]
+            extracted_id = query_params["id"][0]
+            _LOGGER.info("Successfully extracted logging ID '%s' from URL", extracted_id)
+            return extracted_id
         else:
             _LOGGER.warning("No 'id' parameter found in URL: %s", input_value)
             return input_value
@@ -138,7 +150,8 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         """Handle the user setup step."""
         errors: Dict[str, str] = {}
         validCredentials: bool = False
-        if user_input is not None:     
+        
+        if user_input is not None:
             try:
                 username = user_input.get(CONF_USERNAME, False)
                 password = user_input.get(CONF_PASSWORD, False)
@@ -155,19 +168,130 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 errors["base"] = "unknown"
                 
         if not errors and validCredentials:
-            # Input is valid, set data.
+            # Input is valid, store intermediate data for wizard flow
             name = user_input.get(CONF_NAME, False)
             await self.async_set_unique_id(name)
             self._abort_if_unique_id_configured()
 
-            temp_correction = user_input.get(CONF_RAMP_TEMP_CORRECTION, False)
-            multi_batch = user_input.get(CONF_MULTI_BATCH, False)
-
-            self.data = ConfigFlow.get_config_entry(name, username, password, temp_correction, multi_batch, False)
-            return self.async_create_entry(title=name, data=self.data)
+            # Store connection data for next step
+            self.connection_data = {
+                CONF_NAME: name,
+                CONF_USERNAME: user_input.get(CONF_USERNAME),
+                CONF_PASSWORD: user_input.get(CONF_PASSWORD),
+            }
+            
+            # Show features configuration step
+            return self.async_show_form(
+                step_id="features",
+                data_schema=vol.Schema({
+                    vol.Required(CONF_RAMP_TEMP_CORRECTION, default=False): cv.boolean,
+                    vol.Required(CONF_MULTI_BATCH, default=False): cv.boolean,
+                    vol.Required(CONF_ALL_BATCH_INFO_SENSOR, default=False): cv.boolean,
+                    vol.Required(CONF_CUSTOM_STREAM_ENABLED, default=False): cv.boolean,
+                })
+            )
         
         return self.async_show_form(
             step_id="user", data_schema=CONFIG_SCHEMA, errors=errors
+        )
+
+    async def async_step_features(self, user_input: Optional[Dict[str, Any]] = None):
+        """Handle the features configuration step."""
+        if user_input is None:
+            return self.async_show_form(
+                step_id="features",
+                data_schema=vol.Schema({
+                    vol.Required(CONF_RAMP_TEMP_CORRECTION, default=False): cv.boolean,
+                    vol.Required(CONF_MULTI_BATCH, default=False): cv.boolean,
+                    vol.Required(CONF_ALL_BATCH_INFO_SENSOR, default=False): cv.boolean,
+                    vol.Required(CONF_CUSTOM_STREAM_ENABLED, default=False): cv.boolean,
+                })
+            )
+
+        # Combine connection data with features
+        config_data = self.connection_data.copy()
+        config_data.update(user_input)
+
+        # If custom stream is enabled, go to custom stream configuration
+        if user_input.get(CONF_CUSTOM_STREAM_ENABLED):
+            self.config_data = config_data
+            return self.async_show_form(
+                step_id="custom_stream",
+                data_schema=vol.Schema({
+                    vol.Required(CONF_CUSTOM_STREAM_LOGGING_ID): cv.string,
+                    vol.Required(CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_NAME): selector.EntitySelector(
+                        selector.EntitySelectorConfig(
+                            domain=["sensor", "climate", "number"],
+                            device_class=["temperature"]
+                        )
+                    ),
+                }),
+                last_step=False
+            )
+        
+        # Otherwise, create the entry
+        return self.async_create_entry(title=config_data[CONF_NAME], data=config_data)
+
+    async def async_step_custom_stream(self, user_input: Optional[Dict[str, Any]] = None):
+        """Handle the custom stream configuration step in initial setup."""
+        errors: Dict[str, str] = {}
+
+        if user_input is None:
+            return self.async_show_form(
+                step_id="custom_stream",
+                data_schema=vol.Schema({
+                    vol.Required(CONF_CUSTOM_STREAM_LOGGING_ID): cv.string,
+                    vol.Required(CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_NAME): selector.EntitySelector(
+                        selector.EntitySelectorConfig(
+                            domain=["sensor", "climate", "number"],
+                            device_class=["temperature"]
+                        )
+                    ),
+                })
+            )
+
+        # Basic validation - entity exists
+        entity_name = user_input.get(CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_NAME)
+        if entity_name:
+            entity = self.hass.states.get(entity_name)
+            if entity is None:
+                errors[CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_NAME] = "invalid_entity"
+            elif not validate_temperature_unit(entity):
+                errors[CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_NAME] = "unsupported_temperature_unit"
+
+        # Validate logging ID
+        logging_id = user_input.get(CONF_CUSTOM_STREAM_LOGGING_ID)
+        if logging_id:
+            extracted_logging_id = extract_logging_id_from_url(logging_id)
+            try:
+                username = self.config_data.get(CONF_USERNAME)
+                password = self.config_data.get(CONF_PASSWORD)
+                valid_logging_id = await validate_custom_stream(username, password, extracted_logging_id)
+                if not valid_logging_id:
+                    errors[CONF_CUSTOM_STREAM_LOGGING_ID] = "custom_stream_test_failed"
+            except Exception:
+                errors[CONF_CUSTOM_STREAM_LOGGING_ID] = "custom_stream_test_failed"
+
+        if not errors:
+            # All validation passed - complete setup
+            final_config = self.config_data.copy()
+            final_config[CONF_CUSTOM_STREAM_LOGGING_ID] = extract_logging_id_from_url(logging_id)
+            final_config[CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_NAME] = entity_name
+
+            return self.async_create_entry(title=final_config[CONF_NAME], data=final_config)
+
+        return self.async_show_form(
+            step_id="custom_stream",
+            data_schema=vol.Schema({
+                vol.Required(CONF_CUSTOM_STREAM_LOGGING_ID): cv.string,
+                vol.Required(CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_NAME): selector.EntitySelector(
+                    selector.EntitySelectorConfig(
+                        domain=["sensor", "climate", "number"],
+                        device_class=["temperature"]
+                    )
+                ),
+            }),
+            errors=errors
         )   
 
     @staticmethod
@@ -225,7 +349,16 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                 return self.async_show_form(
                     step_id="custom_stream",
                     data_schema=self.add_suggested_values_to_schema(
-                        OPTIONS_CUSTOM_STREAM_SCHEMA, self.config_entry.data
+                        vol.Schema({
+                            vol.Required(CONF_CUSTOM_STREAM_LOGGING_ID): cv.string,
+                            vol.Required(CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_NAME): selector.EntitySelector(
+                                selector.EntitySelectorConfig(
+                                    domain=["sensor", "climate", "number"],
+                                    device_class=["temperature"]
+                                )
+                            ),
+                        }), 
+                        self.config_entry.data
                     ),
                     last_step=True
                 )
@@ -241,10 +374,35 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
         return self.async_show_form(
             step_id="init",
             data_schema=self.add_suggested_values_to_schema(
-                OPTIONS_SCHEMA, self.config_entry.data
+                vol.Schema({
+                    vol.Required(CONF_RAMP_TEMP_CORRECTION): cv.boolean,
+                    vol.Required(CONF_MULTI_BATCH): cv.boolean,
+                    vol.Required(CONF_ALL_BATCH_INFO_SENSOR): cv.boolean,
+                    vol.Required(CONF_CUSTOM_STREAM_ENABLED): cv.boolean,
+                }), 
+                self.config_entry.data
             ),
             errors=errors,
         )
+
+    def _get_temperature_entities(self) -> list[str]:
+        """Get list of temperature entities for suggestions."""
+        temperature_entities = []
+        
+        # Common temperature entity patterns
+        suggested_patterns = [
+            "fermenter_temperature", "fermentation_temp", "temperature_probe",
+            "brew_temp", "carboy_temp", "chamber_temp", "fridge_temp"
+        ]
+        
+        for entity_id in self.hass.states.async_entity_ids():
+            state = self.hass.states.get(entity_id)
+            if state and state.attributes.get("device_class") == "temperature":
+                temperature_entities.append(entity_id)
+            elif any(pattern in entity_id.lower() for pattern in suggested_patterns):
+                temperature_entities.append(entity_id)
+                
+        return sorted(temperature_entities)
 
     def _validate_entity_name(self, entity_name: str) -> tuple[str | None, bool, dict]:
         """Validate entity name and return entity state, success flag, and errors."""
@@ -253,15 +411,13 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
         
         entity = self.hass.states.get(entity_name)
         if entity is None:
+            # Suggest available temperature entities
+            temp_entities = self._get_temperature_entities()
+            if temp_entities:
+                _LOGGER.info("Available temperature entities: %s", temp_entities[:5])  # Log first 5
             return None, False, {CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_NAME: "entity_not_found"}
         
         return entity, True, {}
-
-    def _validate_entity_attribute(self, entity, entity_attribute: str) -> tuple[bool, dict]:
-        """Validate entity attribute exists if specified."""
-        if entity_attribute and entity.attributes.get(entity_attribute) is None:
-            return False, {CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_ATTRIBUTE: "attribute_not_found"}
-        return True, {}
 
     def _validate_temperature_value(self, entity, entity_attribute: str) -> tuple[bool, dict]:
         """Validate that temperature value is numeric and available."""
@@ -269,15 +425,17 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
             temp_value = entity.state if not entity_attribute else entity.attributes.get(entity_attribute)
             
             if temp_value is None or temp_value in ("unknown", "unavailable", ""):
-                field = CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_ATTRIBUTE if entity_attribute else CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_NAME
-                return False, {field: "attribute_not_found" if entity_attribute else "entity_not_found"}
+                field = CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_NAME
+                return False, {field: "entity_not_found"}
             
-            float(temp_value)  # Test if it's convertible to float
+            temp_float = float(temp_value)  # Test if it's convertible to float
+            unit = entity.attributes.get("unit_of_measurement", "°C")
+            _LOGGER.info("Current temperature reading: %.1f%s - Looking good! ✅", temp_float, unit)
             return True, {}
             
         except (ValueError, TypeError):
-            field = CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_ATTRIBUTE if entity_attribute else CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_NAME
-            return False, {field: "attribute_not_found" if entity_attribute else "entity_not_found"}
+            field = CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_NAME
+            return False, {field: "entity_not_found"}
 
     def _validate_temperature_unit(self, entity) -> tuple[bool, dict]:
         """Validate that entity uses supported temperature unit."""
@@ -289,6 +447,12 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
         """Validate and extract logging ID."""
         extracted_logging_id = extract_logging_id_from_url(logging_id)
         
+        # Show user what we're testing
+        if extracted_logging_id != logging_id:
+            _LOGGER.info("Testing extracted logging ID: %s", extracted_logging_id)
+        else:
+            _LOGGER.info("Testing logging ID: %s", extracted_logging_id)
+        
         try:
             username = self.init_info[CONF_USERNAME]
             password = self.init_info[CONF_PASSWORD]
@@ -297,6 +461,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
             if not valid_logging_id:
                 return extracted_logging_id, False, {CONF_CUSTOM_STREAM_LOGGING_ID: "invalid_logging_id"}
             
+            _LOGGER.info("Logging ID validation successful")
             return extracted_logging_id, True, {}
             
         except Exception as ex:
@@ -308,7 +473,16 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
         return self.async_show_form(
             step_id="custom_stream",
             data_schema=self.add_suggested_values_to_schema(
-                OPTIONS_CUSTOM_STREAM_SCHEMA, user_input 
+                vol.Schema({
+                    vol.Required(CONF_CUSTOM_STREAM_LOGGING_ID): cv.string,
+                    vol.Required(CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_NAME): selector.EntitySelector(
+                        selector.EntitySelectorConfig(
+                            domain=["sensor", "climate", "number"],
+                            device_class=["temperature"]
+                        )
+                    ),
+                }), 
+                user_input 
             ),
             errors=errors,
             last_step=True
@@ -331,20 +505,8 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
         if not entity_valid:
             return self._show_custom_stream_form(user_input, errors)
 
-        # Clean up entity_attribute - treat empty string as None
-        entity_attribute = user_input.get(CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_ATTRIBUTE)
-        if entity_attribute == "":
-            entity_attribute = None
-
-        # Validate entity attribute
-        attribute_valid, attribute_errors = self._validate_entity_attribute(entity, entity_attribute)
-        errors.update(attribute_errors)
-
-        if not attribute_valid:
-            return self._show_custom_stream_form(user_input, errors)
-
         # Validate temperature value
-        temp_value_valid, temp_value_errors = self._validate_temperature_value(entity, entity_attribute)
+        temp_value_valid, temp_value_errors = self._validate_temperature_value(entity, None)
         errors.update(temp_value_errors)
 
         if not temp_value_valid:
@@ -369,7 +531,6 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
         new_config = self.init_info.copy()
         new_config[CONF_CUSTOM_STREAM_LOGGING_ID] = extracted_logging_id
         new_config[CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_NAME] = entity_name
-        new_config[CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_ATTRIBUTE] = entity_attribute
 
         self.hass.config_entries.async_update_entry(
             self.config_entry, data=new_config, options=self.config_entry.options

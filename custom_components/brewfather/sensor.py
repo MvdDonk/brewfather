@@ -6,31 +6,107 @@ import logging
 from typing import cast, Any
 from homeassistant.core import callback
 from homeassistant.config_entries import ConfigEntry
-from .const import (
-    DOMAIN,
-    COORDINATOR,
-    CONF_ALL_BATCH_INFO_SENSOR
-)
 from homeassistant.const import UnitOfTemperature
-from .coordinator import BrewfatherCoordinator, BrewfatherCoordinatorData
 from homeassistant.components.sensor import SensorEntity, SensorStateClass, SensorEntityDescription, SensorDeviceClass
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.typing import StateType
 from homeassistant.helpers.update_coordinator import (
     CoordinatorEntity,
     DataUpdateCoordinator,
 )
+from .coordinator import BrewfatherCoordinator, BrewfatherCoordinatorData
+from .const import (
+    DOMAIN,
+    COORDINATOR,
+    CONF_ALL_BATCH_INFO_SENSOR
+)
 
 _LOGGER = logging.getLogger(__name__)
 SENSOR_PREFIX = "Brewfather"
+
+class SensorUpdateData:
+    state: Any
+    attr_available: bool
+    extra_state_attributes: dict[str, Any]
+    
+    def __init__(self):
+        self.state = None
+        self.attr_available = True
+        self.extra_state_attributes = {}
+
+class BrewfatherStatusSensor(CoordinatorEntity, SensorEntity):
+    """Brewfather integration status sensor."""
+    
+    def __init__(
+        self, 
+        coordinator: BrewfatherCoordinator,
+        entry: ConfigEntry,
+        entity_description: SensorEntityDescription,
+    ):
+        """Initialize the sensor."""
+        super().__init__(coordinator, context=None)
+        self.entity_description = entity_description
+        self._entry = entry
+        self._attr_unique_id = f"{entry.entry_id}_{entity_description.key}"
+        self._attr_name = f"{SENSOR_PREFIX} {entity_description.name}"
+
+    @property
+    def state(self) -> str:
+        """Return the state of the sensor."""
+        if not self.coordinator.last_update_success:
+            return "disconnected"
+        elif self._entry.data.get("custom_stream_enabled", False):
+            return "monitoring"
+        else:
+            return "connected"
+    
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        """Return additional state attributes."""
+        attrs = {
+            "api_connection": "✅ Connected" if self.coordinator.last_update_success else "❌ Disconnected",
+            "last_update": self.coordinator.last_update_time.isoformat() if self.coordinator.last_update_time else None,
+        }
+        
+        if self._entry.data.get("custom_stream_enabled", False):
+            attrs["custom_stream"] = "✅ Enabled"
+            entity_name = self._entry.data.get("custom_stream_temperature_entity_name")
+            if entity_name:
+                entity = self.hass.states.get(entity_name)
+                if entity:
+                    unit = entity.attributes.get("unit_of_measurement", "°C")
+                    attrs["temperature_entity"] = f"🌡️ {entity_name} ({unit})"
+                    attrs["last_temperature"] = f"{entity.state}{unit}"
+        else:
+            attrs["custom_stream"] = "⚪ Disabled"
+            
+        return attrs
+
+    @property
+    def icon(self) -> str:
+        """Return the icon for the sensor."""
+        if not self.coordinator.last_update_success:
+            return "mdi:beer-off"
+        elif self._entry.data.get("custom_stream_enabled", False):
+            return "mdi:beer-outline"
+        else:
+            return "mdi:beer"
+
 async def async_setup_entry(
     hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
 ):
     """Set up the sensor platforms."""
     coordinator = hass.data[DOMAIN][entry.entry_id][COORDINATOR]
     sensors = []
+
+    # Add status sensor for UX improvement
+    status_description = SensorEntityDescription(
+        key="status",
+        name="Integration Status",
+        icon="mdi:beer",
+    )
+    sensors.append(BrewfatherStatusSensor(coordinator, entry, status_description))
 
     sensors.append(
         BrewfatherSensor(
@@ -342,23 +418,6 @@ class BrewfatherSensor(CoordinatorEntity[BrewfatherCoordinator], SensorEntity):
                 ) from err
             
         return sensor_data
-            
-
-    # async def async_added_to_hass(self):
-    #     """Subscribe to updates."""
-    #     self.async_on_remove(
-    #         self.coordinator.async_add_listener(self.async_write_ha_state)
-    #     )
-
-class SensorUpdateData:
-    state: Any
-    attr_available: bool
-    extra_state_attributes: dict[str, Any]
-    
-    def __init__(self):
-        self.state = None
-        self.attr_available = False
-        self.extra_state_attributes = dict()
 
 class SensorKinds(enum.Enum):
     fermenting_name = 1
