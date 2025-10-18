@@ -89,13 +89,11 @@
         "description": "Configurar streaming automático de temperatura desde Home Assistant a Brewfather para monitoreo en tiempo real.",
         "data": {
           "custom_stream_logging_id": "ID de registro Brewfather o URL del flujo",
-          "custom_stream_temperature_entity_name": "Sensor de temperatura",
-          "custom_stream_temperature_entity_attribute": "Atributo de temperatura (opcional)"
+          "custom_stream_temperature_entity_name": "Sensor de temperatura"
         },
         "data_description": {
           "custom_stream_logging_id": "Ingrese su ID de registro o pegue la URL completa del flujo desde Brewfather",
-          "custom_stream_temperature_entity_name": "Seleccione el sensor de temperatura para transmitir a Brewfather",
-          "custom_stream_temperature_entity_attribute": "Solo necesario si la temperatura está almacenada en un atributo de entidad en lugar del estado principal"
+          "custom_stream_temperature_entity_name": "Seleccione el sensor de temperatura para transmitir a Brewfather"
         }
       }
     },
