@@ -300,7 +300,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         config_entry: config_entries.ConfigEntry,
     ) -> OptionsFlowHandler:
         """Create the options flow."""
-        return OptionsFlowHandler(config_entry)
+        return OptionsFlowHandler()
     
     @staticmethod
     def get_config_entry(name:str, username: str, password: str, temp_correction: bool, multi_batch: bool, all_batch_info_sensor: bool
@@ -317,8 +317,6 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         return config
 
 class OptionsFlowHandler(config_entries.OptionsFlow):
-    def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
-        self.config_entry = config_entry
 
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None
