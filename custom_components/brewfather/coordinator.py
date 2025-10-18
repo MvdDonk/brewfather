@@ -24,8 +24,7 @@ from .const import (
     CONF_ALL_BATCH_INFO_SENSOR,
     CONF_CUSTOM_STREAM_ENABLED,
     CONF_CUSTOM_STREAM_LOGGING_ID,
-    CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_NAME,
-    CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_ATTRIBUTE
+    CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_NAME
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -84,7 +83,6 @@ class BrewfatherCoordinator(DataUpdateCoordinator[BrewfatherCoordinatorData]):
             self.custom_stream_logging_id = entry.data.get(CONF_CUSTOM_STREAM_LOGGING_ID, None)
 
             self.custom_stream_temperature_entity_name = entry.data.get(CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_NAME, None)
-            self.custom_stream_temperature_entity_attribute = entry.data.get(CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_ATTRIBUTE, None)
 
         super().__init__(hass, _LOGGER, name=DOMAIN, update_interval=update_interval)
 
@@ -334,10 +332,7 @@ class BrewfatherCoordinator(DataUpdateCoordinator[BrewfatherCoordinatorData]):
             stream_data.temp_unit = "C"  # Default to Celsius if no unit specified
         
         try:
-            if self.custom_stream_temperature_entity_attribute is None or self.custom_stream_temperature_entity_attribute == "":
-                temp_value = entity.state
-            else:
-                temp_value = entity.attributes.get(self.custom_stream_temperature_entity_attribute)
+            temp_value = entity.state
             
             # Convert to float if possible
             if temp_value is not None and temp_value != "unknown" and temp_value != "unavailable":
