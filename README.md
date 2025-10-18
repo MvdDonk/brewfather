@@ -51,6 +51,11 @@ content: |-
 
 # Sensors list
 The following sensors will be added after setup:
+- **Integration Status** 🆕  
+  Shows the current status of the Brewfather integration with detailed attributes  
+  `sensor.brewfather_integration_status`  
+  - **States**: `connected`, `monitoring` (with custom stream), `disconnected`
+  - **Attributes**: API connection status, last update time, custom stream info, temperature entity details
 - **Recipe name**  
   Name of the beer you are fermenting.  
   `sensor.brewfather_recipe_name`  
@@ -99,7 +104,48 @@ When enabled and used with temperature ramping in Brewfather the target temperat
 | 11/04/2024 01:00 | 23°C | 36| Ramping |
 | 11/04/2024 13:00 | 24°C | 0 | Ramping stopped, target temperature set |
 
-## <a name="multi-batches"></a>Multiple batch support (preview)
+## <a name="custom-stream"></a>Custom Stream Support 🔄 
+This integration supports posting temperature data to Brewfather's Custom Stream endpoint, allowing you to integrate external sensors with your Brewfather batch monitoring.
+
+### Setup Requirements
+1. **Brewfather Custom Stream Logging ID**: You need to get a logging ID from the Brewfather app:
+   - Open Brewfather app
+   - Go to settings
+   - Navigate to "Power-ups"
+   - Enable "Custom Stream"
+   - Copy the logging ID from the URL (format: `http://log.brewfather.net/stream?id=YOUR_LOGGING_ID`)
+
+2. **Temperature Entity**: You need a Home Assistant entity that provides temperature readings:
+   - The entity must report temperature in Celsius (°C), Fahrenheit (°F), or Kelvin (K)
+   - The sensor's main state value will be used (entity attributes are no longer supported for simplicity)
+   - The integration automatically converts units to the proper format for Brewfather
+
+### Configuration Steps
+1. Go to the Brewfather integration configuration
+2. Enable "Custom Stream for temperature monitoring" option
+3. Fill in the required fields:
+   - **Brewfather Logging ID or Stream URL**: Enter the ID or paste the complete URL
+   - **Temperature Sensor**: Select from available temperature entities
+
+### Enhanced Features 🆕
+- **Smart URL Parsing**: Paste the complete Brewfather stream URL - the integration will extract the logging ID automatically
+- **Temperature Unit Validation**: Automatically validates and converts Celsius, Fahrenheit, and Kelvin
+- **Entity Validation**: Real-time validation ensures your selected sensor provides valid temperature data
+- **Connection Testing**: Tests the logging ID with Brewfather during setup
+
+### Example Configuration
+- **Logging ID**: `abc123def456` or paste complete URL `http://log.brewfather.net/stream?id=abc123def456`
+- **Temperature Sensor**: Select from dropdown of available temperature entities
+
+### Troubleshooting
+- **"Invalid logging ID format"**: Check that you've copied the correct ID or URL from Brewfather
+- **"Entity not found or unavailable"**: Verify the entity exists and provides numeric temperature values
+- **"Unsupported temperature unit"**: Ensure your sensor reports temperature in °C, °F, or K
+- **"Connection test failed"**: Verify your Brewfather Custom Stream is enabled and the logging ID is correct
+
+The integration will automatically post temperature updates to Brewfather during its regular update cycle (every 15 minutes by default).  
+
+## <a name="multi-batches"></a>Multiple batch support (experimental)
 This is a work in progress (that's why it's in preview) but it's the first easy out of the box multi batch support. Each sensor will get an additional attribute "other_batches" which will contain the same category data as the sensor but for all other active batches. For example `brewfather_recipe_name` will have the following extra attribute data:
 ```
 other_batches:
@@ -113,35 +159,73 @@ You can only enable this option by going to the Brewfather integration and click
 <a href="docs/images/v2/configure_options-popup.png"><img src="docs/images/v2/configure_options-popup.png" width="500"></a>  
 *In v1 this used to be enabled by default but to limit the amount of data it is now configurable and disabled by default.*  
 
+
+# Recent Improvements 🆕
+
+## Multi-Language Support 🌍
+The integration now supports multiple languages with complete translations for:
+- **English** 🇺🇸 (Default)
+- **French** 🇫🇷 (Français) 
+- **Spanish** 🇪🇸 (Español)
+- **Dutch** 🇳🇱 (Nederlands)
+- **German** 🇩🇪 (Deutsch)
+- **Italian** 🇮🇹 (Italiano)
+- **Portuguese** 🇵🇹 (Português)
+- **Brazilian Portuguese** 🇧🇷 (Português Brasileiro)
+
+The interface will automatically use your Home Assistant's configured language.
+
+## Enhanced User Experience 
+- **Integration Status Sensor**: Monitor connection health and custom stream status
+- **Smart Configuration**: Wizard-style setup with validation and testing
+- **Improved Error Handling**: Better error messages and troubleshooting guidance
+- **Field Descriptions**: Helpful descriptions for all configuration options
+- **URL Parsing**: Paste complete Brewfather URLs - automatic ID extraction
+- **Temperature Validation**: Real-time validation of temperature units and values
+
+## Simplified Custom Stream
+- Removed entity attribute selection for simpler configuration
+- Direct entity state usage only
+- Enhanced validation and error reporting
+- Automatic unit conversion and validation
+
 # Installation
 Installing using [HACS](https://hacs.xyz/) is <u>recommended</u>. It is the easiest way to install and keep your integration up to date.
 
-## Manual installation (not recommended)
-Copy the `custom_components/brewfather` folder and all of its contents into your Home Assistant's custom_components folder. This folder is usually inside your `/config` folder. If you are running Hass.io, use SAMBA to copy the folder over. If you are running Home Assistant Supervised, the custom_components folder might be located at `/usr/share/hassio/homeassistant`. You may need to create the `custom_components` folder and then copy the brewfather folder and all of its contents into it.
-
 ## HACS installation (easy and supports automated updates)
 1. First make sure you have [HACS](https://hacs.xyz/) installed and running.
-1. Go to the HACS dashboard, click the menu (three dots) in the top right and select "Custom repositories"  
-<a href="docs/images/hacs_custom-repo.png"><img src="docs/images/hacs_custom-repo.png" width="500"></a>
-1. In the field "Repository" add the following value: https://github.com/MvdDonk/brewfather  
-   For "Type" choose "Integration"  
-<a href="docs/images/hacs_custom-repo-popup.png"><img src="docs/images/hacs_custom-repo-popup.png" width="500"></a>
-1. After clicking "ADD" you should see the repository added and a red trash can  
-<a href="docs/images/hacs_repo-added.png"><img src="docs/images/hacs_repo-added.png" width="500"></a>
-1. In the HACS dashboard search for Brewfather or click on this <a href="https://my.home-assistant.io/redirect/hacs_repository/?owner=MvdDonk&repository=Brewfather">link</link> and click on the "DOWNLOAD" button  
-<a href="docs/images/hacs_download-addon.png"><img src="docs/images/hacs_download-addon.png" width="500"></a>
+1. Go to the HACS dashboard, search for "Brewfather" and click "DOWNLOAD"
 1. After downloading you might have to restart Home Assistant (HACS will tell you if so). After Home Assistant has restarted install the Brewfather integration by clicking <a href="https://my.home-assistant.io/redirect/integration/?domain=brewfather">here</a> or go to integrations ans search for Brewfather  
-<a href="docs/images/integration_install-via-link.png"><img src="docs/images/integration_install-via-link.png" width="500"></a>
-1. A dialog will popup containing the following fields:  
-**Connection name**  
-  A unique name for your Brewfather connection that will be used in Home Assistant  
-  **User ID**  
-  User ID used for API-access. You can get this in the Brewfather app under Settings -> Api -> Generate API-Key.  
-  **API-Key**  
-  API-Key with the correct scopes. This is also located in Settings -> Api -> Generate API-Key. For more info on how to create a correct key see the section "Creating a Brewfather API-key" below.   
-<a href="docs/images/integration_setup.png"><img src="docs/images/integration_setup.png" width="500"></a>  
-1. The integration will test your connection and if everything succeeded you will see the following popup. Brewfather is now connected to your Home Assistant instance!  
-<a href="docs/images/integration_success.png"><img src="docs/images/integration_success.png" width="500"></a>
+[![Install using link](integration_install-via-link_small.png)](integration_install-via-link.png)
+
+## Setup Wizard 🧙‍♂️
+The integration now features a comprehensive setup wizard:
+
+### Step 1: Connection Details
+A dialog will popup containing the following fields:  
+- **Connection name**: A unique name for your Brewfather connection in Home Assistant  
+- **User ID**: Your Brewfather UserId (not email address)
+- **API-Key**: Your API key with correct scopes from Settings → API → Generate API-Key  
+[![Setup](integration_setup_small.png)](integration_setup.png)
+
+### Step 2: Choose Features  
+Select which Brewfather features to enable:
+- **Enable temperature ramping**: Adjust target temperatures during ramped fermentation steps
+- **Enable custom stream**: Automatically send temperature readings to Brewfather
+- **Multiple batch support**: Monitor multiple fermenting batches simultaneously  
+- **All batches data sensor**: Create sensor with detailed information about all batches
+
+### Step 3: Custom Stream Configuration (if enabled)
+Configure automatic temperature streaming:
+- **Brewfather Logging ID or Stream URL**: Enter ID or paste complete URL from Brewfather
+- **Temperature Sensor**: Select from available temperature entities
+- Real-time validation ensures your configuration works correctly
+
+1. The integration will test your connection and if everything succeeded, Brewfather is now connected to your Home Assistant instance!  
+[![Success](integration_success_small.png)](integration_success.png)
+
+## Manual installation (not recommended)
+Copy the `custom_components/brewfather` folder and all of its contents into your Home Assistant's custom_components folder. This folder is usually inside your `/config` folder. If you are running Hass.io, use SAMBA to copy the folder over. If you are running Home Assistant Supervised, the custom_components folder might be located at `/usr/share/hassio/homeassistant`. You may need to create the `custom_components` folder and then copy the brewfather folder and all of its contents into it.
 
 ## Creating a Brewfather API-Key  
 To create a Brewfather API-key follow the documentation on [Brewfather - docs](https://docs.brewfather.app/api#generate-api-key). Make sure to give the API-key at least the "Read Batches" [scope](https://docs.brewfather.app/api#scopes).

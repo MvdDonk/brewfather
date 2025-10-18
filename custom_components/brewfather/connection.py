@@ -64,11 +64,23 @@ class Connection:
                     _LOGGER.debug("POST request response: %s", response_text)
                     try:
                         response_json = json.loads(response_text)
-                        return response_json["result"] == "OK"
+                        result_value = response_json.get("result", "").lower()
+                        return result_value in ["ok", "success"]
                     except json.JSONDecodeError as ex:
                         _LOGGER.error("Unable to parse JSON response: %s", str(ex))
-                        raise Exception("Failed to parse JSON response")
-        return False
+                        return False
+                elif response.status == 400:
+                    _LOGGER.warning("Bad request to custom stream endpoint, logging_id might be invalid")
+                    return False
+                elif response.status == 401:
+                    _LOGGER.warning("Unauthorized access to custom stream endpoint")
+                    raise InvalidCredentials()
+                elif response.status == 403:
+                    _LOGGER.warning("Forbidden access to custom stream endpoint")
+                    raise InvalidScope()
+                else:
+                    _LOGGER.warning("Custom stream test failed with status %s", response.status)
+                    return False
     
     async def get_batches(self) -> List[BatchesItemElement]:
         url = BATCHES_URI
@@ -114,7 +126,8 @@ class Connection:
                 return False
             try:
                 response_json = json.loads(response_text)
-                return response_json["result"] == "OK"
+                result_value = response_json.get("result", "").lower()
+                return result_value in ["ok", "success"]
             except json.JSONDecodeError as ex:
                 _LOGGER.error("Unable to parse JSON response: %s", str(ex))
                 raise UpdateFailed(

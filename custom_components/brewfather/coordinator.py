@@ -13,9 +13,9 @@ from .models.batch_item import (
     Reading
 )
 from .models.custom_stream_data import custom_stream_data
-from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
+from homeassistant.const import CONF_PASSWORD, CONF_USERNAME, UnitOfTemperature, STATE_UNKNOWN, STATE_UNAVAILABLE
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
+from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 from .const import (
     DOMAIN,
     MS_IN_DAY,
@@ -24,8 +24,7 @@ from .const import (
     CONF_ALL_BATCH_INFO_SENSOR,
     CONF_CUSTOM_STREAM_ENABLED,
     CONF_CUSTOM_STREAM_LOGGING_ID,
-    CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_NAME,
-    CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_ATTRIBUTE
+    CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_NAME
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -79,19 +78,25 @@ class BrewfatherCoordinator(DataUpdateCoordinator[BrewfatherCoordinatorData]):
             entry.data.get(CONF_PASSWORD)
         )
         self.custom_stream_enabled = entry.data.get(CONF_CUSTOM_STREAM_ENABLED, False)
+        self.last_update_success_time: Optional[datetime] = None
         if self.custom_stream_enabled:
             self.custom_stream_logging_id = entry.data.get(CONF_CUSTOM_STREAM_LOGGING_ID, None)
 
             self.custom_stream_temperature_entity_name = entry.data.get(CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_NAME, None)
-            self.custom_stream_temperature_entity_attribute = entry.data.get(CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_ATTRIBUTE, None)
 
         super().__init__(hass, _LOGGER, name=DOMAIN, update_interval=update_interval)
 
     async def _async_update_data(self) -> BrewfatherCoordinatorData:
         """Update data via library."""
-        _LOGGER.debug("Updating data via library")
-        data = await self.update()
-        return data
+        try:
+            _LOGGER.debug("Updating data via library")
+            data = await self.update()
+            # Update the last successful update time
+            self.last_update_success_time = datetime.now(timezone.utc)
+            return data
+        except Exception as ex:
+            _LOGGER.error("Error updating Brewfather data: %s", str(ex))
+            raise UpdateFailed(f"Error communicating with Brewfather API: {ex}") from ex
 
     async def update(self) -> BrewfatherCoordinatorData:
         _LOGGER.debug("Updating data...")
@@ -300,17 +305,42 @@ class BrewfatherCoordinator(DataUpdateCoordinator[BrewfatherCoordinatorData]):
 
         return datetime_value
 
+    def get_brewfather_temp_unit(self, ha_unit: str) -> str:
+        """Convert Home Assistant temperature unit to Brewfather custom stream unit."""
+        if ha_unit == UnitOfTemperature.CELSIUS:
+            return "C"
+        elif ha_unit == UnitOfTemperature.FAHRENHEIT:
+            return "F"
+        elif ha_unit == UnitOfTemperature.KELVIN:
+            return "K"
+        else:
+            _LOGGER.warning("Unsupported temperature unit '%s', defaulting to Celsius", ha_unit)
+            return "C"  # Default to Celsius
+
     def create_custom_stream_data(self) -> Optional[custom_stream_data]:
         stream_data = custom_stream_data(name = "HomeAssistant")
 
-        stream_data.temp_unit = "C"
         entity = self.hass.states.get(self.custom_stream_temperature_entity_name)
         if entity is None:
             return None
         
-        if self.custom_stream_temperature_entity_attribute is None:
-            stream_data.temp = entity.state
+        # Get temperature unit from entity
+        entity_unit = entity.attributes.get("unit_of_measurement")
+        if entity_unit:
+            stream_data.temp_unit = self.get_brewfather_temp_unit(entity_unit)
         else:
-            stream_data.temp = entity.attributes.get(self.custom_stream_temperature_entity_attribute)
+            stream_data.temp_unit = "C"  # Default to Celsius if no unit specified
+        
+        try:
+            temp_value = entity.state
+            
+            # Convert to float if possible
+            if temp_value is not None and temp_value != STATE_UNKNOWN and temp_value != STATE_UNAVAILABLE:
+                stream_data.temp = float(temp_value)
+            else:
+                return None
+        except (ValueError, TypeError) as ex:
+            _LOGGER.warning("Unable to convert temperature value '%s' to float: %s", temp_value, str(ex))
+            return None
 
         return stream_data

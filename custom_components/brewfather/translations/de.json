@@ -1,0 +1,108 @@
+{
+  "title": "Brewfather",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Brewfather Integration Einrichtung",
+        "description": "Geben Sie Ihre Brewfather Kontodaten ein, um die Integration zu verbinden. Stellen Sie sicher, dass Ihr API-Schlüssel die richtigen Berechtigungen hat.",
+        "data": {
+          "name": "Verbindungsname",
+          "username": "Benutzer ID",
+          "password": "API-Schlüssel"
+        },
+        "data_description": {
+          "name": "Ein benutzerfreundlicher Name für diese Brewfather-Verbindung in Home Assistant",
+          "username": "Ihre Brewfather UserId (keine E-Mail-Adresse)",
+          "password": "Ihr API-Schlüssel aus Brewfather Einstellungen > API"
+        }
+      },
+      "features": {
+        "title": "Funktionen wählen",
+        "description": "Wählen Sie, welche Brewfather-Funktionen Sie in Home Assistant aktivieren möchten.",
+        "data": {
+          "ramp_temp_correction": "Temperatur-Ramping aktivieren",
+          "multi_batch": "Multi-Batch-Unterstützung (experimentell)",
+          "all_batch_info_sensor": "Alle Chargen-Datensensor (experimentell)",
+          "custom_stream_enabled": "Benutzerdefinierten Stream für Temperaturüberwachung aktivieren"
+        },
+        "data_description": {
+          "ramp_temp_correction": "Zieltemperaturen während Fermentationsschritten mit Ramping-Zeitplänen automatisch anpassen",
+          "multi_batch": "Daten von mehreren fermentierenden Chargen gleichzeitig überwachen und anzeigen",
+          "all_batch_info_sensor": "Zusätzlichen Sensor mit detaillierten Informationen über alle Chargen erstellen",
+          "custom_stream_enabled": "Temperaturmessungen automatisch von Home Assistant an Brewfather senden"
+        }
+      },
+      "custom_stream": {
+        "title": "Benutzerdefinierte Stream-Konfiguration",
+        "description": "Automatisches Temperatur-Streaming von Home Assistant an Brewfather für Echtzeit-Überwachung konfigurieren.",
+        "data": {
+          "custom_stream_logging_id": "Brewfather Logging-ID oder Stream-URL",
+          "custom_stream_temperature_entity_name": "Temperatursensor"
+        },
+        "data_description": {
+          "custom_stream_logging_id": "Geben Sie Ihre Logging-ID ein oder fügen Sie die vollständige Stream-URL von Brewfather ein",
+          "custom_stream_temperature_entity_name": "Wählen Sie den Temperatursensor zum Streamen an Brewfather"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Verbindung zur Brewfather API fehlgeschlagen",
+      "invalid_scope": "Der API-Schlüssel hat nicht die richtigen Berechtigungen.",
+      "invalid_api_key": "Authentifizierung mit den angegebenen Anmeldedaten nicht möglich.",
+      "unknown": "Etwas ist schiefgelaufen, bitte überprüfen Sie die Protokolldateien.",
+      "invalid_entity": "Ausgewählte Entität ist nicht gültig oder nicht verfügbar",
+      "unsupported_temperature_unit": "Temperatursensor muss Celsius (°C), Fahrenheit (°F), oder Kelvin (K) verwenden",
+      "invalid_logging_id": "Ungültiges Logging-ID-Format",
+      "custom_stream_test_failed": "Verbindungstest fehlgeschlagen, bitte überprüfen Sie Ihre Einstellungen"
+    },
+    "abort": {
+      "already_configured": "Dieses Brewfather-Konto ist bereits konfiguriert"
+    }
+  },
+  "entity": {
+    "sensor": {
+      "status": {
+        "name": "Integrationsstatus"
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Brewfather Konfiguration",
+        "description": "Erweiterte Brewfather-Integrationsfunktionen und Einstellungen konfigurieren.",
+        "data": {
+          "ramp_temp_correction": "Temperatur-Ramping aktivieren",
+          "multi_batch": "Multi-Batch-Unterstützung",
+          "all_batch_info_sensor": "Alle Chargen-Datensensor",
+          "custom_stream_enabled": "Benutzerdefinierten Stream aktivieren"
+        },
+        "data_description": {
+          "ramp_temp_correction": "Zieltemperaturen während Fermentationsschritten mit Ramping-Zeitplänen automatisch anpassen",
+          "multi_batch": "Daten von mehreren fermentierenden Chargen gleichzeitig überwachen und anzeigen",
+          "all_batch_info_sensor": "Zusätzlichen Sensor mit detaillierten Informationen über alle Chargen erstellen",
+          "custom_stream_enabled": "Temperaturmessungen automatisch von Home Assistant an Brewfather senden"
+        }
+      },
+      "custom_stream": {
+        "title": "Benutzerdefinierte Stream-Konfiguration",
+        "description": "Automatisches Temperatur-Streaming von Home Assistant an Brewfather für Echtzeit-Überwachung konfigurieren.",
+        "data": {
+          "custom_stream_logging_id": "Brewfather Logging-ID oder Stream-URL",
+          "custom_stream_temperature_entity_name": "Temperatursensor"
+        },
+        "data_description": {
+          "custom_stream_logging_id": "Geben Sie Ihre Logging-ID ein oder fügen Sie die vollständige Stream-URL von Brewfather ein",
+          "custom_stream_temperature_entity_name": "Wählen Sie den Temperatursensor zum Streamen an Brewfather"
+        }
+      }
+    },
+    "error": {
+      "invalid_logging_id": "Ungültiges Logging-ID-Format",
+      "entity_required": "Entitätsname ist erforderlich",
+      "entity_not_found": "Entität mit dem angegebenen Namen kann nicht gefunden werden oder Entität hat keinen gültigen numerischen Wert",
+      "unsupported_temperature_unit": "Entität muss Temperatur in Celsius (°C), Fahrenheit (°F), oder Kelvin (K) melden",
+      "unknown": "Etwas ist schiefgelaufen, bitte überprüfen Sie die Protokolldateien."
+    }
+  }
+}
