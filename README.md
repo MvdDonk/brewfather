@@ -51,6 +51,11 @@ content: |-
 
 # Sensors list
 The following sensors will be added after setup:
+- **Integration Status** 🆕  
+  Shows the current status of the Brewfather integration with detailed attributes  
+  `sensor.brewfather_integration_status`  
+  - **States**: `connected`, `monitoring` (with custom stream), `disconnected`
+  - **Attributes**: API connection status, last update time, custom stream info, temperature entity details
 - **Recipe name**  
   Name of the beer you are fermenting.  
   `sensor.brewfather_recipe_name`  
@@ -99,7 +104,7 @@ When enabled and used with temperature ramping in Brewfather the target temperat
 | 11/04/2024 01:00 | 23°C | 36| Ramping |
 | 11/04/2024 13:00 | 24°C | 0 | Ramping stopped, target temperature set |
 
-## <a name="custom-stream"></a>Custom Stream Support
+## <a name="custom-stream"></a>Custom Stream Support 🔄 
 This integration supports posting temperature data to Brewfather's Custom Stream endpoint, allowing you to integrate external sensors with your Brewfather batch monitoring.
 
 ### Setup Requirements
@@ -111,27 +116,32 @@ This integration supports posting temperature data to Brewfather's Custom Stream
    - Copy the logging ID from the URL (format: `http://log.brewfather.net/stream?id=YOUR_LOGGING_ID`)
 
 2. **Temperature Entity**: You need a Home Assistant entity that provides temperature readings:
-   - The entity can be any sensor that reports temperature values
-   - The value must be numeric (will be converted to Celsius for Brewfather)
-   - You can optionally specify an attribute of the entity instead of using the main state
+   - The entity must report temperature in Celsius (°C), Fahrenheit (°F), or Kelvin (K)
+   - The sensor's main state value will be used (entity attributes are no longer supported for simplicity)
+   - The integration automatically converts units to the proper format for Brewfather
 
 ### Configuration Steps
 1. Go to the Brewfather integration configuration
-2. Enable "Custom Stream" option
+2. Enable "Custom Stream for temperature monitoring" option
 3. Fill in the required fields:
-   - **BrewFathers logging-id**: Enter just the ID portion from your Custom Stream URL
-   - **Full entity name for temperature**: Enter the complete entity ID (e.g., `sensor.fermentation_temperature`)
-   - **Attribute name** (optional): If your temperature is stored in an attribute instead of the main state
+   - **Brewfather Logging ID or Stream URL**: Enter the ID or paste the complete URL
+   - **Temperature Sensor**: Select from available temperature entities
+
+### Enhanced Features 🆕
+- **Smart URL Parsing**: Paste the complete Brewfather stream URL - the integration will extract the logging ID automatically
+- **Temperature Unit Validation**: Automatically validates and converts Celsius, Fahrenheit, and Kelvin
+- **Entity Validation**: Real-time validation ensures your selected sensor provides valid temperature data
+- **Connection Testing**: Tests the logging ID with Brewfather during setup
 
 ### Example Configuration
-- **Logging ID**: `abc123def456` (from URL `http://log.brewfather.net/stream?id=abc123def456`)
-- **Entity name**: `sensor.fermentation_temperature`
-- **Attribute name**: Leave empty if using the main sensor state, or specify like `temperature` if the value is in an attribute
+- **Logging ID**: `abc123def456` or paste complete URL `http://log.brewfather.net/stream?id=abc123def456`
+- **Temperature Sensor**: Select from dropdown of available temperature entities
 
 ### Troubleshooting
-- **"Logging-id seems invalid"**: Check that you've copied only the ID portion from the Brewfather Custom Stream URL
-- **"Entity not found"**: Verify the entity ID is correct and the entity exists in Home Assistant
-- **"Attribute not found"**: Check that the specified attribute exists and contains a numeric temperature value
+- **"Invalid logging ID format"**: Check that you've copied the correct ID or URL from Brewfather
+- **"Entity not found or unavailable"**: Verify the entity exists and provides numeric temperature values
+- **"Unsupported temperature unit"**: Ensure your sensor reports temperature in °C, °F, or K
+- **"Connection test failed"**: Verify your Brewfather Custom Stream is enabled and the logging ID is correct
 
 The integration will automatically post temperature updates to Brewfather during its regular update cycle (every 15 minutes by default).  
 
@@ -149,6 +159,35 @@ You can only enable this option by going to the Brewfather integration and click
 <a href="docs/images/v2/configure_options-popup.png"><img src="docs/images/v2/configure_options-popup.png" width="500"></a>  
 *In v1 this used to be enabled by default but to limit the amount of data it is now configurable and disabled by default.*  
 
+
+# Recent Improvements 🆕
+
+## Multi-Language Support 🌍
+The integration now supports multiple languages with complete translations for:
+- **English** 🇺🇸 (Default)
+- **French** 🇫🇷 (Français) 
+- **Spanish** 🇪🇸 (Español)
+- **Dutch** 🇳🇱 (Nederlands)
+- **German** 🇩🇪 (Deutsch)
+- **Italian** 🇮🇹 (Italiano)
+- **Portuguese** 🇵🇹 (Português)
+- **Brazilian Portuguese** 🇧🇷 (Português Brasileiro)
+
+The interface will automatically use your Home Assistant's configured language.
+
+## Enhanced User Experience 
+- **Integration Status Sensor**: Monitor connection health and custom stream status
+- **Smart Configuration**: Wizard-style setup with validation and testing
+- **Improved Error Handling**: Better error messages and troubleshooting guidance
+- **Field Descriptions**: Helpful descriptions for all configuration options
+- **URL Parsing**: Paste complete Brewfather URLs - automatic ID extraction
+- **Temperature Validation**: Real-time validation of temperature units and values
+
+## Simplified Custom Stream
+- Removed entity attribute selection for simpler configuration
+- Direct entity state usage only
+- Enhanced validation and error reporting
+- Automatic unit conversion and validation
 
 # Installation
 Installing using [HACS](https://hacs.xyz/) is <u>recommended</u>. It is the easiest way to install and keep your integration up to date.
