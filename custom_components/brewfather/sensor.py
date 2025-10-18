@@ -32,7 +32,7 @@ class SensorUpdateData:
     
     def __init__(self):
         self.state = None
-        self.attr_available = True
+        self.attr_available = False
         self.extra_state_attributes = {}
 
 class BrewfatherStatusSensor(CoordinatorEntity, SensorEntity):
