@@ -222,7 +222,7 @@ Configure automatic temperature streaming:
 - Real-time validation ensures your configuration works correctly
 
 1. The integration will test your connection and if everything succeeded, Brewfather is now connected to your Home Assistant instance!  
-[![Success](integration_success_small.png)](integration_success.png")
+[![Success](integration_success_small.png)](integration_success.png)
 
 ## Manual installation (not recommended)
 Copy the `custom_components/brewfather` folder and all of its contents into your Home Assistant's custom_components folder. This folder is usually inside your `/config` folder. If you are running Hass.io, use SAMBA to copy the folder over. If you are running Home Assistant Supervised, the custom_components folder might be located at `/usr/share/hassio/homeassistant`. You may need to create the `custom_components` folder and then copy the brewfather folder and all of its contents into it.

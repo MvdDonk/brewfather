@@ -101,7 +101,7 @@ def extract_logging_id_from_url(input_value: str) -> str:
         _LOGGER.warning("Failed to parse URL %s: %s", input_value, str(ex))
         return input_value
 
-def validate_temperature_unit(entity, entity_attribute: str = None) -> bool:
+def validate_temperature_unit(entity) -> bool:
     """Validate that the entity reports temperature in a supported unit."""
     # Supported temperature units for Brewfather custom stream
     supported_units = [UnitOfTemperature.CELSIUS, UnitOfTemperature.FAHRENHEIT, UnitOfTemperature.KELVIN]
