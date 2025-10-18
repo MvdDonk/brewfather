@@ -13,7 +13,7 @@ from .models.batch_item import (
     Reading
 )
 from .models.custom_stream_data import custom_stream_data
-from homeassistant.const import CONF_PASSWORD, CONF_USERNAME, UnitOfTemperature
+from homeassistant.const import CONF_PASSWORD, CONF_USERNAME, UnitOfTemperature, STATE_UNKNOWN, STATE_UNAVAILABLE
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 from .const import (
@@ -335,7 +335,7 @@ class BrewfatherCoordinator(DataUpdateCoordinator[BrewfatherCoordinatorData]):
             temp_value = entity.state
             
             # Convert to float if possible
-            if temp_value is not None and temp_value != "unknown" and temp_value != "unavailable":
+            if temp_value is not None and temp_value != STATE_UNKNOWN and temp_value != STATE_UNAVAILABLE:
                 stream_data.temp = float(temp_value)
             else:
                 return None
