@@ -38,8 +38,6 @@ CONFIG_SCHEMA = vol.Schema(
         vol.Required(CONF_NAME): cv.string,
         vol.Required(CONF_USERNAME): cv.string,
         vol.Required(CONF_PASSWORD): cv.string,
-        # vol.Required(CONF_RAMP_TEMP_CORRECTION): cv.boolean,
-        # vol.Required(CONF_MULTI_BATCH): cv.boolean,
     }
 )
 
@@ -183,12 +181,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             # Show features configuration step
             return self.async_show_form(
                 step_id="features",
-                data_schema=vol.Schema({
-                    vol.Required(CONF_RAMP_TEMP_CORRECTION, default=False): cv.boolean,
-                    vol.Required(CONF_MULTI_BATCH, default=False): cv.boolean,
-                    vol.Required(CONF_ALL_BATCH_INFO_SENSOR, default=False): cv.boolean,
-                    vol.Required(CONF_CUSTOM_STREAM_ENABLED, default=False): cv.boolean,
-                })
+                data_schema=OPTIONS_SCHEMA
             )
         
         return self.async_show_form(
@@ -200,12 +193,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         if user_input is None:
             return self.async_show_form(
                 step_id="features",
-                data_schema=vol.Schema({
-                    vol.Required(CONF_RAMP_TEMP_CORRECTION, default=False): cv.boolean,
-                    vol.Required(CONF_MULTI_BATCH, default=False): cv.boolean,
-                    vol.Required(CONF_ALL_BATCH_INFO_SENSOR, default=False): cv.boolean,
-                    vol.Required(CONF_CUSTOM_STREAM_ENABLED, default=False): cv.boolean,
-                })
+                data_schema=OPTIONS_SCHEMA
             )
 
         # Combine connection data with features
@@ -217,16 +205,8 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             self.config_data = config_data
             return self.async_show_form(
                 step_id="custom_stream",
-                data_schema=vol.Schema({
-                    vol.Required(CONF_CUSTOM_STREAM_LOGGING_ID): cv.string,
-                    vol.Required(CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_NAME): selector.EntitySelector(
-                        selector.EntitySelectorConfig(
-                            domain=["sensor", "climate", "number"],
-                            device_class=["temperature"]
-                        )
-                    ),
-                }),
-                last_step=False
+                data_schema=OPTIONS_CUSTOM_STREAM_SCHEMA,
+                last_step=True
             )
         
         # Otherwise, create the entry
@@ -239,15 +219,8 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         if user_input is None:
             return self.async_show_form(
                 step_id="custom_stream",
-                data_schema=vol.Schema({
-                    vol.Required(CONF_CUSTOM_STREAM_LOGGING_ID): cv.string,
-                    vol.Required(CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_NAME): selector.EntitySelector(
-                        selector.EntitySelectorConfig(
-                            domain=["sensor", "climate", "number"],
-                            device_class=["temperature"]
-                        )
-                    ),
-                })
+                data_schema=OPTIONS_CUSTOM_STREAM_SCHEMA,
+                last_step=True
             )
 
         # Basic validation - entity exists
@@ -282,16 +255,9 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
         return self.async_show_form(
             step_id="custom_stream",
-            data_schema=vol.Schema({
-                vol.Required(CONF_CUSTOM_STREAM_LOGGING_ID): cv.string,
-                vol.Required(CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_NAME): selector.EntitySelector(
-                    selector.EntitySelectorConfig(
-                        domain=["sensor", "climate", "number"],
-                        device_class=["temperature"]
-                    )
-                ),
-            }),
-            errors=errors
+            data_schema=OPTIONS_CUSTOM_STREAM_SCHEMA,
+            errors=errors,
+            last_step=True
         )   
 
     @staticmethod
@@ -347,15 +313,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                 return self.async_show_form(
                     step_id="custom_stream",
                     data_schema=self.add_suggested_values_to_schema(
-                        vol.Schema({
-                            vol.Required(CONF_CUSTOM_STREAM_LOGGING_ID): cv.string,
-                            vol.Required(CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_NAME): selector.EntitySelector(
-                                selector.EntitySelectorConfig(
-                                    domain=["sensor", "climate", "number"],
-                                    device_class=["temperature"]
-                                )
-                            ),
-                        }), 
+                        OPTIONS_CUSTOM_STREAM_SCHEMA, 
                         self.config_entry.data
                     ),
                     last_step=True
@@ -372,12 +330,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
         return self.async_show_form(
             step_id="init",
             data_schema=self.add_suggested_values_to_schema(
-                vol.Schema({
-                    vol.Required(CONF_RAMP_TEMP_CORRECTION): cv.boolean,
-                    vol.Required(CONF_MULTI_BATCH): cv.boolean,
-                    vol.Required(CONF_ALL_BATCH_INFO_SENSOR): cv.boolean,
-                    vol.Required(CONF_CUSTOM_STREAM_ENABLED): cv.boolean,
-                }), 
+                OPTIONS_SCHEMA, 
                 self.config_entry.data
             ),
             errors=errors,
@@ -471,15 +424,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
         return self.async_show_form(
             step_id="custom_stream",
             data_schema=self.add_suggested_values_to_schema(
-                vol.Schema({
-                    vol.Required(CONF_CUSTOM_STREAM_LOGGING_ID): cv.string,
-                    vol.Required(CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_NAME): selector.EntitySelector(
-                        selector.EntitySelectorConfig(
-                            domain=["sensor", "climate", "number"],
-                            device_class=["temperature"]
-                        )
-                    ),
-                }), 
+                OPTIONS_CUSTOM_STREAM_SCHEMA, 
                 user_input 
             ),
             errors=errors,
