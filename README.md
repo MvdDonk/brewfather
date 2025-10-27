@@ -1,6 +1,7 @@
 # Brewfather integration for Home Assistant
 ### A Home Assistant custom Integration for getting Brewfather batch information in Home Assistant for all homebrewers!  
 [![Buy me a beer](https://img.buymeacoffee.com/button-api/?text=Buy+me+a+beer&emoji=&slug=mvddonk&button_colour=5F7FFF&font_colour=ffffff&font_family=Lato&outline_colour=000000&coffee_colour=FFDD00)](https://www.buymeacoffee.com/mvddonk)  
+![dashboard-multi-batch.png)](dashboard-multi-batch.png)
 
 # Single Batch Support  
 The integration produces a sensor for recipe name, current temperature, upcoming temperature and upcoming temperature change date for the most recently started batch. This can be displayed in Home Assistant by creating a new dashboard and copying the contents of the `dashboard/dashboard.yaml` file into it.
