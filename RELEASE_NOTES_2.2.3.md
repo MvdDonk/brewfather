@@ -140,10 +140,12 @@ def from_dict(obj: Any) -> 'Step':
     # Required fields - must parse successfully
     actual_time = parse_field(obj, "actualTime", lambda x: from_union([from_int, from_none], x), "Step", errors, required=True)
     step_temp = parse_field(obj, "stepTemp", lambda x: from_union([from_float, from_none], x), "Step", errors, required=True)
-    step_time = parse_field(obj, "stepTime", lambda x: from_union([from_float, from_none], x), "Step", errors, required=True)
     
     # Optional fields - can fail gracefully
     ramp = parse_field(obj, "ramp", lambda x: from_union([from_float, from_none], x), "Step", errors, required=False)
+    
+    # Required fields - must parse successfully
+    step_time = parse_field(obj, "stepTime", lambda x: from_union([from_float, from_none], x), "Step", errors, required=True)
     
     raise_if_errors(errors, "Step")  # Only raises if required fields failed
     return Step(actual_time, step_temp, ramp, step_time)

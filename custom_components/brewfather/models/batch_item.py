@@ -27,7 +27,6 @@ def parse_field(obj: dict, field_name: str, parser: Callable, class_name: str, e
     except Exception as e:
         error_info = {"field": field_name, "error": str(e), "required": required}
         errors.append(error_info)
-        log_level = "ERROR" if required else "WARNING"
         _LOGGER.log(
             logging.ERROR if required else logging.WARNING,
             "Failed to parse %s.%s: %s [%s]",
