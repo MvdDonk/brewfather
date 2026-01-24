@@ -30,12 +30,12 @@ def raise_if_errors(errors: list, class_name: str) -> None:
 
 
 def from_str(x: Any) -> str:
-    assert isinstance(x, str)
+    assert isinstance(x, str), f"Expected str, got {type(x).__name__}"
     return x
 
 
 def from_none(x: Any) -> Any:
-    assert x is None
+    assert x is None, f"Expected None, got {type(x).__name__}"
     return x
 
 
@@ -45,36 +45,36 @@ def from_union(fs, x):
             return f(x)
         except Exception:
             pass
-    assert False
+    assert False, f"No matching type in union for value: {x} (type: {type(x).__name__})"
 
 
 def from_int(x: Any) -> int:
-    assert isinstance(x, int) and not isinstance(x, bool)
+    assert isinstance(x, int) and not isinstance(x, bool), f"Expected int, got {type(x).__name__}"
     return x
 
 
 def from_float(x: Any) -> float:
-    assert isinstance(x, (float, int)) and not isinstance(x, bool)
+    assert isinstance(x, (float, int)) and not isinstance(x, bool), f"Expected float/int, got {type(x).__name__}"
     return float(x)
 
 
 def to_float(x: Any) -> float:
-    assert isinstance(x, float)
+    assert isinstance(x, float), f"Expected float, got {type(x).__name__}"
     return x
 
 
 def from_bool(x: Any) -> bool:
-    assert isinstance(x, bool)
+    assert isinstance(x, bool), f"Expected bool, got {type(x).__name__}"
     return x
 
 
 def from_list(f: Callable[[Any], T], x: Any) -> List[T]:
-    assert isinstance(x, list)
+    assert isinstance(x, list), f"Expected list, got {type(x).__name__}"
     return [f(y) for y in x]
 
 
 def to_class(c: Type[T], x: Any) -> dict:
-    assert isinstance(x, c)
+    assert isinstance(x, c), f"Expected {c.__name__}, got {type(x).__name__}"
     return cast(Any, x).to_dict()
 
 
@@ -92,7 +92,7 @@ class Note:
 
     @staticmethod
     def from_dict(obj: Any) -> 'Note':
-        assert isinstance(obj, dict)
+        assert isinstance(obj, dict), f"Expected dict for Note, got {type(obj).__name__}"
         errors = []
         
         note = parse_field(obj, "note", lambda x: from_union([from_str, from_none], x), "Note", errors)
@@ -130,7 +130,7 @@ class Step:
 
     @staticmethod
     def from_dict(obj: Any) -> 'Step':
-        assert isinstance(obj, dict)
+        assert isinstance(obj, dict), f"Expected dict for Step, got {type(obj).__name__}"
         errors = []
         
         actual_time = parse_field(obj, "actualTime", lambda x: from_union([from_int, from_none], x), "Step", errors)
@@ -162,7 +162,7 @@ class Fermentation:
 
     @staticmethod
     def from_dict(obj: Any) -> 'Fermentation':
-        assert isinstance(obj, dict)
+        assert isinstance(obj, dict), f"Expected dict for Fermentation, got {type(obj).__name__}"
         errors = []
         
         steps = parse_field(obj, "steps", lambda x: from_union([lambda x: from_list(Step.from_dict, x), from_none], x), "Fermentation", errors)
@@ -187,7 +187,7 @@ class Recipe:
 
     @staticmethod
     def from_dict(obj: Any) -> 'Recipe':
-        assert isinstance(obj, dict)
+        assert isinstance(obj, dict), f"Expected dict for Recipe, got {type(obj).__name__}"
         errors = []
         
         name = parse_field(obj, "name", lambda x: from_union([from_str, from_none], x), "Recipe", errors)
@@ -229,7 +229,7 @@ class BatchItem:
 
     @staticmethod
     def from_dict(obj: Any) -> 'BatchItem':
-        assert isinstance(obj, dict)
+        assert isinstance(obj, dict), f"Expected dict for BatchItem, got {type(obj).__name__}"
         errors = []
         
         id = parse_field(obj, "_id", lambda x: from_union([from_str, from_none], x), "BatchItem", errors)

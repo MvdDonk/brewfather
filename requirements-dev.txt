@@ -1,0 +1,9 @@
+# Development dependencies for testing
+# Core testing framework
+pytest>=8.0.0
+pytest-asyncio>=0.23.0
+pytest-cov>=4.1.0
+
+# For running tests without full Home Assistant in local environment
+# The batch_item tests don't actually need HA runtime, just imports
+
