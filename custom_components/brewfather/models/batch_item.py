@@ -11,22 +11,50 @@ _LOGGER = logging.getLogger(__name__)
 T = TypeVar("T")
 
 
-def parse_field(obj: dict, field_name: str, parser: Callable, class_name: str, errors: list) -> Any:
-    """Helper to parse a field with error handling and logging."""
+def parse_field(obj: dict, field_name: str, parser: Callable, class_name: str, errors: list, required: bool = False) -> Any:
+    """Helper to parse a field with error handling and logging.
+    
+    Args:
+        obj: Dictionary to parse from
+        field_name: Name of the field to parse
+        parser: Parser function to apply
+        class_name: Name of the class being parsed (for logging)
+        errors: List to accumulate errors
+        required: If True, marks this field as critical (failure will cause parsing to fail)
+    """
     try:
         return parser(obj.get(field_name))
     except Exception as e:
-        errors.append(f"{field_name}: {e}")
-        _LOGGER.warning("Failed to parse %s.%s: %s", class_name, field_name, e)
+        error_info = {"field": field_name, "error": str(e), "required": required}
+        errors.append(error_info)
+        log_level = "ERROR" if required else "WARNING"
+        _LOGGER.log(
+            logging.ERROR if required else logging.WARNING,
+            "Failed to parse %s.%s: %s [%s]",
+            class_name,
+            field_name,
+            e,
+            "REQUIRED" if required else "optional"
+        )
         return None
 
 
 def raise_if_errors(errors: list, class_name: str) -> None:
-    """Raise ValueError if errors list is not empty."""
-    if errors:
-        error_msg = f"Failed to parse {class_name} fields: {', '.join(errors)}"
+    """Raise ValueError if any required field errors exist."""
+    required_errors = [e for e in errors if e.get("required", False)]
+    if required_errors:
+        error_msg = f"Failed to parse required {class_name} fields: {', '.join([f'{e['field']}: {e['error']}' for e in required_errors])}"
         _LOGGER.error(error_msg)
         raise ValueError(error_msg)
+    elif errors:
+        # Log summary of optional field failures
+        optional_fields = [e["field"] for e in errors]
+        _LOGGER.info(
+            "Successfully parsed %s with %d optional field(s) skipped: %s",
+            class_name,
+            len(optional_fields),
+            ", ".join(optional_fields)
+        )
 
 
 def from_str(x: Any) -> str:
@@ -95,10 +123,10 @@ class Note:
         assert isinstance(obj, dict)
         errors = []
         
-        note = parse_field(obj, "note", lambda x: from_union([from_str, from_none], x), "Note", errors)
-        type = parse_field(obj, "type", lambda x: from_union([from_str, from_none], x), "Note", errors)
-        timestamp = parse_field(obj, "timestamp", lambda x: from_union([from_int, from_none], x), "Note", errors)
-        status = parse_field(obj, "status", lambda x: from_union([from_str, from_none], x), "Note", errors)
+        note = parse_field(obj, "note", lambda x: from_union([from_str, from_none], x), "Note", errors, required=False)
+        type = parse_field(obj, "type", lambda x: from_union([from_str, from_none], x), "Note", errors, required=False)
+        timestamp = parse_field(obj, "timestamp", lambda x: from_union([from_int, from_none], x), "Note", errors, required=False)
+        status = parse_field(obj, "status", lambda x: from_union([from_str, from_none], x), "Note", errors, required=False)
         
         raise_if_errors(errors, "Note")
         return Note(note, type, timestamp, status)
@@ -133,10 +161,10 @@ class Step:
         assert isinstance(obj, dict)
         errors = []
         
-        actual_time = parse_field(obj, "actualTime", lambda x: from_union([from_int, from_none], x), "Step", errors)
-        step_temp = parse_field(obj, "stepTemp", lambda x: from_union([from_float, from_none], x), "Step", errors)
-        ramp = parse_field(obj, "ramp", lambda x: from_union([from_float, from_none], x), "Step", errors)
-        step_time = parse_field(obj, "stepTime", lambda x: from_union([from_float, from_none], x), "Step", errors)
+        actual_time = parse_field(obj, "actualTime", lambda x: from_union([from_int, from_none], x), "Step", errors, required=True)
+        step_temp = parse_field(obj, "stepTemp", lambda x: from_union([from_float, from_none], x), "Step", errors, required=True)
+        ramp = parse_field(obj, "ramp", lambda x: from_union([from_float, from_none], x), "Step", errors, required=False)
+        step_time = parse_field(obj, "stepTime", lambda x: from_union([from_float, from_none], x), "Step", errors, required=True)
         
         raise_if_errors(errors, "Step")
         return Step(actual_time, step_temp, ramp, step_time)
@@ -165,7 +193,7 @@ class Fermentation:
         assert isinstance(obj, dict)
         errors = []
         
-        steps = parse_field(obj, "steps", lambda x: from_union([lambda x: from_list(Step.from_dict, x), from_none], x), "Fermentation", errors)
+        steps = parse_field(obj, "steps", lambda x: from_union([lambda x: from_list(Step.from_dict, x), from_none], x), "Fermentation", errors, required=True)
         
         raise_if_errors(errors, "Fermentation")
         return Fermentation(steps)
@@ -190,8 +218,8 @@ class Recipe:
         assert isinstance(obj, dict)
         errors = []
         
-        name = parse_field(obj, "name", lambda x: from_union([from_str, from_none], x), "Recipe", errors)
-        fermentation = parse_field(obj, "fermentation", lambda x: from_union([Fermentation.from_dict, from_none], x), "Recipe", errors)
+        name = parse_field(obj, "name", lambda x: from_union([from_str, from_none], x), "Recipe", errors, required=True)
+        fermentation = parse_field(obj, "fermentation", lambda x: from_union([Fermentation.from_dict, from_none], x), "Recipe", errors, required=True)
         
         raise_if_errors(errors, "Recipe")
         return Recipe(name, fermentation)
@@ -232,14 +260,14 @@ class BatchItem:
         assert isinstance(obj, dict)
         errors = []
         
-        id = parse_field(obj, "_id", lambda x: from_union([from_str, from_none], x), "BatchItem", errors)
-        name = parse_field(obj, "name", lambda x: from_union([from_str, from_none], x), "BatchItem", errors)
-        batch_no = parse_field(obj, "batchNo", lambda x: from_union([from_int, from_none], x), "BatchItem", errors)
-        status = parse_field(obj, "status", lambda x: from_union([from_str, from_none], x), "BatchItem", errors)
-        brew_date = parse_field(obj, "brewDate", lambda x: from_union([from_int, from_none], x), "BatchItem", errors)
-        recipe = parse_field(obj, "recipe", lambda x: from_union([Recipe.from_dict, from_none], x), "BatchItem", errors)
-        notes = parse_field(obj, "notes", lambda x: from_union([lambda x: from_list(Note.from_dict, x), from_none], x), "BatchItem", errors)
-        measured_og = parse_field(obj, "measuredOg", lambda x: from_union([from_float, from_none], x), "BatchItem", errors)
+        id = parse_field(obj, "_id", lambda x: from_union([from_str, from_none], x), "BatchItem", errors, required=True)
+        name = parse_field(obj, "name", lambda x: from_union([from_str, from_none], x), "BatchItem", errors, required=True)
+        batch_no = parse_field(obj, "batchNo", lambda x: from_union([from_int, from_none], x), "BatchItem", errors, required=True)
+        status = parse_field(obj, "status", lambda x: from_union([from_str, from_none], x), "BatchItem", errors, required=True)
+        brew_date = parse_field(obj, "brewDate", lambda x: from_union([from_int, from_none], x), "BatchItem", errors, required=True)
+        recipe = parse_field(obj, "recipe", lambda x: from_union([Recipe.from_dict, from_none], x), "BatchItem", errors, required=True)
+        notes = parse_field(obj, "notes", lambda x: from_union([lambda x: from_list(Note.from_dict, x), from_none], x), "BatchItem", errors, required=False)
+        measured_og = parse_field(obj, "measuredOg", lambda x: from_union([from_float, from_none], x), "BatchItem", errors, required=False)
         
         raise_if_errors(errors, "BatchItem")
         return BatchItem(id, name, batch_no, status, brew_date, recipe, notes, measured_og)
