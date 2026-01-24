@@ -2,10 +2,31 @@ from .reading_item import Reading
 from typing import Optional, Any, List, TypeVar, Callable, Type, cast
 import time
 import datetime
+import logging
 from ..const import (
     MS_IN_DAY
 )
+
+_LOGGER = logging.getLogger(__name__)
 T = TypeVar("T")
+
+
+def parse_field(obj: dict, field_name: str, parser: Callable, class_name: str, errors: list) -> Any:
+    """Helper to parse a field with error handling and logging."""
+    try:
+        return parser(obj.get(field_name))
+    except Exception as e:
+        errors.append(f"{field_name}: {e}")
+        _LOGGER.warning("Failed to parse %s.%s: %s", class_name, field_name, e)
+        return None
+
+
+def raise_if_errors(errors: list, class_name: str) -> None:
+    """Raise ValueError if errors list is not empty."""
+    if errors:
+        error_msg = f"Failed to parse {class_name} fields: {', '.join(errors)}"
+        _LOGGER.error(error_msg)
+        raise ValueError(error_msg)
 
 
 def from_str(x: Any) -> str:
@@ -22,7 +43,7 @@ def from_union(fs, x):
     for f in fs:
         try:
             return f(x)
-        except:
+        except Exception:
             pass
     assert False
 
@@ -72,10 +93,14 @@ class Note:
     @staticmethod
     def from_dict(obj: Any) -> 'Note':
         assert isinstance(obj, dict)
-        note = from_union([from_str, from_none], obj.get("note"))
-        type = from_union([from_str, from_none], obj.get("type"))
-        timestamp = from_union([from_int, from_none], obj.get("timestamp"))
-        status = from_union([from_str, from_none], obj.get("status"))
+        errors = []
+        
+        note = parse_field(obj, "note", lambda x: from_union([from_str, from_none], x), "Note", errors)
+        type = parse_field(obj, "type", lambda x: from_union([from_str, from_none], x), "Note", errors)
+        timestamp = parse_field(obj, "timestamp", lambda x: from_union([from_int, from_none], x), "Note", errors)
+        status = parse_field(obj, "status", lambda x: from_union([from_str, from_none], x), "Note", errors)
+        
+        raise_if_errors(errors, "Note")
         return Note(note, type, timestamp, status)
 
     def to_dict(self) -> dict:
@@ -91,65 +116,30 @@ class Note:
         return result
 
 
-class Created:
-    seconds: Optional[int]
-    nanoseconds: Optional[int]
-
-    def __init__(self, seconds: Optional[int], nanoseconds: Optional[int]) -> None:
-        self.seconds = seconds
-        self.nanoseconds = nanoseconds
-
-    @staticmethod
-    def from_dict(obj: Any) -> 'Created':
-        assert isinstance(obj, dict)
-        seconds = from_union([from_int, from_none], obj.get("_seconds"))
-        nanoseconds = from_union([from_int, from_none], obj.get("_nanoseconds"))
-        return Created(seconds, nanoseconds)
-
-    def to_dict(self) -> dict:
-        result: dict = {}
-        if self.seconds is not None:
-            result["_seconds"] = from_union([from_int, from_none], self.seconds)
-        if self.nanoseconds is not None:
-            result["_nanoseconds"] = from_union([from_int, from_none], self.nanoseconds)
-        return result
-
-
 class Step:
     actual_time: Optional[int]
     step_temp: Optional[float]
-    display_pressure: Optional[float]
     ramp: Optional[float]
-    name: Optional[str]
-    pressure: Optional[str]
-    display_step_temp: Optional[float]
     step_time: Optional[float]
-    type: Optional[str]
 
-    def __init__(self, actual_time: Optional[int], step_temp: Optional[float], display_pressure: Optional[float], ramp: Optional[float], name: Optional[str], pressure: Optional[str], display_step_temp: Optional[float], step_time: Optional[float], type: Optional[str]) -> None:
+    def __init__(self, actual_time: Optional[int], step_temp: Optional[float], ramp: Optional[float], step_time: Optional[float]) -> None:
         self.actual_time = actual_time
         self.step_temp = step_temp
-        self.display_pressure = display_pressure
         self.ramp = ramp
-        self.name = name
-        self.pressure = pressure
-        self.display_step_temp = display_step_temp
         self.step_time = step_time
-        self.type = type
 
     @staticmethod
     def from_dict(obj: Any) -> 'Step':
         assert isinstance(obj, dict)
-        actual_time = from_union([from_int, from_none], obj.get("actualTime"))
-        step_temp = from_union([from_float, from_none], obj.get("stepTemp"))
-        display_pressure = from_union([from_float, from_none], obj.get("displayPressure"))
-        ramp = from_union([from_float, from_none], obj.get("ramp"))
-        name = from_union([from_str, from_none], obj.get("name"))
-        pressure = from_union([from_float, from_none], obj.get("pressure"))
-        display_step_temp = from_union([from_float, from_none], obj.get("displayStepTemp"))
-        step_time = from_union([from_float, from_none], obj.get("stepTime"))
-        type = from_union([from_str, from_none], obj.get("type"))
-        return Step(actual_time, step_temp, display_pressure, ramp, name, pressure, display_step_temp, step_time, type)
+        errors = []
+        
+        actual_time = parse_field(obj, "actualTime", lambda x: from_union([from_int, from_none], x), "Step", errors)
+        step_temp = parse_field(obj, "stepTemp", lambda x: from_union([from_float, from_none], x), "Step", errors)
+        ramp = parse_field(obj, "ramp", lambda x: from_union([from_float, from_none], x), "Step", errors)
+        step_time = parse_field(obj, "stepTime", lambda x: from_union([from_float, from_none], x), "Step", errors)
+        
+        raise_if_errors(errors, "Step")
+        return Step(actual_time, step_temp, ramp, step_time)
 
     def to_dict(self) -> dict:
         result: dict = {}
@@ -157,79 +147,33 @@ class Step:
             result["actualTime"] = from_union([from_int, from_none], self.actual_time)
         if self.step_temp is not None:
             result["stepTemp"] = from_union([to_float, from_none], self.step_temp)
-        if self.display_pressure is not None:
-            result["displayPressure"] = from_union([to_float, from_none], self.display_pressure)
         if self.ramp is not None:
             result["ramp"] = from_union([to_float, from_none], self.ramp)
-        if self.name is not None:
-            result["name"] = from_union([from_str, from_none], self.name)
-        if self.pressure is not None:
-            result["pressure"] = from_union([to_float, from_none], self.pressure)
-        if self.display_step_temp is not None:
-            result["displayStepTemp"] = from_union([from_float, from_none], self.display_step_temp)
         if self.step_time is not None:
             result["stepTime"] = from_union([to_float, from_none], self.step_time)
-        if self.type is not None:
-            result["type"] = from_union([from_str, from_none], self.type)
         return result
 
 
 class Fermentation:
-    hidden: Optional[bool]
-    created: Optional[Created]
-    rev: Optional[str]
-    name: Optional[str]
-    timestamp_ms: Optional[int]
-    id: Optional[str]
-    timestamp: Optional[Created]
     steps: Optional[List[Step]]
-    version: Optional[str]
 
-    def __init__(self, hidden: Optional[bool], created: Optional[Created], rev: Optional[str], name: Optional[str], timestamp_ms: Optional[int], id: Optional[str], timestamp: Optional[Created], steps: Optional[List[Step]], version: Optional[str]) -> None:
-        self.hidden = hidden
-        self.created = created
-        self.rev = rev
-        self.name = name
-        self.timestamp_ms = timestamp_ms
-        self.id = id
-        self.timestamp = timestamp
+    def __init__(self, steps: Optional[List[Step]]) -> None:
         self.steps = steps
-        self.version = version
 
     @staticmethod
     def from_dict(obj: Any) -> 'Fermentation':
         assert isinstance(obj, dict)
-        hidden = from_union([from_bool, from_none], obj.get("hidden"))
-        created = from_union([Created.from_dict, from_none], obj.get("_created"))
-        rev = from_union([from_str, from_none], obj.get("_rev"))
-        name = from_union([from_str, from_none], obj.get("name"))
-        timestamp_ms = from_union([from_int, from_none], obj.get("_timestamp_ms"))
-        id = from_union([from_none, from_str], obj.get("_id"))
-        timestamp = from_union([Created.from_dict, from_none], obj.get("_timestamp"))
-        steps = from_union([lambda x: from_list(Step.from_dict, x), from_none], obj.get("steps"))
-        version = from_union([from_str, from_none], obj.get("_version"))
-        return Fermentation(hidden, created, rev, name, timestamp_ms, id, timestamp, steps, version)
+        errors = []
+        
+        steps = parse_field(obj, "steps", lambda x: from_union([lambda x: from_list(Step.from_dict, x), from_none], x), "Fermentation", errors)
+        
+        raise_if_errors(errors, "Fermentation")
+        return Fermentation(steps)
 
     def to_dict(self) -> dict:
         result: dict = {}
-        if self.hidden is not None:
-            result["hidden"] = from_union([from_bool, from_none], self.hidden)
-        if self.created is not None:
-            result["_created"] = from_union([lambda x: to_class(Created, x), from_none], self.created)
-        if self.rev is not None:
-            result["_rev"] = from_union([from_str, from_none], self.rev)
-        if self.name is not None:
-            result["name"] = from_union([from_str, from_none], self.name)
-        if self.timestamp_ms is not None:
-            result["_timestamp_ms"] = from_union([from_int, from_none], self.timestamp_ms)
-        if self.id is not None:
-            result["_id"] = from_union([from_none, from_str], self.id)
-        if self.timestamp is not None:
-            result["_timestamp"] = from_union([lambda x: to_class(Created, x), from_none], self.timestamp)
         if self.steps is not None:
             result["steps"] = from_union([lambda x: from_list(lambda x: to_class(Step, x), x), from_none], self.steps)
-        if self.version is not None:
-            result["_version"] = from_union([from_str, from_none], self.version)
         return result
 
 
@@ -244,8 +188,12 @@ class Recipe:
     @staticmethod
     def from_dict(obj: Any) -> 'Recipe':
         assert isinstance(obj, dict)
-        name = from_union([from_str, from_none], obj.get("name"))
-        fermentation = from_union([Fermentation.from_dict, from_none], obj.get("fermentation"))
+        errors = []
+        
+        name = parse_field(obj, "name", lambda x: from_union([from_str, from_none], x), "Recipe", errors)
+        fermentation = parse_field(obj, "fermentation", lambda x: from_union([Fermentation.from_dict, from_none], x), "Recipe", errors)
+        
+        raise_if_errors(errors, "Recipe")
         return Recipe(name, fermentation)
 
     def to_dict(self) -> dict:
@@ -262,7 +210,6 @@ class BatchItem:
     name: Optional[str]
     batch_no: Optional[int]
     status: Optional[str]
-    brewer: Optional[str]
     brew_date: Optional[int]
     recipe: Optional[Recipe]
     notes: Optional[List[Note]]
@@ -270,12 +217,11 @@ class BatchItem:
     #Add the readings to fermentingBatch with a fake property
     readings: Optional[List[Reading]]
 
-    def __init__(self, id: Optional[str], name: Optional[str], batch_no: Optional[int], status: Optional[str], brewer: Optional[str], brew_date: Optional[int], recipe: Optional[Recipe], notes: Optional[List[Note]], measured_og: Optional[float]) -> None:
+    def __init__(self, id: Optional[str], name: Optional[str], batch_no: Optional[int], status: Optional[str], brew_date: Optional[int], recipe: Optional[Recipe], notes: Optional[List[Note]], measured_og: Optional[float]) -> None:
         self.id = id
         self.name = name
         self.batch_no = batch_no
         self.status = status
-        self.brewer = brewer
         self.brew_date = brew_date
         self.recipe = recipe
         self.notes = notes
@@ -284,16 +230,19 @@ class BatchItem:
     @staticmethod
     def from_dict(obj: Any) -> 'BatchItem':
         assert isinstance(obj, dict)
-        id = from_union([from_str, from_none], obj.get("_id"))
-        name = from_union([from_str, from_none], obj.get("name"))
-        batch_no = from_union([from_int, from_none], obj.get("batchNo"))
-        status = from_union([from_str, from_none], obj.get("status"))
-        brewer = from_union([from_none, from_str], obj.get("brewer"))
-        brew_date = from_union([from_int, from_none], obj.get("brewDate"))
-        recipe = from_union([Recipe.from_dict, from_none], obj.get("recipe"))
-        notes = from_union([lambda x: from_list(Note.from_dict, x), from_none], obj.get("notes"))
-        measured_og = from_union([from_float, from_none], obj.get("measuredOg"))
-        return BatchItem(id, name, batch_no, status, brewer, brew_date, recipe, notes, measured_og)
+        errors = []
+        
+        id = parse_field(obj, "_id", lambda x: from_union([from_str, from_none], x), "BatchItem", errors)
+        name = parse_field(obj, "name", lambda x: from_union([from_str, from_none], x), "BatchItem", errors)
+        batch_no = parse_field(obj, "batchNo", lambda x: from_union([from_int, from_none], x), "BatchItem", errors)
+        status = parse_field(obj, "status", lambda x: from_union([from_str, from_none], x), "BatchItem", errors)
+        brew_date = parse_field(obj, "brewDate", lambda x: from_union([from_int, from_none], x), "BatchItem", errors)
+        recipe = parse_field(obj, "recipe", lambda x: from_union([Recipe.from_dict, from_none], x), "BatchItem", errors)
+        notes = parse_field(obj, "notes", lambda x: from_union([lambda x: from_list(Note.from_dict, x), from_none], x), "BatchItem", errors)
+        measured_og = parse_field(obj, "measuredOg", lambda x: from_union([from_float, from_none], x), "BatchItem", errors)
+        
+        raise_if_errors(errors, "BatchItem")
+        return BatchItem(id, name, batch_no, status, brew_date, recipe, notes, measured_og)
 
     def to_dict(self) -> dict:
         result: dict = {}
@@ -305,8 +254,6 @@ class BatchItem:
             result["batchNo"] = from_union([from_int, from_none], self.batch_no)
         if self.status is not None:
             result["status"] = from_union([from_str, from_none], self.status)
-        if self.brewer is not None:
-            result["brewer"] = from_union([from_none, from_str], self.brewer)
         if self.brew_date is not None:
             result["brewDate"] = from_union([from_int, from_none], self.brew_date)
         if self.recipe is not None:
