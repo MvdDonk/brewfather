@@ -1,7 +1,6 @@
 # Brewfather Integration for Home Assistant
 ### Automate your fermentation like a pro! 🍺  
-<a href="https://www.buymeacoffee.com/mvddonk"><img src="https://img.buymeacoffee.com/button-api/?text=Buy me a beer&emoji=🍺&slug=mvddonk&button_colour=5F7FFF&font_colour=ffffff&font_family=Lato&outline_colour=000000&coffee_colour=FFDD00" /></a>    
-
+[![Buy me a beer](https://img.buymeacoffee.com/button-api/?text=Buy+me+a+beer&emoji=&slug=mvddonk&button_colour=5F7FFF&font_colour=ffffff&font_family=Lato&outline_colour=000000&coffee_colour=FFDD00)](https://www.buymeacoffee.com/mvddonk)  
 [![Example dashboard](dashboard_small.png)](dashboard.png)
 
 ## 🎯 What is this?
