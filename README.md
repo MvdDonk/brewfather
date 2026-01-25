@@ -302,7 +302,6 @@ The interface automatically uses your Home Assistant language setting.
 Found a bug? Have a feature request?
 
 - **Issues**: [GitHub Issues](https://github.com/MvdDonk/Brewfather/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/MvdDonk/Brewfather/discussions)
 
 Enjoying this integration? <a href="https://www.buymeacoffee.com/mvddonk">Buy me a beer! 🍺</a>
 
