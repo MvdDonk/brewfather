@@ -1,7 +1,7 @@
 # Brewfather Integration for Home Assistant
 ### Automate your fermentation like a pro! 🍺  
 [![Buy me a beer](https://img.buymeacoffee.com/button-api/?text=Buy+me+a+beer&emoji=&slug=mvddonk&button_colour=5F7FFF&font_colour=ffffff&font_family=Lato&outline_colour=000000&coffee_colour=FFDD00)](https://www.buymeacoffee.com/mvddonk)  
-[![Example dashboard](dashboard_small.png)](dashboard.png)
+[![Example dashboard](imgs/dashboard_small.png)](imgs/dashboard.png)
 
 ## 🎯 What is this?
 
@@ -32,7 +32,7 @@ Never miss a brewing task! View all upcoming events in a calendar:
 - Bottling day reminders
 - Custom brew events
 
-![Brewfather Calendar](dashboard-calendar.png)
+![Brewfather Calendar](imgs/dashboard-calendar.png)
 
 ### 📊 Fermentation Monitoring
 Track your batch progress with real-time sensors:
@@ -200,7 +200,7 @@ Creates sensor with complete API data for all batches. Useful for custom dashboa
 6. Go to Settings → Integrations → Add Integration
 7. Search for "Brewfather"  
 Or click here: <a href="https://my.home-assistant.io/redirect/integration/?domain=brewfather">Add Brewfather Integration</a>  
-[![Add Integration](integration_install-via-link_small.png)](integration_install-via-link.png)
+[![Add Integration](imgs/integration_install-via-link_small.png)](imgs/integration_install-via-link.png)
 
 
 
@@ -224,7 +224,7 @@ Enter your Brewfather credentials:
 
 **Required API Scope:** `batches:read`
 
-[![Setup Screen](integration_setup_small.png)](integration_setup.png)
+[![Setup Screen](imgs/integration_setup_small.png)](imgs/integration_setup.png)
 
 ### Step 2: Choose Features
 
@@ -242,7 +242,7 @@ Configure Brewfather-to-Home Assistant streaming:
 
 The integration validates your configuration and tests the connection.
 
-[![Success](integration_success_small.png)](integration_success.png)
+[![Success](imgs/integration_success_small.png)](imgs/integration_success.png)
 
 ---
 
