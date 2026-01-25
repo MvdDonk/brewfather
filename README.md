@@ -3,6 +3,21 @@
 <a href="https://www.buymeacoffee.com/mvddonk"><img src="https://img.buymeacoffee.com/button-api/?text=Buy me a beer&emoji=🍺&slug=mvddonk&button_colour=5F7FFF&font_colour=ffffff&font_family=Lato&outline_colour=000000&coffee_colour=FFDD00" /></a>    
 ![dashboard-multi-batch.png)](dashboard-multi-batch.png)
 
+# 🎯 Complete Dashboard - All Features Showcase
+Monitor and **automatically control** your fermentation with this comprehensive dashboard! Includes temperature control, batch notes, event calendar, and automatic temperature synchronization.
+
+**[View Complete Dashboard YAML](dashboards/dashboard-complete.yaml)** | **[Temperature Sync Automation](automations/sync_temperature.yaml)**
+
+Features:
+- 🌡️ **Automatic Temperature Control** - Syncs your fermentation chamber with Brewfather recipe
+- 📊 **Fermentation Progress** - Visual gauges and historical graphs
+- 📝 **Batch Notes** - Quick access to your brewing notes
+- 📅 **Event Calendar** - See upcoming fermentation steps, dry hopping, bottling
+- ⚡ **Real-time Sync** - Automated temperature adjustments every 15 minutes
+- 📈 **History Tracking** - Monitor temperature and gravity over time
+
+Simply copy the YAML into a new dashboard and adjust `climate.fermentation_chamber` to match your setup!
+
 # Single Batch Support  
 The integration produces a sensor for recipe name, current temperature, upcoming temperature and upcoming temperature change date for the most recently started batch. This can be displayed in Home Assistant by creating a new dashboard and copying the contents of the `dashboard/dashboard.yaml` file into it.
 

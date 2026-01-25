@@ -1,0 +1,168 @@
+views:
+  - title: Brewfather
+    sections:
+      - type: grid
+        cards:
+          - type: vertical-stack
+            cards:
+              - type: entities
+                title: 🍺 Current Batch
+                show_header_toggle: false
+                state_color: true
+                entities:
+                  - entity: sensor.brewfather_recipe_name
+                    name: Recipe
+                    icon: mdi:glass-mug-variant
+                  - entity: sensor.brewfather_integration_status
+                    name: Integration Status
+                    icon: mdi:api
+                    secondary_info: last-changed
+                  - type: divider
+              - type: horizontal-stack
+                cards:
+                  - type: gauge
+                    entity: climate.fermentation_chamber
+                    name: Fermentation Chamber
+                    min: 0
+                    max: 30
+                    severity:
+                      green: 18
+                      yellow: 15
+                      red: 0
+                    needle: true
+                    attribute: current_temperature
+                  - type: gauge
+                    entity: sensor.brewfather_target_temperature
+                    name: Target Temp
+                    min: 0
+                    max: 30
+                    severity:
+                      green: 0
+                      yellow: 25
+                      red: 28
+                    needle: true
+              - type: vertical-stack
+                cards:
+                  - type: markdown
+                    content: >
+                      ## 📊 Fermentation Progress
+
+                      ---
+
+
+                      🗓️ **Started:** {{
+                      as_timestamp(states('sensor.brewfather_fermentation_start'))
+                      | timestamp_custom('%d %b %Y at %H:%M', true) }}
+
+
+                      🌡️ **Current Step:** {{
+                      states('sensor.brewfather_target_temperature') }}°C
+
+
+                      ⏭️ **Next Step:** {{
+                      states('sensor.brewfather_upcoming_target_temperature')
+                      }}°C @ {{
+                      as_timestamp(states('sensor.brewfather_upcoming_target_temperature_change'))
+                      | timestamp_custom('%d %b %H:%M', true) }}
+
+
+                      ---
+              - type: history-graph
+                title: 📈 Fermentation History
+                hours_to_show: 168
+                refresh_interval: 0
+                entities:
+                  - entity: sensor.brewfather_target_temperature
+                    name: Target Temperature
+                  - entity: climate.fermentation_chamber
+                    name: Actual Temperature
+                  - entity: sensor.brewfather_last_reading
+                    name: Gravity (SG)
+              - type: markdown
+                title: 📝 Batch Notes
+                content: >
+                  {{ states('sensor.brewfather_batch_notes') | replace('\n', ' 
+                  \n') if states('sensor.brewfather_batch_notes') !=
+                  'unavailable' and states('sensor.brewfather_batch_notes') !=
+                  'unknown' else '*No batch notes available*' }}
+              - type: calendar
+                title: 📅 Upcoming Brew Events
+                entities:
+                  - calendar.brewfather_events
+                initial_view: listWeek
+              - type: markdown
+                title: ⏰ Next Events
+                content: >
+                  {% set events = state_attr('sensor.brewfather_events',
+                  'events') %}
+
+                  {% if events and events | length > 0 %}
+
+                  {% for event in events[:3] %}
+
+                  **{{ as_timestamp(event.time) | timestamp_custom('%a %d %b,
+                  %H:%M', true) }}**  
+
+                  {{ event.title }}  
+
+                  *{{ event.description }}*
+
+
+                  ---
+
+                  {% endfor %}
+
+                  {% if events | length > 3 %}
+
+                  *...and {{ events | length - 3 }} more events*
+
+                  {% endif %}
+
+                  {% else %}
+
+                  *No upcoming events scheduled*
+
+                  {% endif %}
+              - type: entities
+                title: ⚙️ Quick Actions
+                show_header_toggle: false
+                entities:
+                  - type: button
+                    name: Sync Temperature Now
+                    icon: mdi:sync
+                    action_url: /config/automation
+                    tap_action:
+                      action: call-service
+                      service: automation.trigger
+                      service_data:
+                        entity_id: automation.brewfather_sync_fermentation_temperature
+                  - type: attribute
+                    entity: sensor.brewfather_recipe_name
+                    attribute: batch_id
+                    name: Batch ID
+                    icon: mdi:identifier
+              - type: markdown
+                content: >
+                  <ha-alert alert-type="{% if
+                  states('sensor.brewfather_target_temperature') ==
+                  states.climate.fermentation_chamber.attributes.temperature
+                  | string %}success{% else %}warning{% endif %}">
+
+                  {% if states('sensor.brewfather_target_temperature') ==
+                  states.climate.fermentation_chamber.attributes.temperature
+                  | string %}
+
+                  ✅ **Temperature Synced** - Chamber is set to the correct
+                  temperature
+
+                  {% else %}
+
+                  ⚠️ **Temperature Mismatch** - Target: {{
+                  states('sensor.brewfather_target_temperature') }}°C | Chamber:
+                  {{
+                  states.climate.fermentation_chamber.attributes.temperature
+                  }}°C
+
+                  {% endif %}
+
+                  </ha-alert>
