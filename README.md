@@ -51,7 +51,7 @@ content: |-
 
 # Sensors list
 The following sensors will be added after setup:
-- **Integration Status** 🆕  
+- **Integration Status** 
   Shows the current status of the Brewfather integration with detailed attributes  
   `sensor.brewfather_integration_status`  
   - **States**: `connected`, `monitoring` (with custom stream), `disconnected`
@@ -74,7 +74,13 @@ The following sensors will be added after setup:
 - **Latest reading**  
   Latest reading (if available in Brewfather) in points sg. The history of this sensor will be kept in Home Assistant allowing you to render a graph.
   `sensor.brewfather_last_reading`  
-- **Fermenting batches**  
+- **Batch notes**  
+  Displays the batch notes from Brewfather  
+  `sensor.brewfather_batch_notes`  
+- **Events**  
+  Shows upcoming active events with full event details in attributes  
+  `sensor.brewfather_events`  
+- **Fermenting batches**   
     *To use this sensor you have to enable "All batches data sensor (experimental)", see below*  
     A list of all batches that are fermenting. This sensor contains the following attributes:      
     `sensor.brewfather_all_batches_data`  
@@ -92,6 +98,22 @@ The following sensors will be added after setup:
         The temperature the fermentation should have following the recipe
     - **current_temperature**      
         The current temperature of the fermentation based on readings entered into the app or through a connected device
+
+# Calendar Integration
+View all your upcoming brew events in a calendar! The integration now includes a calendar entity that displays fermentation steps, dry hopping schedules, bottling days, and other events from Brewfather.
+
+**Entity**: `calendar.brewfather_events`
+
+Add to your dashboard:
+```yaml
+type: calendar
+entities:
+  - calendar.brewfather_events
+```
+
+![Brewfather Calendar](dashboard-calendar.png)
+
+Events automatically filter to show only active future events, with support for both timed and all-day events.
 
 # Options
 ## Enable temperature ramping

@@ -116,6 +116,71 @@ class Note:
         return result
 
 
+class Event:
+    event_text: Optional[str]
+    description: Optional[str]
+    time: Optional[int]
+    description_html: Optional[str]
+    active: Optional[bool]
+    event_type: Optional[str]
+    title: Optional[str]
+    day_event: Optional[bool]
+    notify_time: Optional[int]
+
+    def __init__(self, event_text: Optional[str], description: Optional[str], time: Optional[int], 
+                 description_html: Optional[str], active: Optional[bool], event_type: Optional[str], 
+                 title: Optional[str], day_event: Optional[bool], notify_time: Optional[int]) -> None:
+        self.event_text = event_text
+        self.description = description
+        self.time = time
+        self.description_html = description_html
+        self.active = active
+        self.event_type = event_type
+        self.title = title
+        self.day_event = day_event
+        self.notify_time = notify_time
+
+    @staticmethod
+    def from_dict(obj: Any) -> 'Event':
+        assert isinstance(obj, dict), f"Expected dict for Event, got {type(obj).__name__}"
+        errors = []
+        
+        event_text = parse_field(obj, "eventText", lambda x: from_union([from_str, from_none], x), "Event", errors)
+        description = parse_field(obj, "description", lambda x: from_union([from_str, from_none], x), "Event", errors)
+        time = parse_field(obj, "time", lambda x: from_union([from_int, from_none], x), "Event", errors)
+        description_html = parse_field(obj, "descriptionHTML", lambda x: from_union([from_str, from_none], x), "Event", errors)
+        active = parse_field(obj, "active", lambda x: from_union([from_bool, from_none], x), "Event", errors)
+        event_type = parse_field(obj, "eventType", lambda x: from_union([from_str, from_none], x), "Event", errors)
+        title = parse_field(obj, "title", lambda x: from_union([from_str, from_none], x), "Event", errors)
+        day_event = parse_field(obj, "dayEvent", lambda x: from_union([from_bool, from_none], x), "Event", errors)
+        notify_time = parse_field(obj, "notifyTime", lambda x: from_union([from_int, from_none], x), "Event", errors)
+        
+        raise_if_errors(errors, "Event")
+        return Event(event_text, description, time, description_html, active, event_type, title, day_event, notify_time)
+
+    def to_dict(self) -> dict:
+        result: dict = {}
+        if self.event_text is not None:
+            result["eventText"] = from_union([from_str, from_none], self.event_text)
+        if self.description is not None:
+            result["description"] = from_union([from_str, from_none], self.description)
+        if self.time is not None:
+            result["time"] = from_union([from_int, from_none], self.time)
+        if self.description_html is not None:
+            result["descriptionHTML"] = from_union([from_str, from_none], self.description_html)
+        if self.active is not None:
+            result["active"] = from_union([from_bool, from_none], self.active)
+        if self.event_type is not None:
+            result["eventType"] = from_union([from_str, from_none], self.event_type)
+        if self.title is not None:
+            result["title"] = from_union([from_str, from_none], self.title)
+        if self.day_event is not None:
+            result["dayEvent"] = from_union([from_bool, from_none], self.day_event)
+        if self.notify_time is not None:
+            result["notifyTime"] = from_union([from_int, from_none], self.notify_time)
+        return result
+
+
 class Step:
     actual_time: Optional[int]
     step_temp: Optional[float]
@@ -214,10 +279,12 @@ class BatchItem:
     recipe: Optional[Recipe]
     notes: Optional[List[Note]]
     measured_og: Optional[float]
+    batch_notes: Optional[str]
+    events: Optional[List[Event]]
     #Add the readings to fermentingBatch with a fake property
     readings: Optional[List[Reading]]
 
-    def __init__(self, id: Optional[str], name: Optional[str], batch_no: Optional[int], status: Optional[str], brew_date: Optional[int], recipe: Optional[Recipe], notes: Optional[List[Note]], measured_og: Optional[float]) -> None:
+    def __init__(self, id: Optional[str], name: Optional[str], batch_no: Optional[int], status: Optional[str], brew_date: Optional[int], recipe: Optional[Recipe], notes: Optional[List[Note]], measured_og: Optional[float], batch_notes: Optional[str] = None, events: Optional[List[Event]] = None) -> None:
         self.id = id
         self.name = name
         self.batch_no = batch_no
@@ -226,6 +293,8 @@ class BatchItem:
         self.recipe = recipe
         self.notes = notes
         self.measured_og = measured_og
+        self.batch_notes = batch_notes
+        self.events = events
 
     @staticmethod
     def from_dict(obj: Any) -> 'BatchItem':
@@ -240,9 +309,11 @@ class BatchItem:
         recipe = parse_field(obj, "recipe", lambda x: from_union([Recipe.from_dict, from_none], x), "BatchItem", errors)
         notes = parse_field(obj, "notes", lambda x: from_union([lambda x: from_list(Note.from_dict, x), from_none], x), "BatchItem", errors)
         measured_og = parse_field(obj, "measuredOg", lambda x: from_union([from_float, from_none], x), "BatchItem", errors)
+        batch_notes = parse_field(obj, "batchNotes", lambda x: from_union([from_str, from_none], x), "BatchItem", errors)
+        events = parse_field(obj, "events", lambda x: from_union([lambda x: from_list(Event.from_dict, x), from_none], x), "BatchItem", errors)
         
         raise_if_errors(errors, "BatchItem")
-        return BatchItem(id, name, batch_no, status, brew_date, recipe, notes, measured_og)
+        return BatchItem(id, name, batch_no, status, brew_date, recipe, notes, measured_og, batch_notes, events)
 
     def to_dict(self) -> dict:
         result: dict = {}
@@ -262,6 +333,10 @@ class BatchItem:
             result["notes"] = from_union([lambda x: from_list(lambda x: to_class(Note, x), x), from_none], self.notes)
         if self.measured_og is not None:
             result["measuredOg"] = from_union([to_float, from_none], self.measured_og)
+        if self.batch_notes is not None:
+            result["batchNotes"] = from_union([from_str, from_none], self.batch_notes)
+        if self.events is not None:
+            result["events"] = from_union([lambda x: from_list(lambda x: to_class(Event, x), x), from_none], self.events)
         return result
 
     def to_attribute_entry_hassio(self) -> dict:
@@ -304,6 +379,10 @@ class BatchItem:
         )
         result["readings"] = from_union(
             [lambda x: from_list(lambda x: to_class(Reading, x), x), from_none], self.readings
+        )
+        result["batchNotes"] = from_union([from_str, from_none], self.batch_notes)
+        result["events"] = from_union(
+            [lambda x: from_list(lambda x: to_class(Event, x), x), from_none], self.events
         )
         return result
 
