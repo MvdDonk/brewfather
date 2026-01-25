@@ -201,6 +201,30 @@ async def async_setup_entry(
             )
         )
     )
+
+    sensors.append(
+        BrewfatherSensor(
+            coordinator,
+            SensorKinds.batch_notes,
+            SensorEntityDescription(
+                key="batch_notes",
+                name="Batch notes",
+                icon="mdi:note-text",
+            )
+        )
+    )
+
+    sensors.append(
+        BrewfatherSensor(
+            coordinator,
+            SensorKinds.events,
+            SensorEntityDescription(
+                key="events",
+                name="Events",
+                icon="mdi:calendar-clock",
+            )
+        )
+    )
   
     async_add_entities(sensors, update_before_add=False)
 
@@ -390,6 +414,76 @@ class BrewfatherSensor(CoordinatorEntity[BrewfatherCoordinator], SensorEntity):
                 if len(other_batches_data)  > 0:
                     custom_attributes["other_batches"] = other_batches_data
 
+        elif sensor_type == SensorKinds.batch_notes:
+            if data.batch_notes is not None:
+                sensor_data.state = data.batch_notes
+                custom_attributes["batch_id"] = data.batch_id
+                
+                other_batches_data = []
+                for other_batch_data in data.other_batches:
+                    if other_batch_data.batch_notes is not None:
+                        other_batches_data.append({
+                            "batch_id": other_batch_data.batch_id,
+                            "state": other_batch_data.batch_notes
+                        })
+                if len(other_batches_data)  > 0:
+                    custom_attributes["other_batches"] = other_batches_data
+
+        elif sensor_type == SensorKinds.events:
+            # Filter for future events that are active
+            current_time = datetime.now(timezone.utc).timestamp() * 1000  # Convert to milliseconds
+            future_events = []
+            
+            if data.events is not None:
+                for event in data.events:
+                    # Filter: must be in the future AND active must be True
+                    if event.time is not None and event.time > current_time and event.active is True:
+                        future_events.append({
+                            "title": event.title,
+                            "description": event.description,
+                            "time": datetime.fromtimestamp(event.time / 1000, timezone.utc),
+                            "time_ms": event.time,
+                            "event_type": event.event_type,
+                            "day_event": event.day_event,
+                            "active": event.active
+                        })
+                
+                # Sort by time
+                future_events.sort(key=lambda x: x["time_ms"])
+                
+                sensor_data.state = len(future_events)
+                custom_attributes["batch_id"] = data.batch_id
+                custom_attributes["events"] = future_events
+                
+                # Add other batches events
+                other_batches_data = []
+                for other_batch_data in data.other_batches:
+                    batch_future_events = []
+                    if other_batch_data.events is not None:
+                        for event in other_batch_data.events:
+                            # Filter: must be in the future AND active must be True
+                            if event.time is not None and event.time > current_time and event.active is True:
+                                batch_future_events.append({
+                                    "title": event.title,
+                                    "description": event.description,
+                                    "time": datetime.fromtimestamp(event.time / 1000, timezone.utc),
+                                    "time_ms": event.time,
+                                    "event_type": event.event_type,
+                                    "day_event": event.day_event,
+                                    "active": event.active
+                                })
+                        batch_future_events.sort(key=lambda x: x["time_ms"])
+                    
+                    if len(batch_future_events) > 0:
+                        other_batches_data.append({
+                            "batch_id": other_batch_data.batch_id,
+                            "state": len(batch_future_events),
+                            "events": batch_future_events
+                        })
+                
+                if len(other_batches_data)  > 0:
+                    custom_attributes["other_batches"] = other_batches_data
+
         sensor_data.extra_state_attributes = custom_attributes
 
         # Received a datetime
@@ -428,3 +522,5 @@ class SensorKinds(enum.Enum):
     fermenting_last_reading = 6
     all_batch_info = 7
     fermenting_start_date = 8
+    batch_notes = 9
+    events = 10

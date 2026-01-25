@@ -11,7 +11,8 @@ from custom_components.brewfather.models.batch_item import (
     Step,
     Fermentation,
     Recipe,
-    Note
+    Note,
+    Event
 )
 
 
@@ -274,3 +275,199 @@ class TestErrorHandling:
         assert "name" in error_msg
         assert "batchNo" in error_msg
         assert "status" in error_msg
+
+
+class TestBatchNotesAndEvents:
+    """Test new batch_notes and events functionality."""
+
+    @pytest.fixture
+    def batch_with_notes_and_events(self):
+        """Batch JSON with batchNotes and events."""
+        return {
+            "_id": "hju83jUgqEgUQT4VIUMoFUbED7Kp8a",
+            "name": "Batch",
+            "batchNo": 59,
+            "status": "Fermenting",
+            "brewDate": 1769209200000,
+            "recipe": {
+                "name": "Chardonnay Cloud",
+                "fermentation": {
+                    "steps": [
+                        {
+                            "type": "Primary",
+                            "actualTime": 1769209200000,
+                            "stepTime": 8,
+                            "stepTemp": 20,
+                            "ramp": None
+                        }
+                    ]
+                }
+            },
+            "notes": [
+                {
+                    "timestamp": 1769253593918,
+                    "note": "",
+                    "type": "statusChanged",
+                    "status": "Fermenting"
+                }
+            ],
+            "batchNotes": "Dubbel crush, stuck mash wel\npH veel te laag: 5 (teveel zuur gebruikt, te laat gemeten)\n30min mash: 1.062\n60 min: 1.067\n80: 1.068\nMashout toegepast",
+            "events": [
+                {
+                    "eventText": "Primary (Fermentation) @ 12 °C",
+                    "description": "Fermentation Profile Step: Primary (Fermentation) @ 12 °C",
+                    "time": 1770282000000,
+                    "descriptionHTML": "Fermentation Profile Step:<br>Primary (Fermentation) @ 12 °C",
+                    "active": True,
+                    "eventType": "event-batch-ferm-step",
+                    "title": "Fermentation Step - Batch #59 (Chardonnay Cloud)",
+                    "dayEvent": False
+                },
+                {
+                    "eventType": "event-batch-brew-day",
+                    "time": 1769245200000,
+                    "dayEvent": True,
+                    "active": False,
+                    "eventText": "Brew Day",
+                    "notifyTime": 1769245200000,
+                    "title": "Brew Day - Batch #59 (Chardonnay Cloud)",
+                    "descriptionHTML": "Brew Day (Chardonnay Cloud)",
+                    "description": "Brew Day (Chardonnay Cloud)"
+                },
+                {
+                    "title": "Bottling Day - Batch #59 (Chardonnay Cloud)",
+                    "dayEvent": True,
+                    "eventType": "event-batch-bottling-day",
+                    "time": 1770454800000,
+                    "description": "Bottling Day (Chardonnay Cloud)",
+                    "descriptionHTML": "Bottling Day (Chardonnay Cloud)",
+                    "eventText": "Bottling Day",
+                    "active": True
+                }
+            ],
+            "measuredOg": 1.07
+        }
+
+    def test_parse_batch_notes(self, batch_with_notes_and_events):
+        """Test parsing batch notes."""
+        batch = batch_item_from_dict(batch_with_notes_and_events)
+        
+        assert batch.batch_notes is not None
+        assert isinstance(batch.batch_notes, str)
+        assert "Dubbel crush" in batch.batch_notes
+        assert "pH veel te laag" in batch.batch_notes
+        assert "\n" in batch.batch_notes  # Should preserve line breaks
+
+    def test_parse_events(self, batch_with_notes_and_events):
+        """Test parsing events."""
+        batch = batch_item_from_dict(batch_with_notes_and_events)
+        
+        assert batch.events is not None
+        assert len(batch.events) == 3
+        assert all(isinstance(event, Event) for event in batch.events)
+
+    def test_event_fields(self, batch_with_notes_and_events):
+        """Test individual event fields."""
+        batch = batch_item_from_dict(batch_with_notes_and_events)
+        event = batch.events[0]
+        
+        assert event.event_text == "Primary (Fermentation) @ 12 °C"
+        assert event.description == "Fermentation Profile Step: Primary (Fermentation) @ 12 °C"
+        assert event.time == 1770282000000
+        assert event.description_html == "Fermentation Profile Step:<br>Primary (Fermentation) @ 12 °C"
+        assert event.active is True
+        assert event.event_type == "event-batch-ferm-step"
+        assert event.title == "Fermentation Step - Batch #59 (Chardonnay Cloud)"
+        assert event.day_event is False
+
+    def test_event_with_notify_time(self, batch_with_notes_and_events):
+        """Test event with optional notifyTime field."""
+        batch = batch_item_from_dict(batch_with_notes_and_events)
+        event = batch.events[1]
+        
+        assert event.notify_time == 1769245200000
+        assert event.day_event is True
+        assert event.active is False
+
+    def test_batch_without_notes_and_events(self):
+        """Test batch without batchNotes and events."""
+        minimal_json = {
+            "_id": "test123",
+            "name": "Test Batch",
+            "batchNo": 1,
+            "status": "Planning"
+        }
+        
+        batch = batch_item_from_dict(minimal_json)
+        
+        assert batch.batch_notes is None
+        assert batch.events is None
+
+    def test_batch_with_null_notes_and_events(self):
+        """Test batch with explicit null values for batchNotes and events."""
+        json_data = {
+            "_id": "test123",
+            "name": "Test Batch",
+            "batchNo": 1,
+            "status": "Planning",
+            "batchNotes": None,
+            "events": None
+        }
+        
+        batch = batch_item_from_dict(json_data)
+        
+        assert batch.batch_notes is None
+        assert batch.events is None
+
+    def test_batch_with_empty_events_list(self):
+        """Test batch with empty events list."""
+        json_data = {
+            "_id": "test123",
+            "name": "Test Batch",
+            "batchNo": 1,
+            "status": "Planning",
+            "events": []
+        }
+        
+        batch = batch_item_from_dict(json_data)
+        
+        assert batch.events is not None
+        assert len(batch.events) == 0
+
+    def test_to_dict_includes_notes_and_events(self, batch_with_notes_and_events):
+        """Test that to_dict includes batchNotes and events."""
+        batch = batch_item_from_dict(batch_with_notes_and_events)
+        batch_dict = batch.to_dict()
+        
+        assert "batchNotes" in batch_dict
+        assert batch_dict["batchNotes"] == batch.batch_notes
+        assert "events" in batch_dict
+        assert len(batch_dict["events"]) == 3
+
+    def test_event_to_dict_roundtrip(self, batch_with_notes_and_events):
+        """Test Event to_dict and from_dict roundtrip."""
+        batch1 = batch_item_from_dict(batch_with_notes_and_events)
+        event1 = batch1.events[0]
+        
+        event_dict = event1.to_dict()
+        event2 = Event.from_dict(event_dict)
+        
+        assert event1.event_text == event2.event_text
+        assert event1.description == event2.description
+        assert event1.time == event2.time
+        assert event1.active == event2.active
+        assert event1.event_type == event2.event_type
+        assert event1.title == event2.title
+        assert event1.day_event == event2.day_event
+
+    def test_to_attribute_entry_hassio_includes_notes_and_events(self, batch_with_notes_and_events):
+        """Test that to_attribute_entry_hassio includes batchNotes and events."""
+        batch = batch_item_from_dict(batch_with_notes_and_events)
+        batch.readings = []  # Set empty readings to avoid None errors
+        
+        result = batch.to_attribute_entry_hassio()
+        
+        assert "batchNotes" in result
+        assert result["batchNotes"] == batch.batch_notes
+        assert "events" in result
+        assert len(result["events"]) == 3
