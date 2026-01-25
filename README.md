@@ -1,271 +1,312 @@
-# Brewfather integration for Home Assistant
-### A Home Assistant custom Integration for getting Brewfather batch information in Home Assistant for all homebrewers!  
-<a href="https://www.buymeacoffee.com/mvddonk"><img src="https://img.buymeacoffee.com/button-api/?text=Buy me a beer&emoji=🍺&slug=mvddonk&button_colour=5F7FFF&font_colour=ffffff&font_family=Lato&outline_colour=000000&coffee_colour=FFDD00" /></a>    
-![dashboard-multi-batch.png)](dashboard-multi-batch.png)
+# Brewfather Integration for Home Assistant
+### Automate your fermentation like a pro! 🍺
+<a href="https://www.buymeacoffee.com/mvddonk"><img src="https://img.buymeacoffee.com/button-api/?text=Buy me a beer&emoji=🍺&slug=mvddonk&button_colour=5F7FFF&font_colour=ffffff&font_family=Lato&outline_colour=000000&coffee_colour=FFDD00" /></a>
 
-# 🎯 Complete Dashboard - All Features Showcase
-Monitor and **automatically control** your fermentation with this comprehensive dashboard! Includes temperature control, batch notes, event calendar, and automatic temperature synchronization.
+[![Example dashboard](dashboard_small.png)](dashboard.png)
 
-**[View Complete Dashboard YAML](dashboards/dashboard-complete.yaml)** | **[Temperature Sync Automation](automations/sync_temperature.yaml)**
+## 🎯 What is this?
 
-Features:
-- 🌡️ **Automatic Temperature Control** - Syncs your fermentation chamber with Brewfather recipe
-- 📊 **Fermentation Progress** - Visual gauges and historical graphs
-- 📝 **Batch Notes** - Quick access to your brewing notes
-- 📅 **Event Calendar** - See upcoming fermentation steps, dry hopping, bottling
-- ⚡ **Real-time Sync** - Automated temperature adjustments every 15 minutes
-- 📈 **History Tracking** - Monitor temperature and gravity over time
+**Stop manually adjusting your fermentation chamber temperature!** This integration connects your Brewfather recipes to Home Assistant, automatically controlling your fermentation chamber to follow the exact temperature profile from your recipe.
 
-Simply copy the YAML into a new dashboard and adjust `climate.fermentation_chamber` to match your setup!
+**Perfect for homebrewers who:**
+- ✅ Use Brewfather for recipe management and batch tracking
+- ✅ Have a smart fermentation chamber (or want to build one)
+- ✅ Want "set and forget" temperature control
+- ✅ Don't want to miss temperature changes at 2 AM
+- ✅ Want all their brewing data in their smart home dashboard
 
-# Single Batch Support  
-The integration produces a sensor for recipe name, current temperature, upcoming temperature and upcoming temperature change date for the most recently started batch. This can be displayed in Home Assistant by creating a new dashboard and copying the contents of the `dashboard/dashboard.yaml` file into it.
+**Designed for single batch fermentation** - track one batch at a time with full automation support.
 
-![dashboard-single-batch.png](dashboard-single-batch.png)
+---
 
-# Multiple Batch Support  
-You can track multiple batches by either using the [Multiple batch support (preview)](#multi-batches) option, see below or  by using custom template and sensors:
+## ⚡ Key Features
 
+### 🌡️ Automatic Temperature Control
+Set your fermentation chamber temperature based on your current Brewfather batch recipe. The integration reads your fermentation schedule and automatically adjusts your climate device to match.
 
-## Alternative using all Brewfather API data sensor
-*In order to use the Brewfather API data the option [All batches data sensor (experimental)](#all-batches-data) must be enabled.*  
+**[Complete Dashboard Example](dashboards/dashboard-complete.yaml)** | **[Automation Example](automations/sync_temperature.yaml)**
 
-Multiple batch support is available through the use of custom templates and a custom dashboard. All the data for all currently fermenting batches is stored in the `fermenting_batches` sensor. The `fermenting_batches` sensor as a `data` attribute that contains a list of all fermenting batches. The `data` attribute is a list of dictionaries. You can follow the below steps to add the custom templates and dashboard to display all fermenting batch information in your Home Assistant.
+### 📅 Event Calendar
+Never miss a brewing task! View all upcoming events in a calendar:
+- Fermentation temperature changes
+- Dry hopping schedules  
+- Bottling day reminders
+- Custom brew events
 
-Copy the `custom_templates` contents into your Home Assistant's custom_templates folder, this should be in the config directory next to custom_components. If the custom_templates folder does not exist, create it.
+![Brewfather Calendar](dashboard-calendar.png)
 
-Copy the contents of the `template_sensors/template_sensors.yaml` file and paste it on to the end of the `config/configuration.yaml` file. If you already have a `template` and `sensor` section, just copy the contents of the `template_sensors.yaml` file excluding the first 2 lines and paste it into your existing `template` / `sensor` section.
+### 📊 Fermentation Monitoring
+Track your batch progress with real-time sensors:
+- Current and upcoming target temperatures
+- Fermentation start/end dates
+- Days remaining until completion
+- Recipe name and batch number
 
-A `dashboard/dashboard-multi-batch.png` file has been included in this repository. To use it, create a new dashboard amd copy the contents of the `dashboard-multi-batch.png` file into it. The dashboard shows up to 4 batches, if you have more than 4 batches you will need to add more cards to the dashboard and template_sensors.yaml.
+### 🔄 Custom Stream Integration
+Receive data FROM Brewfather INTO Home Assistant:
+- Temperature readings from devices attached to Brewfather (iSpindel, Tilt, etc.)
+- Gravity readings from connected sensors
+- Real-time fermentation data
 
+Perfect for brewers with external devices (iSpindel, Tilt) connected to Brewfather who want to monitor their data in Home Assistant.
 
-### Getting batch information  
-Setup a markdown card with the following content to get the batch information in Home Assistant:
+### 📝 Batch Notes & History
+Access your brewing notes and track historical data directly in Home Assistant.
 
-```
-type: markdown
-content: |-
-  # Batch status
-  ---
-  {% for batch in state_attr('sensor.brewfather_all_batches_data', 'data') %}
-    ## Batch \#{{ batch.batchNo }}, recipe: {{ batch.name }}
-    **Start Date**: {{ batch.fermentingStart.strftime('%a, %d %b %Y') }}
-    **End Date:** {{ batch.fermentingEnd.strftime('%a, %d %b %Y') }}
-    **Days Left:** {{ batch.fermentingLeft | round(1) }}
-    **Temperature:** {% if batch.current_temperature is not none %}
-    {% if batch.current_temperature == batch.target_temperature %}
-    <ha-alert alert-type="success">
-    {%else%}
-    <ha-alert alert-type="error">
-    {% endif %}Current: {{ batch.current_temperature }}°C / Target: {{ batch.target_temperature }}°C
-    {%else%}<ha-alert alert-type="warning">Unknown / Target: {{ batch.target_temperature }}°C
-    {% endif %}</ha-alert>
+---
 
-  {% endfor %}
-```
+## 🚀 Complete Dashboard Example
 
-# Sensors list
-The following sensors will be added after setup:
-- **Integration Status** 
-  Shows the current status of the Brewfather integration with detailed attributes  
-  `sensor.brewfather_integration_status`  
-  - **States**: `connected`, `monitoring` (with custom stream), `disconnected`
-  - **Attributes**: API connection status, last update time, custom stream info, temperature entity details
-- **Recipe name**  
-  Name of the beer you are fermenting.  
-  `sensor.brewfather_recipe_name`  
-- **Fermentation start date**  
-  Date and time when the fermentation has started  
-  `sensor.brewfather_fermentation_start`  
-- **Current temperature**  
-  Temperature the fermentation should have following the recipe  
-  `sensor.brewfather_target_temperature`  
-- **Upcoming temperature**  
-  The temperature of the next step in the fermentation profile from the recipe  
-  `sensor.brewfather_upcoming_target_temperature`  
-- **Upcoming temperature change**  
-  The date and time when the upcoming temperature will be activated  
-  `sensor.brewfather_upcoming_target_temperature_change`  
-- **Latest reading**  
-  Latest reading (if available in Brewfather) in points sg. The history of this sensor will be kept in Home Assistant allowing you to render a graph.
-  `sensor.brewfather_last_reading`  
-- **Batch notes**  
-  Displays the batch notes from Brewfather  
-  `sensor.brewfather_batch_notes`  
-- **Events**  
-  Shows upcoming active events with full event details in attributes  
-  `sensor.brewfather_events`  
-- **Fermenting batches**   
-    *To use this sensor you have to enable "All batches data sensor (experimental)", see below*  
-    A list of all batches that are fermenting. This sensor contains the following attributes:      
-    `sensor.brewfather_all_batches_data`  
-    - **batchNo**      
-        The batch number of the batch
-    - **name**      
-        The name of the recipe
-    - **fermentingStart**      
-        The date and time when the fermentation started
-    - **fermentingEnd**      
-        The date and time when the fermentation should be finished
-    - **fermentingLeft**      
-        The number of days left until the fermentation is finished
-    - **target_temperature**      
-        The temperature the fermentation should have following the recipe
-    - **current_temperature**      
-        The current temperature of the fermentation based on readings entered into the app or through a connected device
+A ready-to-use dashboard featuring everything you need:
 
-# Calendar Integration
-View all your upcoming brew events in a calendar! The integration now includes a calendar entity that displays fermentation steps, dry hopping schedules, bottling days, and other events from Brewfather.
+- 🌡️ **Temperature Gauges** - Current vs Target with visual indicators
+- 🎛️ **Thermostat Control** - Full climate control for your fermentation chamber
+- 📊 **Progress Tracking** - Batch info, start date, fermentation timeline
+- 📈 **Historical Graphs** - 7-day history of temperature and gravity
+- 📝 **Batch Notes** - Your brewing notes in formatted view
+- 📅 **Calendar View** - All events in Home Assistant calendar
+- ⏰ **Next Events** - Quick summary of upcoming tasks
+- ✅ **Sync Status** - Visual confirmation temperature is correct
 
-**Entity**: `calendar.brewfather_events`
+**Uses only standard Home Assistant cards - no custom cards required!**
 
-Add to your dashboard:
+Simply copy [dashboard-complete.yaml](dashboards/dashboard-complete.yaml) and adjust `climate.fermentation_chamber` to your device.
+
+---
+
+## 📱 Available Sensors
+
+All sensors update automatically every 15 minutes:
+
+| Sensor | Description | Entity ID |
+|--------|-------------|-----------|
+| **Integration Status** | Connection status and health check | `sensor.brewfather_integration_status` |
+| **Recipe Name** | Name of your current fermenting beer | `sensor.brewfather_recipe_name` |
+| **Fermentation Start** | When fermentation started | `sensor.brewfather_fermentation_start` |
+| **Target Temperature** | Current target temp from recipe | `sensor.brewfather_target_temperature` |
+| **Upcoming Temperature** | Next temperature step | `sensor.brewfather_upcoming_target_temperature` |
+| **Temperature Change Date** | When next temp change occurs | `sensor.brewfather_upcoming_target_temperature_change` |
+| **Last Reading** | Latest gravity/temp reading | `sensor.brewfather_last_reading` |
+| **Batch Notes** | Your brewing notes | `sensor.brewfather_batch_notes` |
+| **Events** | Upcoming brew events (count + details) | `sensor.brewfather_events` |
+
+### 📅 Calendar Entity
+`calendar.brewfather_events` - All your brew events in Home Assistant's calendar
+
+Add to dashboard:
 ```yaml
 type: calendar
 entities:
   - calendar.brewfather_events
 ```
 
-![Brewfather Calendar](dashboard-calendar.png)
+---
 
-Events automatically filter to show only active future events, with support for both timed and all-day events.
+## 🔧 Detailed Features
 
-# Options
-## Enable temperature ramping
-When enabled and used with temperature ramping in Brewfather the target temperature will slowly increase towards the next temperature during the ramping period. For example: current fermenting step temperature is 20c and the next step is 24°C with a ramp of 2 days it will increase the temperature 1c every (2 * 24) / (24-20) = 12 hours. This will result in the following temperature schedule:
-| Date | Target temp | Hours into ramp | Step status |
-|--------|--------|--------|--------|
-| 11/02/2024 13:00 | 20°C | 0 |  |
-| 11/03/2024 01:00 | 21°C | 12| Ramping |
-| 11/03/2024 13:00 | 22°C | 24| Ramping |
-| 11/04/2024 01:00 | 23°C | 36| Ramping |
-| 11/04/2024 13:00 | 24°C | 0 | Ramping stopped, target temperature set |
+### Automatic Temperature Control
 
-## <a name="custom-stream"></a>Custom Stream Support 🔄 
-This integration supports posting temperature data to Brewfather's Custom Stream endpoint, allowing you to integrate external sensors with your Brewfather batch monitoring.
+The integration continuously monitors your Brewfather batch and provides the target temperature your fermentation chamber should be at. Combine this with the included automation to automatically adjust your climate device.
 
-### Setup Requirements
-1. **Brewfather Custom Stream Logging ID**: You need to get a logging ID from the Brewfather app:
-   - Open Brewfather app
-   - Go to settings
-   - Navigate to "Power-ups"
-   - Enable "Custom Stream"
-   - Copy the logging ID from the URL (format: `http://log.brewfather.net/stream?id=YOUR_LOGGING_ID`)
+**How it works:**
+1. Integration reads your active Brewfather batch
+2. Calculates current target temperature based on fermentation schedule
+3. Updates `sensor.brewfather_target_temperature` every 15 minutes
+4. Automation compares target to actual and adjusts climate device
+5. Your beer ferments perfectly according to recipe!
 
-2. **Temperature Entity**: You need a Home Assistant entity that provides temperature readings:
-   - The entity must report temperature in Celsius (°C), Fahrenheit (°F), or Kelvin (K)
-   - The sensor's main state value will be used (entity attributes are no longer supported for simplicity)
-   - The integration automatically converts units to the proper format for Brewfather
+**Temperature Ramping Support:**
+Enable this option to gradually increase/decrease temperature during ramp periods. For example, ramping from 20°C to 24°C over 2 days will increase 1°C every 12 hours instead of jumping immediately.
 
-### Configuration Steps
-1. Go to the Brewfather integration configuration
-2. Enable "Custom Stream for temperature monitoring" option
-3. Fill in the required fields:
-   - **Brewfather Logging ID or Stream URL**: Enter the ID or paste the complete URL
-   - **Temperature Sensor**: Select from available temperature entities
+**Example automation:** [sync_temperature.yaml](automations/sync_temperature.yaml)
 
-### Enhanced Features 🆕
-- **Smart URL Parsing**: Paste the complete Brewfather stream URL - the integration will extract the logging ID automatically
-- **Temperature Unit Validation**: Automatically validates and converts Celsius, Fahrenheit, and Kelvin
-- **Entity Validation**: Real-time validation ensures your selected sensor provides valid temperature data
-- **Connection Testing**: Tests the logging ID with Brewfather during setup
+### Event Calendar
 
-### Example Configuration
-- **Logging ID**: `abc123def456` or paste complete URL `http://log.brewfather.net/stream?id=abc123def456`
-- **Temperature Sensor**: Select from dropdown of available temperature entities
+View all your brewing tasks in Home Assistant's calendar interface. The calendar automatically displays:
+- **Fermentation steps** - When temperature changes occur
+- **Dry hopping** - When to add hops
+- **Bottling day** - When fermentation completes
+- **Custom events** - Any events from Brewfather
 
-### Troubleshooting
-- **"Invalid logging ID format"**: Check that you've copied the correct ID or URL from Brewfather
-- **"Entity not found or unavailable"**: Verify the entity exists and provides numeric temperature values
-- **"Unsupported temperature unit"**: Ensure your sensor reports temperature in °C, °F, or K
-- **"Connection test failed"**: Verify your Brewfather Custom Stream is enabled and the logging ID is correct
+Events are automatically filtered to show only active, future events. Supports both all-day events (Bottling Day) and timed events (Temperature Change at 14:00).
 
-The integration will automatically post temperature updates to Brewfather during its regular update cycle (every 15 minutes by default).  
+### Batch Notes
 
-## <a name="multi-batches"></a>Multiple batch support (experimental)
-This is a work in progress (that's why it's in preview) but it's the first easy out of the box multi batch support. Each sensor will get an additional attribute "other_batches" which will contain the same category data as the sensor but for all other active batches. For example `brewfather_recipe_name` will have the following extra attribute data:
-```
-other_batches:
-  - batch_id: sVFLpIADPYj612oIwnTaNX2sFgUtna
-    state: Hoppy weizen
-```
+Access your Brewfather batch notes directly in Home Assistant. Perfect for:
+- Quick reference during brew day
+- Recording observations
+- Tracking deviations from recipe
+- Sharing notes in dashboards
 
-## <a name="all-batches-data"></a>All batches data sensor (experimental)
-Enabling this will give you a extra sensor `brewfather_all_batches_data` containing all the Brewfather API data just like in v1. Take a look at the custom templates of Multiple Batch Support how to use this data. This setting is experimental because it might be dropped in the future if better multi batch support is implemented.  
-You can only enable this option by going to the Brewfather integration and clicking configure.   
-<a href="docs/images/v2/configure_options-popup.png"><img src="docs/images/v2/configure_options-popup.png" width="500"></a>  
-*In v1 this used to be enabled by default but to limit the amount of data it is now configurable and disabled by default.*  
+### Custom Stream - Receive Data from Brewfather
 
+Have devices (iSpindel, Tilt, temperature probes) connected to Brewfather? Enable Custom Stream to automatically receive their readings in Home Assistant.
 
-# Recent Improvements 🆕
+**How it works:**
+1. Your device (iSpindel, Tilt) sends data to Brewfather
+2. Brewfather streams this data to Home Assistant via Custom Stream
+3. Data appears as sensor readings in Home Assistant
+4. Monitor temperature, gravity, and fermentation progress in your dashboard
 
-## Multi-Language Support 🌍
-The integration now supports multiple languages with complete translations for:
-- **English** 🇺🇸 (Default)
-- **French** 🇫🇷 (Français) 
-- **Spanish** 🇪🇸 (Español)
-- **Dutch** 🇳🇱 (Nederlands)
-- **German** 🇩🇪 (Deutsch)
-- **Italian** 🇮🇹 (Italiano)
-- **Portuguese** 🇵🇹 (Português)
-- **Brazilian Portuguese** 🇧🇷 (Português Brasileiro)
+**Setup:**
+1. Connect your device (iSpindel, Tilt) to Brewfather
+2. Enable "Custom Stream" in Brewfather app (Settings → Power-ups)
+3. Copy the logging ID from Brewfather
+4. Enable Custom Stream in this integration's configuration
+5. Enter the logging ID
+6. Data automatically syncs every 15 minutes
 
-The interface will automatically use your Home Assistant's configured language.
+Supports temperature and gravity readings.
 
-## Enhanced User Experience 
-- **Integration Status Sensor**: Monitor connection health and custom stream status
-- **Smart Configuration**: Wizard-style setup with validation and testing
-- **Improved Error Handling**: Better error messages and troubleshooting guidance
-- **Field Descriptions**: Helpful descriptions for all configuration options
-- **URL Parsing**: Paste complete Brewfather URLs - automatic ID extraction
-- **Temperature Validation**: Real-time validation of temperature units and values
+### Experimental: Multiple Batch Support
 
-## Simplified Custom Stream
-- Removed entity attribute selection for simpler configuration
-- Direct entity state usage only
-- Enhanced validation and error reporting
+While designed for single batch operation, experimental multi-batch features are available:
+- **Multi-batch mode**: Adds `other_batches` attributes to sensors
+- **All batches data sensor**: Complete API data for all fermenting batches
+
+*Note: These features are experimental and may change in future versions.*
+
+---
+
+## ⚙️ Configuration Options
+
+Configure via Home Assistant UI (Settings → Integrations → Brewfather → Configure):
+
+### Temperature Ramping
+Enable gradual temperature increases/decreases during fermentation ramp periods. Useful for precise temperature control during multi-step fermentations.
+
+### Custom Stream
+Receive temperature/gravity data from Brewfather devices into Home Assistant. Requires:
+- Device (iSpindel, Tilt, etc.) connected to Brewfather
+- Brewfather Custom Stream logging ID
 - Automatic unit conversion and validation
 
-# Installation
-Installing using [HACS](https://hacs.xyz/) is <u>recommended</u>. It is the easiest way to install and keep your integration up to date.
+### Multiple Batch Support (Experimental)
+Track multiple fermenting batches with additional sensor attributes. Not recommended for automation purposes.
 
-## HACS installation (easy and supports automated updates)
-1. First make sure you have [HACS](https://hacs.xyz/) installed and running.
-1. Go to the HACS dashboard, search for "Brewfather" and click "DOWNLOAD"
-1. After downloading you might have to restart Home Assistant (HACS will tell you if so). After Home Assistant has restarted install the Brewfather integration by clicking <a href="https://my.home-assistant.io/redirect/integration/?domain=brewfather">here</a> or go to integrations ans search for Brewfather  
-[![Install using link](integration_install-via-link_small.png)](integration_install-via-link.png)
+### All Batches Data Sensor (Experimental)
+Creates sensor with complete API data for all batches. Useful for custom dashboards and templates.
 
-## Setup Wizard 🧙‍♂️
-The integration now features a comprehensive setup wizard:
+---
+
+## 📥 Installation
+
+### HACS Installation (Recommended)
+
+1. Make sure [HACS](https://hacs.xyz/) is installed
+2. Go to HACS → Integrations
+3. Search for "Brewfather"
+4. Click "Download"
+5. Restart Home Assistant
+6. Go to Settings → Integrations → Add Integration
+7. Search for "Brewfather"  
+Or click here: <a href="https://my.home-assistant.io/redirect/integration/?domain=brewfather">Add Brewfather Integration</a>  
+[![Add Integration](integration_install-via-link_small.png)](integration_install-via-link.png)
+
+
+
+### Manual Installation
+
+1. Copy `custom_components/brewfather` folder to your Home Assistant's `custom_components` directory
+2. Restart Home Assistant
+3. Go to Settings → Integrations → Add Integration → Brewfather
+
+---
+
+## 🧙‍♂️ Setup Wizard
 
 ### Step 1: Connection Details
-A dialog will popup containing the following fields:  
-- **Connection name**: A unique name for your Brewfather connection in Home Assistant  
-- **User ID**: Your Brewfather UserId (not email address)
-- **API-Key**: Your API key with correct scopes from Settings → API → Generate API-Key  
-[![Setup](integration_setup_small.png)](integration_setup.png)
 
-### Step 2: Choose Features  
-Select which Brewfather features to enable:
-- **Enable temperature ramping**: Adjust target temperatures during ramped fermentation steps
-- **Enable custom stream**: Automatically send temperature readings to Brewfather
-- **Multiple batch support**: Monitor multiple fermenting batches simultaneously  
-- **All batches data sensor**: Create sensor with detailed information about all batches
+Enter your Brewfather credentials:
 
-### Step 3: Custom Stream Configuration (if enabled)
-Configure automatic temperature streaming:
-- **Brewfather Logging ID or Stream URL**: Enter ID or paste complete URL from Brewfather
-- **Temperature Sensor**: Select from available temperature entities
-- Real-time validation ensures your configuration works correctly
+- **Connection name**: Friendly name for this connection (e.g., "My Brewery")
+- **User ID**: Your Brewfather User ID (found in Settings → API)
+- **API Key**: Generate from Brewfather Settings → API → Generate API Key
 
-1. The integration will test your connection and if everything succeeded, Brewfather is now connected to your Home Assistant instance!  
+**Required API Scope:** `batches:read`
+
+[![Setup Screen](integration_setup_small.png)](integration_setup.png)
+
+### Step 2: Choose Features
+
+Select which features to enable:
+- ☑️ **Temperature ramping** - Gradual temp changes during ramps
+- ☑️ **Custom stream** - Receive data from Brewfather devices  
+- ☐ **Multiple batch support** - Experimental multi-batch tracking
+- ☐ **All batches data sensor** - Complete API data sensor
+
+### Step 3: Custom Stream Setup (if enabled)
+
+Configure Brewfather-to-Home Assistant streaming:
+- **Logging ID or Stream URL**: From Brewfather Custom Stream settings
+- Integration receives data from devices connected to Brewfather (iSpindel, Tilt, etc.)
+
+The integration validates your configuration and tests the connection.
+
 [![Success](integration_success_small.png)](integration_success.png)
 
-## Manual installation (not recommended)
-Copy the `custom_components/brewfather` folder and all of its contents into your Home Assistant's custom_components folder. This folder is usually inside your `/config` folder. If you are running Hass.io, use SAMBA to copy the folder over. If you are running Home Assistant Supervised, the custom_components folder might be located at `/usr/share/hassio/homeassistant`. You may need to create the `custom_components` folder and then copy the brewfather folder and all of its contents into it.
+---
 
-## Creating a Brewfather API-Key  
-To create a Brewfather API-key follow the documentation on [Brewfather - docs](https://docs.brewfather.app/api#generate-api-key). Make sure to give the API-key at least the "Read Batches" [scope](https://docs.brewfather.app/api#scopes).
+## 🌍 Multi-Language Support
 
-# Upgrading from v1 to v2 - breaking changes!
-All sensors are renamed so there are some breaking changes. Please take a look at the [upgrade docs](docs/v1-to-v2.md).
+Full translation support for:
+- 🇺🇸 English (Default)
+- 🇫🇷 Français (French)
+- 🇪🇸 Español (Spanish)
+- 🇳🇱 Nederlands (Dutch)
+- 🇩🇪 Deutsch (German)
+- 🇮🇹 Italiano (Italian)
+- 🇵🇹 Português (Portuguese)
+- 🇧🇷 Português Brasileiro (Brazilian Portuguese)
+
+The interface automatically uses your Home Assistant language setting.
+
+---
+
+## 📚 Creating Brewfather API Key
+
+1. Open Brewfather app or web interface
+2. Go to **Settings** → **API**
+3. Click **Generate API Key**
+4. Give it a name (e.g., "Home Assistant")
+5. Select scope: **Read Batches** (minimum required)
+6. Copy the generated User ID and API Key
+
+[Official Brewfather API Documentation](https://docs.brewfather.app/api)
+
+---
+
+## ⬆️ Upgrading from v1 to v2
+
+**Important: Breaking changes!** All sensors have been renamed.
+
+### What Changed:
+- Sensor entity IDs now use `brewfather_` prefix
+- Integration status sensor added
+- Improved error handling and validation
+- Multi-language support
+
+### Migration Steps:
+1. **Before upgrading:** Note which automations/dashboards use Brewfather sensors
+2. **Upgrade** via HACS
+3. **Update entity IDs** in your automations and dashboards:
+   - Old: `sensor.recipe_name` → New: `sensor.brewfather_recipe_name`
+   - Old: `sensor.target_temperature` → New: `sensor.brewfather_target_temperature`
+4. **Test** your automations
+
+[Full v1 to v2 Migration Guide](docs/v1-to-v2.md)
+
+---
+
+## 🤝 Support
+
+Found a bug? Have a feature request?
+
+- **Issues**: [GitHub Issues](https://github.com/MvdDonk/Brewfather/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/MvdDonk/Brewfather/discussions)
+
+Enjoying this integration? <a href="https://www.buymeacoffee.com/mvddonk">Buy me a beer! 🍺</a>
+
+---
+
+**Happy Brewing! 🍻**

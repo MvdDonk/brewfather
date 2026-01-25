@@ -5,42 +5,6 @@ views:
         cards:
           - type: vertical-stack
             cards:
-              - type: entities
-                title: 🍺 Current Batch
-                show_header_toggle: false
-                state_color: true
-                entities:
-                  - entity: sensor.brewfather_recipe_name
-                    name: Recipe
-                    icon: mdi:glass-mug-variant
-                  - entity: sensor.brewfather_integration_status
-                    name: Integration Status
-                    icon: mdi:api
-                    secondary_info: last-changed
-                  - type: divider
-              - type: horizontal-stack
-                cards:
-                  - type: gauge
-                    entity: climate.fermentation_chamber
-                    name: Fermentation Chamber
-                    min: 0
-                    max: 30
-                    severity:
-                      green: 18
-                      yellow: 15
-                      red: 0
-                    needle: true
-                    attribute: current_temperature
-                  - type: gauge
-                    entity: sensor.brewfather_target_temperature
-                    name: Target Temp
-                    min: 0
-                    max: 30
-                    severity:
-                      green: 0
-                      yellow: 25
-                      red: 28
-                    needle: true
               - type: vertical-stack
                 cards:
                   - type: markdown
@@ -67,17 +31,40 @@ views:
 
 
                       ---
+              - type: horizontal-stack
+                cards:
+                  - type: gauge
+                    entity: climate.fermentation_chamber
+                    name: Fermentation Chamber
+                    min: 0
+                    max: 30
+                    severity:
+                      green: 18
+                      yellow: 15
+                      red: 0
+                    needle: true
+                    attribute: current_temperature
+                  - type: gauge
+                    entity: sensor.brewfather_target_temperature
+                    name: Target Temp
+                    min: 0
+                    max: 30
+                    severity:
+                      green: 0
+                      yellow: 25
+                      red: 28
+                    needle: true
               - type: history-graph
                 title: 📈 Fermentation History
                 hours_to_show: 168
                 refresh_interval: 0
                 entities:
+                  - entity: sensor.inkbird_gemeten_temperatuur
+                    name: Actual Temperature
                   - entity: sensor.brewfather_target_temperature
                     name: Target Temperature
-                  - entity: climate.fermentation_chamber
-                    name: Actual Temperature
-                  - entity: sensor.brewfather_last_reading
-                    name: Gravity (SG)
+                logarithmic_scale: false
+                fit_y_data: false
               - type: markdown
                 title: 📝 Batch Notes
                 content: >
@@ -85,6 +72,10 @@ views:
                   \n') if states('sensor.brewfather_batch_notes') !=
                   'unavailable' and states('sensor.brewfather_batch_notes') !=
                   'unknown' else '*No batch notes available*' }}
+      - type: grid
+        cards:
+          - type: vertical-stack
+            cards:
               - type: calendar
                 title: 📅 Upcoming Brew Events
                 entities:
@@ -130,17 +121,15 @@ views:
                   - type: button
                     name: Sync Temperature Now
                     icon: mdi:sync
-                    action_url: /config/automation
                     tap_action:
                       action: call-service
                       service: automation.trigger
                       service_data:
                         entity_id: automation.brewfather_sync_fermentation_temperature
-                  - type: attribute
-                    entity: sensor.brewfather_recipe_name
-                    attribute: batch_id
-                    name: Batch ID
-                    icon: mdi:identifier
+                  - entity: sensor.brewfather_integration_status
+                    name: Integration Status
+                    icon: mdi:api
+                    secondary_info: last-changed
               - type: markdown
                 content: >
                   <ha-alert alert-type="{% if
@@ -159,10 +148,17 @@ views:
 
                   ⚠️ **Temperature Mismatch** - Target: {{
                   states('sensor.brewfather_target_temperature') }}°C | Chamber:
-                  {{
-                  states.climate.fermentation_chamber.attributes.temperature
-                  }}°C
+                  {{ states.climate.fermentation_chamber }}°C
 
                   {% endif %}
 
                   </ha-alert>
+    header:
+      card:
+        type: markdown
+        content: |
+          # 🍺 Current Batch: **{{states('sensor.brewfather_recipe_name')}}**
+        text_only: true
+    type: sections
+    max_columns: 2
+    cards: []

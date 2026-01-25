@@ -128,7 +128,7 @@ async def async_setup_entry(
                 key="target_temperature",
                 name="Target temperature",
                 icon="mdi:thermometer",
-                #native_unit_of_measurement=UnitOfTemperature.CELSIUS, #Should we support fahrenheit?
+                native_unit_of_measurement=UnitOfTemperature.CELSIUS,
                 device_class=SensorDeviceClass.TEMPERATURE,
                 state_class=SensorStateClass.MEASUREMENT,
             )
