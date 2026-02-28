@@ -78,6 +78,14 @@ class BrewfatherStatusSensor(CoordinatorEntity, SensorEntity):
                     unit = entity.attributes.get("unit_of_measurement", "°C")
                     attrs["temperature_entity"] = f"🌡️ {entity_name} ({unit})"
                     attrs["last_temperature"] = f"{entity.state}{unit}"
+            
+            # Add gravity info if configured
+            gravity_entity_name = self._entry.data.get("custom_stream_gravity_entity_name")
+            if gravity_entity_name:
+                gravity_entity = self.hass.states.get(gravity_entity_name)
+                if gravity_entity:
+                    attrs["gravity_entity"] = f"🍺 {gravity_entity_name}"
+                    attrs["last_gravity"] = f"{gravity_entity.state}"
         else:
             attrs["custom_stream"] = "⚪ Disabled"
             
