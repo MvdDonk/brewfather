@@ -37,11 +37,13 @@
         "description": "Configure automatic temperature streaming from Home Assistant to Brewfather for real-time monitoring.",
         "data": {
           "custom_stream_logging_id": "Brewfather Logging ID or Stream URL",
-          "custom_stream_temperature_entity_name": "Temperature Sensor"
+          "custom_stream_temperature_entity_name": "Temperature Sensor",
+          "custom_stream_gravity_entity_name": "Specific Gravity Sensor (Optional)"
         },
         "data_description": {
           "custom_stream_logging_id": "Enter your logging ID or paste the complete stream URL from Brewfather",
-          "custom_stream_temperature_entity_name": "Select the temperature sensor to stream to Brewfather"
+          "custom_stream_temperature_entity_name": "Select the temperature sensor to stream to Brewfather",
+          "custom_stream_gravity_entity_name": "Select the specific gravity sensor (e.g., from hydrometer) to stream to Brewfather"
         }
       }
     },
@@ -51,7 +53,7 @@
       "invalid_api_key": "Unable to authenticate with given credentials.",
       "unknown": "Something went wrong, please check the log files.",
       "invalid_entity": "Selected entity is not valid or unavailable",
-      "unsupported_temperature_unit": "Temperature sensor must use Celsius (°C), Fahrenheit (°F), or Kelvin (K)",
+      "unsupported_temperature_unit": "Temperature sensor must use Celsius (\u00b0C), Fahrenheit (\u00b0F), or Kelvin (K)",
       "invalid_logging_id": "Invalid logging ID format",
       "custom_stream_test_failed": "Connection test failed, please verify your settings"
     },
@@ -89,11 +91,13 @@
         "description": "Configure automatic temperature streaming from Home Assistant to Brewfather for real-time monitoring.",
         "data": {
           "custom_stream_logging_id": "Brewfather Logging ID or Stream URL",
-          "custom_stream_temperature_entity_name": "Temperature Sensor"
+          "custom_stream_temperature_entity_name": "Temperature Sensor",
+          "custom_stream_gravity_entity_name": "Specific Gravity Sensor (Optional)"
         },
         "data_description": {
           "custom_stream_logging_id": "Enter your logging ID or paste the complete stream URL from Brewfather",
-          "custom_stream_temperature_entity_name": "Select the temperature sensor to stream to Brewfather"
+          "custom_stream_temperature_entity_name": "Select the temperature sensor to stream to Brewfather",
+          "custom_stream_gravity_entity_name": "Select the specific gravity sensor (e.g., from hydrometer) to stream to Brewfather"
         }
       }
     },
@@ -101,7 +105,7 @@
       "invalid_logging_id": "Invalid logging ID format",
       "entity_required": "Entity name is required",
       "entity_not_found": "Unable to find entity with given name or entity does not have a valid numeric value",
-      "unsupported_temperature_unit": "Entity must report temperature in Celsius (°C), Fahrenheit (°F), or Kelvin (K)",
+      "unsupported_temperature_unit": "Entity must report temperature in Celsius (\u00b0C), Fahrenheit (\u00b0F), or Kelvin (K)",
       "unknown": "Something went wrong, please check the log files."
     }
   }
