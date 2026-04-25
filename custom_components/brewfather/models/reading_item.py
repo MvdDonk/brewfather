@@ -65,8 +65,9 @@ class Reading:
     type: Optional[str]
     battery: Optional[float]
     comment: Optional[str]
+    pressure: Optional[float]
 
-    def __init__(self, rssi: Optional[int], temp: Optional[float], sg: Optional[float], angle: Optional[float], time: Optional[int], id: Optional[str], type: Optional[str], battery: Optional[float], comment: Optional[str]) -> None:
+    def __init__(self, rssi: Optional[int], temp: Optional[float], sg: Optional[float], angle: Optional[float], time: Optional[int], id: Optional[str], type: Optional[str], battery: Optional[float], comment: Optional[str], pressure: Optional[float] = None) -> None:
         self.rssi = rssi
         self.temp = temp
         self.sg = sg
@@ -76,6 +77,7 @@ class Reading:
         self.type = type
         self.battery = battery
         self.comment = comment
+        self.pressure = pressure
 
     @staticmethod
     def from_dict(obj: Any) -> 'Reading':
@@ -89,7 +91,8 @@ class Reading:
         type = from_union([from_str, from_none], obj.get("type"))
         battery = from_union([from_float, from_none], obj.get("battery"))
         comment = from_union([from_str, from_none], obj.get("comment"))
-        return Reading(rssi, temp, sg, angle, time, id, type, battery, comment)
+        pressure = from_union([from_float, from_none], obj.get("pressure"))
+        return Reading(rssi, temp, sg, angle, time, id, type, battery, comment, pressure)
 
     def to_dict(self) -> dict:
         result: dict = {}
@@ -110,7 +113,9 @@ class Reading:
         if self.battery is not None:
             result["battery"] = from_union([to_float, from_none], self.battery)
         if self.comment is not None:
-            result["comment"] = from_union([from_str, from_none], self.comment)
+            result["comment"] = from_union([from_str, from_none], self.comment)        
+        if self.pressure is not None:
+            result["pressure"] = from_union([to_float, from_none], self.pressure)        
         return result
 
 

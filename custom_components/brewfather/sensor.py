@@ -233,7 +233,7 @@ async def async_setup_entry(
             )
         )
     )
-  
+
     async_add_entities(sensors, update_before_add=False)
 
 
@@ -384,17 +384,20 @@ class BrewfatherSensor(CoordinatorEntity[BrewfatherCoordinator], SensorEntity):
                 custom_attributes["temp"] = data.last_reading.temp
                 custom_attributes["time_ms"] = data.last_reading.time
                 custom_attributes["time"] = datetime.fromtimestamp(data.last_reading.time / 1000, timezone.utc)
+                custom_attributes["pressure"] = data.last_reading.pressure
                 
                 other_batches_data = []
                 for other_batch_data in data.other_batches:
-                    other_batches_data.append({
+                    entry = {
                         "state": other_batch_data.last_reading.sg,
                         "batch_id": other_batch_data.batch_id,
                         "angle": other_batch_data.last_reading.angle,
                         "temp": other_batch_data.last_reading.temp,
                         "time_ms": other_batch_data.last_reading.time,
-                        "time": datetime.fromtimestamp(data.last_reading.time / 1000, timezone.utc)
-                    })
+                        "time": datetime.fromtimestamp(data.last_reading.time / 1000, timezone.utc),
+                        "pressure": other_batch_data.last_reading.pressure,
+                    }
+                    other_batches_data.append(entry)
                     
                 if len(other_batches_data)  > 0:
                     custom_attributes["other_batches"] = other_batches_data
