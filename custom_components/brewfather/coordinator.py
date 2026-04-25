@@ -25,7 +25,8 @@ from .const import (
     CONF_ALL_BATCH_INFO_SENSOR,
     CONF_CUSTOM_STREAM_ENABLED,
     CONF_CUSTOM_STREAM_LOGGING_ID,
-    CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_NAME
+    CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_NAME,
+    CONF_CUSTOM_STREAM_GRAVITY_ENTITY_NAME
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -88,6 +89,8 @@ class BrewfatherCoordinator(DataUpdateCoordinator[BrewfatherCoordinatorData]):
             self.custom_stream_logging_id = entry.data.get(CONF_CUSTOM_STREAM_LOGGING_ID, None)
 
             self.custom_stream_temperature_entity_name = entry.data.get(CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_NAME, None)
+            
+            self.custom_stream_gravity_entity_name = entry.data.get(CONF_CUSTOM_STREAM_GRAVITY_ENTITY_NAME, None)
 
         super().__init__(hass, _LOGGER, name=DOMAIN, update_interval=update_interval)
 
@@ -349,5 +352,18 @@ class BrewfatherCoordinator(DataUpdateCoordinator[BrewfatherCoordinatorData]):
         except (ValueError, TypeError) as ex:
             _LOGGER.warning("Unable to convert temperature value '%s' to float: %s", temp_value, str(ex))
             return None
+
+        # Get gravity if configured
+        gravity_entity_name = getattr(self, 'custom_stream_gravity_entity_name', None)
+        if gravity_entity_name:
+            gravity_entity = self.hass.states.get(gravity_entity_name)
+            if gravity_entity is not None:
+                try:
+                    gravity_value = gravity_entity.state
+                    if gravity_value is not None and gravity_value != STATE_UNKNOWN and gravity_value != STATE_UNAVAILABLE:
+                        stream_data.gravity = float(gravity_value)
+                        _LOGGER.debug("Posting gravity data: %s", stream_data.gravity)
+                except (ValueError, TypeError) as ex:
+                    _LOGGER.warning("Unable to convert gravity value '%s' to float: %s", gravity_value, str(ex))
 
         return stream_data

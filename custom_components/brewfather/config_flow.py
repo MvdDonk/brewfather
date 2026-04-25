@@ -17,6 +17,7 @@ from .const import (
     CONF_CUSTOM_STREAM_ENABLED,
     CONF_CUSTOM_STREAM_LOGGING_ID,
     CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_NAME,
+    CONF_CUSTOM_STREAM_GRAVITY_ENTITY_NAME,
 )
 from .connection import (
     Connection,
@@ -57,6 +58,11 @@ OPTIONS_CUSTOM_STREAM_SCHEMA = vol.Schema(
             selector.EntitySelectorConfig(
                 domain=["sensor", "climate", "number"],
                 device_class=["temperature"]
+            )
+        ),
+        vol.Optional(CONF_CUSTOM_STREAM_GRAVITY_ENTITY_NAME): selector.EntitySelector(
+            selector.EntitySelectorConfig(
+                domain=["sensor"]
             )
         ),
     }
@@ -232,6 +238,23 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             elif not validate_temperature_unit(entity):
                 errors[CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_NAME] = "unsupported_temperature_unit"
 
+        # Validate gravity entity (optional)
+        gravity_entity_name = user_input.get(CONF_CUSTOM_STREAM_GRAVITY_ENTITY_NAME)
+        if gravity_entity_name:
+            gravity_entity = self.hass.states.get(gravity_entity_name)
+            if gravity_entity is None:
+                errors[CONF_CUSTOM_STREAM_GRAVITY_ENTITY_NAME] = "invalid_entity"
+            else:
+                # Validate that gravity entity has a numeric value
+                try:
+                    gravity_value = gravity_entity.state
+                    if gravity_value in ("unknown", "unavailable", None, ""):
+                        errors[CONF_CUSTOM_STREAM_GRAVITY_ENTITY_NAME] = "invalid_entity"
+                    else:
+                        float(gravity_value)
+                except (ValueError, TypeError):
+                    errors[CONF_CUSTOM_STREAM_GRAVITY_ENTITY_NAME] = "invalid_entity"
+
         # Validate logging ID
         logging_id = user_input.get(CONF_CUSTOM_STREAM_LOGGING_ID)
         if logging_id:
@@ -250,6 +273,8 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             final_config = self.config_data.copy()
             final_config[CONF_CUSTOM_STREAM_LOGGING_ID] = extract_logging_id_from_url(logging_id)
             final_config[CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_NAME] = entity_name
+            if gravity_entity_name:
+                final_config[CONF_CUSTOM_STREAM_GRAVITY_ENTITY_NAME] = gravity_entity_name
 
             return self.async_create_entry(title=final_config[CONF_NAME], data=final_config)
 
@@ -462,6 +487,26 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
         if not temp_unit_valid:
             return self._show_custom_stream_form(user_input, errors)
 
+        # Validate gravity entity (optional)
+        gravity_entity_name = user_input.get(CONF_CUSTOM_STREAM_GRAVITY_ENTITY_NAME)
+        if gravity_entity_name:
+            gravity_entity = self.hass.states.get(gravity_entity_name)
+            if gravity_entity is None:
+                errors[CONF_CUSTOM_STREAM_GRAVITY_ENTITY_NAME] = "entity_not_found"
+                return self._show_custom_stream_form(user_input, errors)
+            
+            # Validate that gravity entity has a numeric value
+            try:
+                gravity_value = gravity_entity.state
+                if gravity_value in ("unknown", "unavailable", None, ""):
+                    errors[CONF_CUSTOM_STREAM_GRAVITY_ENTITY_NAME] = "entity_not_found"
+                    return self._show_custom_stream_form(user_input, errors)
+                else:
+                    float(gravity_value)
+            except (ValueError, TypeError):
+                errors[CONF_CUSTOM_STREAM_GRAVITY_ENTITY_NAME] = "entity_not_found"
+                return self._show_custom_stream_form(user_input, errors)
+
         # Validate logging ID
         logging_id = user_input.get(CONF_CUSTOM_STREAM_LOGGING_ID)
         extracted_logging_id, logging_valid, logging_errors = await self._validate_logging_id(logging_id)
@@ -474,6 +519,8 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
         new_config = self.init_info.copy()
         new_config[CONF_CUSTOM_STREAM_LOGGING_ID] = extracted_logging_id
         new_config[CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_NAME] = entity_name
+        if gravity_entity_name:
+            new_config[CONF_CUSTOM_STREAM_GRAVITY_ENTITY_NAME] = gravity_entity_name
 
         self.hass.config_entries.async_update_entry(
             self.config_entry, data=new_config, options=self.config_entry.options

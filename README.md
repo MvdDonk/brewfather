@@ -42,12 +42,12 @@ Track your batch progress with real-time sensors:
 - Recipe name and batch number
 
 ### 🔄 Custom Stream Integration
-Receive data FROM Brewfather INTO Home Assistant:
-- Temperature readings from devices attached to Brewfather (iSpindel, Tilt, etc.)
-- Gravity readings from connected sensors
-- Real-time fermentation data
+Send data FROM Home Assistant TO Brewfather:
+- Temperature readings from any Home Assistant sensor
+- Specific gravity readings from hydrometers (RAPT Pill, Tilt, iSpindel, etc.)
+- Real-time fermentation monitoring in Brewfather app
 
-Perfect for brewers with external devices (iSpindel, Tilt) connected to Brewfather who want to monitor their data in Home Assistant.
+Perfect for brewers with Home Assistant-connected sensors who want to log their fermentation data to Brewfather's cloud.
 
 ### 📝 Batch Notes & History
 Access your brewing notes and track historical data directly in Home Assistant.
@@ -137,25 +137,24 @@ Access your Brewfather batch notes directly in Home Assistant. Perfect for:
 - Tracking deviations from recipe
 - Sharing notes in dashboards
 
-### Custom Stream - Receive Data from Brewfather
+### Custom Stream - Send Data to Brewfather
 
-Have devices (iSpindel, Tilt, temperature probes) connected to Brewfather? Enable Custom Stream to automatically receive their readings in Home Assistant.
+Send temperature and gravity readings from Home Assistant sensors to Brewfather for real-time monitoring.
 
 **How it works:**
-1. Your device (iSpindel, Tilt) sends data to Brewfather
-2. Brewfather streams this data to Home Assistant via Custom Stream
-3. Data appears as sensor readings in Home Assistant
-4. Monitor temperature, gravity, and fermentation progress in your dashboard
+1. Configure temperature sensor (required) and gravity sensor (optional) in Home Assistant
+2. Integration automatically sends readings to Brewfather every 15 minutes
+3. Data appears in your Brewfather batch monitoring
+4. Monitor fermentation progress from anywhere using Brewfather app
 
 **Setup:**
-1. Connect your device (iSpindel, Tilt) to Brewfather
-2. Enable "Custom Stream" in Brewfather app (Settings → Power-ups)
-3. Copy the logging ID from Brewfather
-4. Enable Custom Stream in this integration's configuration
-5. Enter the logging ID
-6. Data automatically syncs every 15 minutes
+1. Enable "Custom Stream" in this integration's configuration
+2. Get the logging ID from Brewfather app (Batch → Settings → Logging → Custom Stream)
+3. Configure your temperature sensor entity (e.g., `sensor.fermentation_temperature`)
+4. Optionally configure your gravity sensor entity (e.g., `sensor.rapt_orangeboy_specific_gravity`)
+5. Data automatically syncs every 15 minutes
 
-Supports temperature and gravity readings.
+Supports temperature (required) and specific gravity (optional) readings from any Home Assistant sensor, including hydrometers like RAPT Pill, Tilt, iSpindel, and more.
 
 ### Experimental: Multiple Batch Support
 
@@ -175,10 +174,13 @@ Configure via Home Assistant UI (Settings → Integrations → Brewfather → Co
 Enable gradual temperature increases/decreases during fermentation ramp periods. Useful for precise temperature control during multi-step fermentations.
 
 ### Custom Stream
-Receive temperature/gravity data from Brewfather devices into Home Assistant. Requires:
-- Device (iSpindel, Tilt, etc.) connected to Brewfather
+Send temperature and gravity data from Home Assistant sensors to Brewfather. Requires:
+- Temperature sensor entity (required)
+- Specific gravity sensor entity (optional, for hydrometers)
 - Brewfather Custom Stream logging ID
 - Automatic unit conversion and validation
+
+Perfect for integrating external sensors like RAPT Pill, Tilt, iSpindel, or any Home Assistant-connected temperature/gravity sensors with Brewfather's cloud logging.
 
 ### Multiple Batch Support (Experimental)
 Track multiple fermenting batches with additional sensor attributes. Not recommended for automation purposes.

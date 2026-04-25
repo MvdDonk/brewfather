@@ -4,7 +4,7 @@ This document provides detailed information about setting up and using the Custo
 
 ## Overview
 
-The Custom Stream feature allows you to automatically send temperature data from Home Assistant sensors to Brewfather's logging system. This enables you to use external temperature sensors (like IoT devices, smart thermometers, etc.) to monitor your fermentation process directly in the Brewfather app.
+The Custom Stream feature allows you to automatically send temperature and gravity data from Home Assistant sensors to Brewfather's logging system. This enables you to use external sensors (like IoT devices, smart thermometers, hydrometers, etc.) to monitor your fermentation process directly in the Brewfather app.
 
 ## Prerequisites
 
@@ -38,6 +38,20 @@ sensor.fermzilla_temp
 sensor.tilt_hydrometer  (if using attribute like 'temperature')
 ```
 
+### Step 2b: Identify Specific Gravity Sensor (Optional)
+
+If you have a hydrometer or gravity sensor, you can optionally configure it to send specific gravity readings:
+
+- **Entity ID**: Full entity name (e.g., `sensor.rapt_orangeboy_specific_gravity`)
+- **Entity State**: The main value should be numeric specific gravity (e.g., 1.050)
+
+Example entities:
+```
+sensor.rapt_orangeboy_specific_gravity
+sensor.tilt_hydrometer_gravity
+sensor.ispindel_gravity
+```
+
 ### Step 3: Configure in Home Assistant
 
 1. Go to Settings → Devices & Services
@@ -47,45 +61,47 @@ sensor.tilt_hydrometer  (if using attribute like 'temperature')
 5. Click Submit to proceed to custom stream configuration
 6. Fill in the form:
    - **BrewFathers logging-id**: Enter your logging ID from Step 1
-   - **Full entity name for temperature**: Enter complete entity ID from Step 2  
-   - **Attribute name** (optional): Leave blank unless using an attribute
+   - **Temperature Sensor**: Select your temperature sensor entity from Step 2  
+   - **Specific Gravity Sensor (Optional)**: Select your gravity sensor entity from Step 2b (leave empty if not using)
 
 ### Step 4: Validation
 
 The integration will validate your configuration:
 - Tests connection to Brewfather Custom Stream endpoint
-- Verifies the entity exists and has a valid numeric temperature value
-- Confirms attribute exists (if specified) and contains numeric data
+- Verifies the temperature entity exists and has a valid numeric temperature value
+- Verifies the gravity entity exists and has a valid numeric value (if specified)
 
 ## Configuration Examples
 
 ### Example 1: Basic Temperature Sensor
 ```
-Entity: sensor.fermentation_temperature
+Temperature Entity: sensor.fermentation_temperature
 Entity value: 20.5
-Attribute: (leave empty)
+Gravity Entity: (leave empty)
 ```
 
-### Example 2: Multi-sensor Device
+### Example 2: Temperature + Hydrometer
 ```
-Entity: sensor.tilt_hydrometer
-Entity attributes: { temperature: 19.8, specific_gravity: 1.020 }
-Attribute: temperature
+Temperature Entity: sensor.fermentation_chamber_temperature
+Entity value: 19.8
+Gravity Entity: sensor.rapt_orangeboy_specific_gravity
+Entity value: 1.045
 ```
 
-### Example 3: Smart Thermometer
+### Example 3: Tilt Hydrometer (Combined sensor)
 ```
-Entity: sensor.inkbird_308_temperature  
+Temperature Entity: sensor.tilt_orange_temperature  
 Entity value: 21.2
-Attribute: (leave empty)
+Gravity Entity: sensor.tilt_orange_specific_gravity
+Entity value: 1.020
 ```
 
 ## Data Flow
 
-1. **Collection**: Home Assistant reads temperature from your specified entity every 15 minutes (default update interval)
-2. **Conversion**: Temperature value is converted to Celsius and prepared for transmission
+1. **Collection**: Home Assistant reads temperature and gravity (if configured) from your specified entities every 15 minutes (default update interval)
+2. **Conversion**: Temperature value is converted to appropriate unit and prepared for transmission
 3. **Transmission**: Data is posted to Brewfather's Custom Stream endpoint
-4. **Display**: Temperature appears in your Brewfather batch monitoring
+4. **Display**: Temperature and gravity appear in your Brewfather batch monitoring
 
 ## Troubleshooting
 
@@ -99,18 +115,18 @@ Attribute: (leave empty)
   - Ensure your Brewfather API credentials have proper permissions
 
 #### "Entity not found" or "Entity does not have a valid numeric value"
-- **Problem**: The specified entity doesn't exist or doesn't provide numeric temperature data
+- **Problem**: The specified entity doesn't exist or doesn't provide numeric data
 - **Solution**:
   - Check the entity ID spelling and ensure it exists in Home Assistant
   - Verify the entity's current state contains a number (not "unknown" or "unavailable")
   - Use Developer Tools → States to inspect your entity
 
-#### "Attribute not found" or "Attribute does not have a valid numeric value"  
-- **Problem**: The specified attribute doesn't exist or isn't numeric
+#### "Gravity sensor unavailable"
+- **Problem**: The gravity sensor entity is unavailable or returning invalid data
 - **Solution**:
-  - Use Developer Tools → States to inspect entity attributes
-  - Verify attribute name spelling
-  - Ensure the attribute contains a numeric temperature value
+  - Verify your hydrometer/gravity sensor is online and functioning
+  - Check that the entity state is a valid numeric gravity value (e.g., 1.050)
+  - If not using a gravity sensor, leave the field empty during configuration
 
 #### "Failed to post custom stream data"
 - **Problem**: Data transmission to Brewfather failed
@@ -141,10 +157,10 @@ Attribute: (leave empty)
 
 ## Limitations
 
-- Temperature data is sent every 15 minutes (matches integration update interval)
-- Only temperature data is currently supported (not gravity, pH, etc.)
+- Temperature and gravity data are sent every 15 minutes (matches integration update interval)
+- Temperature is required; gravity is optional
 - Requires active internet connection for data transmission
-- Entity must provide numeric temperature values (strings like "20.5" are converted automatically)
+- Entity must provide numeric values (strings like "20.5" or "1.045" are converted automatically)
 
 ## Advanced Configuration
 
@@ -154,11 +170,11 @@ The integration updates every 15 minutes by default. This cannot be changed thro
 
 ### Multiple Temperature Sensors
 
-Currently, only one temperature sensor per integration instance is supported. For multiple sensors, you would need multiple Brewfather batch configurations with different logging IDs.
+Currently, only one temperature sensor and one gravity sensor per integration instance are supported. For multiple sensors, you would need multiple Brewfather batch configurations with different logging IDs.
 
 ### Temperature Unit Conversion
 
-All temperatures are sent to Brewfather in Celsius. The integration automatically handles this conversion, so your Home Assistant sensors can be in any unit.
+All temperatures are sent to Brewfather with appropriate unit labels. The integration automatically handles temperature units (Celsius, Fahrenheit, Kelvin), so your Home Assistant sensors can use any supported temperature unit.
 
 ## Support
 
