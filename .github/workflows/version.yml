@@ -1,0 +1,44 @@
+name: Create Version Tag
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+
+jobs:
+  tag-release:
+    name: Tag ${{ github.ref_name == 'main' && 'release' || 'prerelease' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Create version tag
+        env:
+          CHANNEL: ${{ github.ref_name == 'main' && 'release' || 'prerelease' }}
+        run: |
+          TIMESTAMP=$(date -u +"%Y%m%d-%H%M%S")
+          TAG_NAME="version/${CHANNEL}/${TIMESTAMP}"
+
+          TAG_MESSAGE="${CHANNEL} version
+
+          Commit: ${{ github.sha }}
+          Tagged: $(date -u +"%Y-%m-%d %H:%M:%S UTC")
+          Workflow: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          Branch: ${{ github.ref_name }}
+          Trigger: ${{ github.event_name }}"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git tag -a "$TAG_NAME" -m "$TAG_MESSAGE"
+          git push origin "$TAG_NAME"
+
+          echo "tag_name=${TAG_NAME}" >> $GITHUB_OUTPUT
+          echo "Tag created: ${TAG_NAME}"
