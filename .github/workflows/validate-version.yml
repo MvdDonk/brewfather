@@ -22,8 +22,8 @@ jobs:
           VERSION=$(jq -r '.version' custom_components/brewfather/manifest.json)
           [[ "$VERSION" != v* ]] && VERSION="v${VERSION}"
 
-          if git ls-remote --tags origin "refs/tags/${VERSION}" | grep -q "${VERSION}"; then
-            echo "::error::Version ${VERSION} already exists. Bump the version in manifest.json before merging."
+          if git ls-remote --tags origin | grep -E "refs/tags/${VERSION}(\.|$|-)" | grep -q "${VERSION}"; then
+            echo "::error::Version ${VERSION} already exists (including pre-release or patch versions). Bump the version in manifest.json before merging."
             exit 1
           fi
 
