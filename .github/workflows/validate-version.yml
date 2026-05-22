@@ -1,0 +1,30 @@
+name: Validate Version
+
+on:
+  pull_request:
+    branches:
+      - main
+      - develop
+
+jobs:
+  validate-version:
+    name: Check version is unique
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check version not already tagged
+        run: |
+          VERSION=$(jq -r '.version' custom_components/brewfather/manifest.json)
+          [[ "$VERSION" != v* ]] && VERSION="v${VERSION}"
+
+          if git ls-remote --tags origin "refs/tags/${VERSION}" | grep -q "${VERSION}"; then
+            echo "::error::Version ${VERSION} already exists. Bump the version in manifest.json before merging."
+            exit 1
+          fi
+
+          echo "Version ${VERSION} is unique — OK"
