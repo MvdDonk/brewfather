@@ -188,6 +188,31 @@ Track multiple fermenting batches with additional sensor attributes. Not recomme
 ### All Batches Data Sensor (Experimental)
 Creates sensor with complete API data for all batches. Useful for custom dashboards and templates.
 
+### Local Simulation Mode
+Test this integration locally without calling Brewfather's API by enabling simulation mode.
+
+When enabled, the integration:
+- Skips credential and custom stream API validation
+- Uses built-in sample payloads from `testdata.py`
+- Reports `simulated` as the integration status
+
+Enable it with environment variable `BREWFATHER_SIMULATION=true`.
+
+Examples:
+
+Docker Compose:
+```yaml
+services:
+  homeassistant:
+    environment:
+      - BREWFATHER_SIMULATION=true
+```
+
+Home Assistant OS / Supervised:
+- Add `BREWFATHER_SIMULATION=true` to the Home Assistant container environment (via your add-on/container management method).
+
+After changing environment variables, restart Home Assistant.
+
 ---
 
 ## 📥 Installation

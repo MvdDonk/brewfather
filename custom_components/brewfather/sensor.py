@@ -19,7 +19,8 @@ from .coordinator import BrewfatherCoordinator, BrewfatherCoordinatorData
 from .const import (
     DOMAIN,
     COORDINATOR,
-    CONF_ALL_BATCH_INFO_SENSOR
+    CONF_ALL_BATCH_INFO_SENSOR,
+    SIMULATION_MODE,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -54,6 +55,8 @@ class BrewfatherStatusSensor(CoordinatorEntity, SensorEntity):
     @property
     def native_value(self) -> str:
         """Return the native value of the sensor."""
+        if SIMULATION_MODE:
+            return "simulated"
         if not self.coordinator.last_update_success:
             return "disconnected"
         elif self._entry.data.get("custom_stream_enabled", False):
@@ -151,7 +154,7 @@ async def async_setup_entry(
                 key="upcoming_target_temperature",
                 name="Upcoming target temperature",
                 icon="mdi:thermometer-chevron-up",
-                native_unit_of_measurement=UnitOfTemperature.CELSIUS, #Should we support fahrenheit?
+                native_unit_of_measurement=UnitOfTemperature.CELSIUS,
                 device_class=SensorDeviceClass.TEMPERATURE,
             )
         )
