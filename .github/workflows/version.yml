@@ -19,14 +19,26 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Read version from manifest
+        id: version
+        run: |
+          VERSION=$(jq -r '.version' custom_components/brewfather/manifest.json)
+          [[ "$VERSION" != v* ]] && VERSION="v${VERSION}"
+
+          if [[ "${{ github.ref_name }}" == "main" ]]; then
+            TAG_NAME="${VERSION}"
+          else
+            TIMESTAMP=$(date -u +"%Y%m%d%H%M%S")
+            TAG_NAME="${VERSION}-beta.${TIMESTAMP}"
+          fi
+
+          echo "tag_name=${TAG_NAME}" >> $GITHUB_OUTPUT
+
       - name: Create version tag
         env:
-          CHANNEL: ${{ github.ref_name == 'main' && 'release' || 'prerelease' }}
+          TAG_NAME: ${{ steps.version.outputs.tag_name }}
         run: |
-          TIMESTAMP=$(date -u +"%Y%m%d-%H%M%S")
-          TAG_NAME="version/${CHANNEL}/${TIMESTAMP}"
-
-          TAG_MESSAGE="${CHANNEL} version
+          TAG_MESSAGE="${{ github.ref_name == 'main' && 'Release' || 'Pre-release' }} ${TAG_NAME}
 
           Commit: ${{ github.sha }}
           Tagged: $(date -u +"%Y-%m-%d %H:%M:%S UTC")
@@ -40,5 +52,13 @@ jobs:
           git tag -a "$TAG_NAME" -m "$TAG_MESSAGE"
           git push origin "$TAG_NAME"
 
-          echo "tag_name=${TAG_NAME}" >> $GITHUB_OUTPUT
-          echo "Tag created: ${TAG_NAME}"
+      - name: Create GitHub release (draft)
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG_NAME: ${{ steps.version.outputs.tag_name }}
+        run: |
+          gh release create "$TAG_NAME" \
+            --draft \
+            --generate-notes \
+            --title "$TAG_NAME" \
+            ${{ github.ref_name != 'main' && '--prerelease' || '' }}
