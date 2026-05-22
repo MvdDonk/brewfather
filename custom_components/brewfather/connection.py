@@ -15,7 +15,7 @@ from .const import (
     TEST_URI,
     BATCH_URI,
     READINGS_URI,
-    DRY_RUN,
+    SIMULATION_MODE,
     LAST_READING_URI,
     LOG_CUSTOM_STREAM
 )
@@ -37,6 +37,10 @@ class Connection:
         self.auth = aiohttp.BasicAuth(username, apikey)
 
     async def test_connection(self) -> bool:
+        if SIMULATION_MODE:
+            _LOGGER.info("Brewfather simulation mode enabled; skipping API connection test")
+            return True
+
         async with aiohttp.ClientSession() as session:
             async with session.get(TEST_URI, auth=self.auth) as response:
                 if response.status == 200:
@@ -51,6 +55,10 @@ class Connection:
         return False
     
     async def test_custom_stream(self, logging_id:str) -> bool:
+        if SIMULATION_MODE:
+            _LOGGER.info("Brewfather simulation mode enabled; skipping custom stream test")
+            return True
+
         url = LOG_CUSTOM_STREAM.format(logging_id)
         stream_data = custom_stream_data(name = "HomeAssistant")
         stream_data.temp_unit = "C"
@@ -84,7 +92,7 @@ class Connection:
     
     async def get_batches(self) -> List[BatchesItemElement]:
         url = BATCHES_URI
-        if DRY_RUN:
+        if SIMULATION_MODE:
             return batches_item_from_dict(json.loads(TESTDATA_BATCHES))
         else:
             batch = await self.get_api_response(url, batches_item_from_dict)
@@ -92,7 +100,7 @@ class Connection:
 
     async def get_batch(self, batchId: str, testData=TESTDATA_BATCH_3) -> BatchItem:
         url = BATCH_URI.format(batchId)
-        if DRY_RUN:
+        if SIMULATION_MODE:
             return batch_item_from_dict(json.loads(testData))
         else:
             batch = await self.get_api_response(url, batch_item_from_dict)
@@ -100,7 +108,7 @@ class Connection:
 
     async def get_readings(self, batchId: str) -> List[Reading]:
         url = READINGS_URI.format(batchId)
-        if DRY_RUN:
+        if SIMULATION_MODE:
             return readings_from_dict(json.loads(TESTDATA_READINGS))
         else:
             reading = await self.get_api_response(url, readings_from_dict)
@@ -108,7 +116,7 @@ class Connection:
         
     async def get_last_reading(self, batchId: str) -> Reading:
         url = LAST_READING_URI.format(batchId)
-        if DRY_RUN:
+        if SIMULATION_MODE:
             return Reading.from_dict(json.loads(TESTDATA_LAST_READINGS_1))
             #raise Exception("Not implemented")
         else:
@@ -117,12 +125,13 @@ class Connection:
         
     async def post_custom_stream(self, logging_id: str, data:custom_stream_data) -> bool:
         url = LOG_CUSTOM_STREAM.format(logging_id)
-        if DRY_RUN:
-            raise Exception("Not implemented")
+        if SIMULATION_MODE:
+            _LOGGER.info("Brewfather simulation mode enabled; skipping custom stream POST")
+            return True
         else:
             success, response_text = await self.post(url, self.to_dict(data))
             
-            if success == False:
+            if not success:
                 return False
             try:
                 response_json = json.loads(response_text)
@@ -174,7 +183,7 @@ class Connection:
                         f"Error communicating with API: {response.status}, URL: {url}"
                     )
 
-    async def post(self, url: str, data: dict) -> (bool, str):
+    async def post(self, url: str, data: dict) -> tuple[bool, str]:
         _LOGGER.debug("Making api call to: %s, with body: %s", url, data)
         async with aiohttp.ClientSession() as session:
             async with session.post(url, json=data, auth=self.auth) as response:

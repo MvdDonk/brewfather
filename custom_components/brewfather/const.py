@@ -1,3 +1,5 @@
+import os
+
 DOMAIN = "brewfather"
 COORDINATOR = "coordinator"
 
@@ -12,6 +14,13 @@ LAST_READING_URI = "https://api.brewfather.app/v2/batches/{}/readings/last"
 LOG_CUSTOM_STREAM = "http://log.brewfather.net/stream?id={}"
 
 DRY_RUN = False
+SIMULATION_ENV_VAR = "BREWFATHER_SIMULATION"
+SIMULATION_MODE = DRY_RUN or os.getenv(SIMULATION_ENV_VAR, "").strip().lower() in {
+	"1",
+	"true",
+	"yes",
+	"on",
+}
 CONF_RAMP_TEMP_CORRECTION = "ramp_temp_correction"
 CONF_MULTI_BATCH = "multi_batch"
 CONF_ALL_BATCH_INFO_SENSOR = "all_batch_info_sensor"
