@@ -52,8 +52,8 @@ class BrewfatherStatusSensor(CoordinatorEntity, SensorEntity):
         self._attr_name = f"{SENSOR_PREFIX} {entity_description.name}"
 
     @property
-    def state(self) -> str:
-        """Return the state of the sensor."""
+    def native_value(self) -> str:
+        """Return the native value of the sensor."""
         if not self.coordinator.last_update_success:
             return "disconnected"
         elif self._entry.data.get("custom_stream_enabled", False):
@@ -291,8 +291,8 @@ class BrewfatherSensor(CoordinatorEntity[BrewfatherCoordinator], SensorEntity):
         self._attr_extra_state_attributes = sensor_data.extra_state_attributes
    
     @property
-    def state(self) -> StateType:
-        """Return the state."""
+    def native_value(self) -> StateType:
+        """Return the native value to allow Home Assistant to handle unit conversions automatically."""
         return self._state
 
     @property
