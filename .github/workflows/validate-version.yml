@@ -22,9 +22,21 @@ jobs:
           VERSION=$(jq -r '.version' custom_components/brewfather/manifest.json)
           [[ "$VERSION" != v* ]] && VERSION="v${VERSION}"
 
-          if git ls-remote --tags origin | grep -E "refs/tags/${VERSION}(\.|$|-)" | grep -q "${VERSION}"; then
-            echo "::error::Version ${VERSION} already exists (including pre-release or patch versions). Bump the version in manifest.json before merging."
-            exit 1
+          TARGET_BRANCH="${{ github.base_ref }}"
+
+          if [ "$TARGET_BRANCH" = "main" ]; then
+            # develop → main: only reject if the exact final version tag already exists.
+            # Pre-release tags (e.g. v2.6.1-beta.xxx) are expected and must not block the release.
+            if git ls-remote --tags origin | grep -qE "refs/tags/${VERSION}$"; then
+              echo "::error::Version ${VERSION} already exists. Bump the version in manifest.json before merging."
+              exit 1
+            fi
+          else
+            # feature/fix → develop: reject if exact version or any pre-release/patch variant exists.
+            if git ls-remote --tags origin | grep -qE "refs/tags/${VERSION}(\.|$|-)"; then
+              echo "::error::Version ${VERSION} already exists (including pre-release or patch versions). Bump the version in manifest.json before merging."
+              exit 1
+            fi
           fi
 
           echo "Version ${VERSION} is unique — OK"
