@@ -23,13 +23,13 @@
           "ramp_temp_correction": "Activar rampa de temperatura",
           "multi_batch": "Suporte multi-lote (experimental)",
           "all_batch_info_sensor": "Sensor de dados de todos os lotes (experimental)",
-          "custom_stream_enabled": "Activar fluxo personalizado para monitorização de temperatura"
+          "custom_stream_enabled": "Ativar fluxo personalizado para monitoramento de fermentação"
         },
         "data_description": {
-          "ramp_temp_correction": "Ajustar automaticamente as temperaturas alvo durante as etapas de fermentação com horários de rampa",
-          "multi_batch": "Monitorizar e exibir dados de múltiplos lotes de fermentação simultaneamente",
+          "ramp_temp_correction": "Ajustar automaticamente as temperaturas-alvo durante as etapas de fermentação com agendamentos de rampa",
+          "multi_batch": "Monitorar e exibir dados de vários lotes de fermentação simultaneamente",
           "all_batch_info_sensor": "Criar um sensor adicional contendo informações detalhadas sobre todos os lotes",
-          "custom_stream_enabled": "Enviar automaticamente leituras de temperatura do Home Assistant para o Brewfather"
+          "custom_stream_enabled": "Enviar automaticamente dados de fermentação do Home Assistant para o Brewfather (leituras de temperatura e gravidade)"
         }
       },
       "custom_stream": {
@@ -37,11 +37,17 @@
         "description": "Configure o streaming automático de temperatura do Home Assistant para o Brewfather para monitorização em tempo real.",
         "data": {
           "custom_stream_logging_id": "ID de registo do Brewfather ou URL do fluxo",
-          "custom_stream_temperature_entity_name": "Sensor de temperatura"
+          "custom_stream_temperature_entity_name": "Sensor de temperatura primária",
+          "custom_stream_aux_temperature_entity_name": "Sensor de temperatura do frigorífico/câmara (opcional)",
+          "custom_stream_ext_temperature_entity_name": "Sensor de temperatura ambiente (opcional)",
+          "custom_stream_gravity_entity_name": "Sensor de gravidade específica (opcional)"
         },
         "data_description": {
           "custom_stream_logging_id": "Introduza o seu ID de registo ou cole a URL completa do fluxo do Brewfather",
-          "custom_stream_temperature_entity_name": "Seleccione o sensor de temperatura para transmitir para o Brewfather"
+          "custom_stream_temperature_entity_name": "Seleccione o sensor de temperatura de fermentação primária para transmitir para o Brewfather",
+          "custom_stream_aux_temperature_entity_name": "Seleccione o sensor de temperatura auxiliar (frigorífico/câmara) para transmitir para o Brewfather (opcional)",
+          "custom_stream_ext_temperature_entity_name": "Seleccione o sensor de temperatura externa (ambiente) para transmitir para o Brewfather (opcional)",
+          "custom_stream_gravity_entity_name": "Seleccione o sensor de gravidade específica (por ex. do hidrômetro) para transmitir para o Brewfather"
         }
       }
     },
@@ -81,7 +87,7 @@
           "ramp_temp_correction": "Ajustar automaticamente as temperaturas alvo durante as etapas de fermentação com horários de rampa",
           "multi_batch": "Monitorizar e exibir dados de múltiplos lotes de fermentação simultaneamente",
           "all_batch_info_sensor": "Criar um sensor adicional contendo informações detalhadas sobre todos os lotes",
-          "custom_stream_enabled": "Enviar automaticamente leituras de temperatura do Home Assistant para o Brewfather"
+          "custom_stream_enabled": "Enviar automaticamente dados de fermentação do Home Assistant para o Brewfather (leituras de temperatura e gravidade)"
         }
       },
       "custom_stream": {
@@ -89,11 +95,17 @@
         "description": "Configure o streaming automático de temperatura do Home Assistant para o Brewfather para monitorização em tempo real.",
         "data": {
           "custom_stream_logging_id": "ID de registo do Brewfather ou URL do fluxo",
-          "custom_stream_temperature_entity_name": "Sensor de temperatura"
+          "custom_stream_temperature_entity_name": "Sensor de temperatura primária",
+          "custom_stream_aux_temperature_entity_name": "Sensor de temperatura do frigorífico/câmara (opcional)",
+          "custom_stream_ext_temperature_entity_name": "Sensor de temperatura ambiente (opcional)",
+          "custom_stream_gravity_entity_name": "Sensor de gravidade específica (opcional)"
         },
         "data_description": {
           "custom_stream_logging_id": "Introduza o seu ID de registo ou cole a URL completa do fluxo do Brewfather",
-          "custom_stream_temperature_entity_name": "Seleccione o sensor de temperatura para transmitir para o Brewfather"
+          "custom_stream_temperature_entity_name": "Seleccione o sensor de temperatura de fermentação primária para transmitir para o Brewfather",
+          "custom_stream_aux_temperature_entity_name": "Seleccione o sensor de temperatura auxiliar (frigorífico/câmara) para transmitir para o Brewfather (opcional)",
+          "custom_stream_ext_temperature_entity_name": "Seleccione o sensor de temperatura externa (ambiente) para transmitir para o Brewfather (opcional)",
+          "custom_stream_gravity_entity_name": "Seleccione o sensor de gravidade específica (por ex. do hidrômetro) para transmitir para o Brewfather"
         }
       }
     },

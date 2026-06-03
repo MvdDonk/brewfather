@@ -142,19 +142,34 @@ Access your Brewfather batch notes directly in Home Assistant. Perfect for:
 Send temperature and gravity readings from Home Assistant sensors to Brewfather for real-time monitoring.
 
 **How it works:**
-1. Configure temperature sensor (required) and gravity sensor (optional) in Home Assistant
+1. Configure temperature sensors (primary required, auxiliary & external optional) and gravity sensor (optional) in Home Assistant
 2. Integration automatically sends readings to Brewfather every 15 minutes
 3. Data appears in your Brewfather batch monitoring
 4. Monitor fermentation progress from anywhere using Brewfather app
 
+**Temperature Sensor Types:**
+- **Primary Temperature** (required) - Your main fermentation/brew temperature
+- **Auxiliary Temperature** (optional) - Fridge/chamber temperature for secondary monitoring
+- **External Temperature** (optional) - Room/ambient temperature tracking
+
 **Setup:**
 1. Enable "Custom Stream" in this integration's configuration
 2. Get the logging ID from Brewfather app (Batch → Settings → Logging → Custom Stream)
-3. Configure your temperature sensor entity (e.g., `sensor.fermentation_temperature`)
-4. Optionally configure your gravity sensor entity (e.g., `sensor.rapt_orangeboy_specific_gravity`)
-5. Data automatically syncs every 15 minutes
+3. Configure your primary temperature sensor entity (e.g., `sensor.fermentation_temperature`)
+4. Optionally configure auxiliary temperature sensor (fridge/chamber)
+5. Optionally configure external temperature sensor (room/ambient)
+6. Optionally configure your gravity sensor entity (e.g., `sensor.rapt_orangeboy_specific_gravity`)
+7. Data automatically syncs every 15 minutes
 
-Supports temperature (required) and specific gravity (optional) readings from any Home Assistant sensor, including hydrometers like RAPT Pill, Tilt, iSpindel, and more.
+**Features:**
+- Supports up to 3 temperature sensors per batch (primary + 2 optional)
+- Automatic temperature unit detection and conversion
+- Unit mismatch detection - all configured sensors must use the same unit
+- Supports temperature (required) and specific gravity (optional) readings
+- Compatible with hydrometers: RAPT Pill, Tilt, iSpindel, and more
+- All temperatures sent in single API request to Brewfather every 15 minutes
+
+**Important:** All configured temperature sensors must use the same temperature unit (Celsius, Fahrenheit, or Kelvin). The integration uses the primary temperature's unit as reference and skips any mismatched sensors. Check status sensor attributes for unit mismatch warnings.
 
 ### Experimental: Multiple Batch Support
 
@@ -174,13 +189,16 @@ Configure via Home Assistant UI (Settings → Integrations → Brewfather → Co
 Enable gradual temperature increases/decreases during fermentation ramp periods. Useful for precise temperature control during multi-step fermentations.
 
 ### Custom Stream
-Send temperature and gravity data from Home Assistant sensors to Brewfather. Requires:
-- Temperature sensor entity (required)
+Send temperature and gravity data from Home Assistant sensors to Brewfather. Supports:
+- Primary temperature sensor entity (required)
+- Auxiliary temperature sensor entity (optional, for fridge/chamber monitoring)
+- External temperature sensor entity (optional, for room/ambient monitoring)
 - Specific gravity sensor entity (optional, for hydrometers)
 - Brewfather Custom Stream logging ID
 - Automatic unit conversion and validation
+- Unit mismatch detection with status warnings
 
-Perfect for integrating external sensors like RAPT Pill, Tilt, iSpindel, or any Home Assistant-connected temperature/gravity sensors with Brewfather's cloud logging.
+Perfect for integrating external sensors like RAPT Pill, Tilt, iSpindel, or any Home Assistant-connected temperature/gravity sensors with Brewfather's cloud logging. All three temperatures sync together every 15 minutes.
 
 ### Multiple Batch Support (Experimental)
 Track multiple fermenting batches with additional sensor attributes. Not recommended for automation purposes.

@@ -37,12 +37,16 @@
         "description": "Configure automatic temperature streaming from Home Assistant to Brewfather for real-time monitoring.",
         "data": {
           "custom_stream_logging_id": "Brewfather Logging ID or Stream URL",
-          "custom_stream_temperature_entity_name": "Temperature Sensor",
+          "custom_stream_temperature_entity_name": "Primary Temperature Sensor",
+          "custom_stream_aux_temperature_entity_name": "Fridge/Chamber Temperature Sensor (Optional)",
+          "custom_stream_ext_temperature_entity_name": "Room/Ambient Temperature Sensor (Optional)",
           "custom_stream_gravity_entity_name": "Specific Gravity Sensor (Optional)"
         },
         "data_description": {
           "custom_stream_logging_id": "Enter your logging ID or paste the complete stream URL from Brewfather",
-          "custom_stream_temperature_entity_name": "Select the temperature sensor to stream to Brewfather",
+          "custom_stream_temperature_entity_name": "Select the primary fermentation temperature sensor to stream to Brewfather",
+          "custom_stream_aux_temperature_entity_name": "Select the auxiliary temperature sensor (fridge/chamber) to stream to Brewfather (optional)",
+          "custom_stream_ext_temperature_entity_name": "Select the external temperature sensor (room/ambient) to stream to Brewfather (optional)",
           "custom_stream_gravity_entity_name": "Select the specific gravity sensor (e.g., from hydrometer) to stream to Brewfather"
         }
       }
@@ -83,7 +87,7 @@
           "ramp_temp_correction": "Automatically adjust target temperatures during fermentation steps with ramping schedules",
           "multi_batch": "Monitor and display data from multiple fermenting batches simultaneously",
           "all_batch_info_sensor": "Create an additional sensor containing detailed information about all batches",
-          "custom_stream_enabled": "Automatically send temperature readings from Home Assistant to Brewfather"
+          "custom_stream_enabled": "Automatically send fermentation data from Home Assistant to Brewfather (temperature & gravity readings)"
         }
       },
       "custom_stream": {
@@ -91,12 +95,16 @@
         "description": "Configure automatic temperature streaming from Home Assistant to Brewfather for real-time monitoring.",
         "data": {
           "custom_stream_logging_id": "Brewfather Logging ID or Stream URL",
-          "custom_stream_temperature_entity_name": "Temperature Sensor",
+          "custom_stream_temperature_entity_name": "Primary Temperature Sensor",
+          "custom_stream_aux_temperature_entity_name": "Fridge/Chamber Temperature Sensor (Optional)",
+          "custom_stream_ext_temperature_entity_name": "Room/Ambient Temperature Sensor (Optional)",
           "custom_stream_gravity_entity_name": "Specific Gravity Sensor (Optional)"
         },
         "data_description": {
           "custom_stream_logging_id": "Enter your logging ID or paste the complete stream URL from Brewfather",
-          "custom_stream_temperature_entity_name": "Select the temperature sensor to stream to Brewfather",
+          "custom_stream_temperature_entity_name": "Select the primary fermentation temperature sensor to stream to Brewfather",
+          "custom_stream_aux_temperature_entity_name": "Select the auxiliary temperature sensor (fridge/chamber) to stream to Brewfather (optional)",
+          "custom_stream_ext_temperature_entity_name": "Select the external temperature sensor (room/ambient) to stream to Brewfather (optional)",
           "custom_stream_gravity_entity_name": "Select the specific gravity sensor (e.g., from hydrometer) to stream to Brewfather"
         }
       }

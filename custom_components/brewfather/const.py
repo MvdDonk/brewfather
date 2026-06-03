@@ -28,6 +28,8 @@ CONF_CUSTOM_STREAM_ENABLED = "custom_stream_enabled"
 CONF_CUSTOM_STREAM_LOGGING_ID = "custom_stream_logging_id"
 CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_NAME = "custom_stream_temperature_entity_name"
 CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_ATTRIBUTE = "custom_stream_temperature_entity_attribute"
+CONF_CUSTOM_STREAM_AUX_TEMPERATURE_ENTITY_NAME = "custom_stream_aux_temperature_entity_name"
+CONF_CUSTOM_STREAM_EXT_TEMPERATURE_ENTITY_NAME = "custom_stream_ext_temperature_entity_name"
 CONF_CUSTOM_STREAM_GRAVITY_ENTITY_NAME = "custom_stream_gravity_entity_name"
 
 VERSION_MAJOR = 1

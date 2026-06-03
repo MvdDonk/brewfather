@@ -60,6 +60,9 @@ class BrewfatherStatusSensor(CoordinatorEntity, SensorEntity):
         if not self.coordinator.last_update_success:
             return "disconnected"
         elif self._entry.data.get("custom_stream_enabled", False):
+            # Check for unit mismatch errors
+            if self.coordinator.custom_stream_unit_mismatch_error:
+                return "⚠️ monitoring"
             return "monitoring"
         else:
             return "connected"
@@ -74,13 +77,33 @@ class BrewfatherStatusSensor(CoordinatorEntity, SensorEntity):
         
         if self._entry.data.get("custom_stream_enabled", False):
             attrs["custom_stream"] = "✅ Enabled"
+            
+            # Primary temperature
             entity_name = self._entry.data.get("custom_stream_temperature_entity_name")
             if entity_name:
                 entity = self.hass.states.get(entity_name)
                 if entity:
                     unit = entity.attributes.get("unit_of_measurement", "°C")
-                    attrs["temperature_entity"] = f"🌡️ {entity_name} ({unit})"
-                    attrs["last_temperature"] = f"{entity.state}{unit}"
+                    attrs["primary_temperature_entity"] = f"🌡️ {entity_name} ({unit})"
+                    attrs["primary_temperature"] = f"{entity.state}{unit}"
+            
+            # Auxiliary (fridge/chamber) temperature
+            aux_entity_name = self._entry.data.get("custom_stream_aux_temperature_entity_name")
+            if aux_entity_name:
+                aux_entity = self.hass.states.get(aux_entity_name)
+                if aux_entity:
+                    unit = aux_entity.attributes.get("unit_of_measurement", "°C")
+                    attrs["aux_temperature_entity"] = f"❄️ {aux_entity_name} ({unit})"
+                    attrs["aux_temperature"] = f"{aux_entity.state}{unit}"
+            
+            # External (room/ambient) temperature
+            ext_entity_name = self._entry.data.get("custom_stream_ext_temperature_entity_name")
+            if ext_entity_name:
+                ext_entity = self.hass.states.get(ext_entity_name)
+                if ext_entity:
+                    unit = ext_entity.attributes.get("unit_of_measurement", "°C")
+                    attrs["ext_temperature_entity"] = f"🌍 {ext_entity_name} ({unit})"
+                    attrs["ext_temperature"] = f"{ext_entity.state}{unit}"
             
             # Add gravity info if configured
             gravity_entity_name = self._entry.data.get("custom_stream_gravity_entity_name")
@@ -89,6 +112,10 @@ class BrewfatherStatusSensor(CoordinatorEntity, SensorEntity):
                 if gravity_entity:
                     attrs["gravity_entity"] = f"🍺 {gravity_entity_name}"
                     attrs["last_gravity"] = f"{gravity_entity.state}"
+            
+            # Add unit mismatch error if present
+            if self.coordinator.custom_stream_unit_mismatch_error:
+                attrs["⚠️_unit_mismatch_error"] = self.coordinator.custom_stream_unit_mismatch_error
         else:
             attrs["custom_stream"] = "⚪ Disabled"
             
@@ -100,6 +127,9 @@ class BrewfatherStatusSensor(CoordinatorEntity, SensorEntity):
         if not self.coordinator.last_update_success:
             return "mdi:beer-off"
         elif self._entry.data.get("custom_stream_enabled", False):
+            # Show warning icon if there's a unit mismatch error
+            if self.coordinator.custom_stream_unit_mismatch_error:
+                return "mdi:alert-circle"
             return "mdi:beer-outline"
         else:
             return "mdi:beer"
