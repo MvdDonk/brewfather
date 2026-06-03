@@ -96,15 +96,15 @@
         "data": {
           "custom_stream_logging_id": "Brewfather logging ID of stream URL",
           "custom_stream_temperature_entity_name": "Primaire temperatuursensor",
-          "custom_stream_aux_temperature_entity_name": "Koelkast-/gistingstemperatuursensor (optioneel)",
-          "custom_stream_ext_temperature_entity_name": "Kamer-/omgevingstemperatuursensor (optioneel)",
+          "custom_stream_aux_temperature_entity_name": "Koelkasttemperatuursensor (optioneel)",
+          "custom_stream_ext_temperature_entity_name": "Kamertemperatuursensor (optioneel)",
           "custom_stream_gravity_entity_name": "Specifieke zwaartekracht sensor (optioneel)"
         },
         "data_description": {
           "custom_stream_logging_id": "Voer uw logging ID in of plak de volledige stream URL van Brewfather",
           "custom_stream_temperature_entity_name": "Selecteer de primaire gistingstemperatuursensor om naar Brewfather te streamen",
-          "custom_stream_aux_temperature_entity_name": "Selecteer de aanvullende temperatuursensor (koelkast/gisting) om naar Brewfather te streamen (optioneel)",
-          "custom_stream_ext_temperature_entity_name": "Selecteer de externe temperatuursensor (kamer/omgeving) om naar Brewfather te streamen (optioneel)",
+          "custom_stream_aux_temperature_entity_name": "Verschijnt als 'Fridge Temp' in Brewfather. Selecteer de koelkasttemperatuursensor om te streamen (optioneel)",
+          "custom_stream_ext_temperature_entity_name": "Verschijnt als 'Room Temp' in Brewfather. Selecteer de kamertemperatuursensor om te streamen (optioneel)",
           "custom_stream_gravity_entity_name": "Selecteer de sensor voor specifieke zwaartekracht (bijv. van hydrometer) om naar Brewfather te streamen"
         }
       }
