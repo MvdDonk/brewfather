@@ -96,15 +96,15 @@
         "data": {
           "custom_stream_logging_id": "Brewfather Logging ID or Stream URL",
           "custom_stream_temperature_entity_name": "Primary Temperature Sensor",
-          "custom_stream_aux_temperature_entity_name": "Fridge/Chamber Temperature Sensor (Optional)",
-          "custom_stream_ext_temperature_entity_name": "Room/Ambient Temperature Sensor (Optional)",
+          "custom_stream_aux_temperature_entity_name": "Fridge Temperature Sensor (Optional)",
+          "custom_stream_ext_temperature_entity_name": "Room Temperature Sensor (Optional)",
           "custom_stream_gravity_entity_name": "Specific Gravity Sensor (Optional)"
         },
         "data_description": {
           "custom_stream_logging_id": "Enter your logging ID or paste the complete stream URL from Brewfather",
           "custom_stream_temperature_entity_name": "Select the primary fermentation temperature sensor to stream to Brewfather",
-          "custom_stream_aux_temperature_entity_name": "Select the auxiliary temperature sensor (fridge/chamber) to stream to Brewfather (optional)",
-          "custom_stream_ext_temperature_entity_name": "Select the external temperature sensor (room/ambient) to stream to Brewfather (optional)",
+          "custom_stream_aux_temperature_entity_name": "Appears as 'Fridge Temp' in Brewfather. Select the fridge/chamber temperature sensor to stream (optional)",
+          "custom_stream_ext_temperature_entity_name": "Appears as 'Room Temp' in Brewfather. Select the room temperature sensor to stream (optional)",
           "custom_stream_gravity_entity_name": "Select the specific gravity sensor (e.g., from hydrometer) to stream to Brewfather"
         }
       }

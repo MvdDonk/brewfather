@@ -149,15 +149,15 @@ Send temperature and gravity readings from Home Assistant sensors to Brewfather 
 
 **Temperature Sensor Types:**
 - **Primary Temperature** (required) - Your main fermentation/brew temperature
-- **Auxiliary Temperature** (optional) - Fridge/chamber temperature for secondary monitoring
-- **External Temperature** (optional) - Room/ambient temperature tracking
+- **Auxiliary Temperature** (optional) - Fridge temperature (appears as *Fridge Temp* in Brewfather)
+- **External Temperature** (optional) - Room temperature (appears as *Room Temp* in Brewfather)
 
 **Setup:**
 1. Enable "Custom Stream" in this integration's configuration
 2. Get the logging ID from Brewfather app (Batch → Settings → Logging → Custom Stream)
 3. Configure your primary temperature sensor entity (e.g., `sensor.fermentation_temperature`)
-4. Optionally configure auxiliary temperature sensor (fridge/chamber)
-5. Optionally configure external temperature sensor (room/ambient)
+4. Optionally configure auxiliary temperature sensor (fridge temperature — *Fridge Temp* in Brewfather)
+5. Optionally configure external temperature sensor (room temperature — *Room Temp* in Brewfather)
 6. Optionally configure your gravity sensor entity (e.g., `sensor.rapt_orangeboy_specific_gravity`)
 7. Data automatically syncs every 15 minutes
 
@@ -191,8 +191,8 @@ Enable gradual temperature increases/decreases during fermentation ramp periods.
 ### Custom Stream
 Send temperature and gravity data from Home Assistant sensors to Brewfather. Supports:
 - Primary temperature sensor entity (required)
-- Auxiliary temperature sensor entity (optional, for fridge/chamber monitoring)
-- External temperature sensor entity (optional, for room/ambient monitoring)
+- Auxiliary temperature sensor entity (optional, appears as Fridge Temp in Brewfather)
+- External temperature sensor entity (optional, appears as Room Temp in Brewfather)
 - Specific gravity sensor entity (optional, for hydrometers)
 - Brewfather Custom Stream logging ID
 - Automatic unit conversion and validation

@@ -38,15 +38,15 @@
         "data": {
           "custom_stream_logging_id": "ID di registrazione Brewfather o URL del flusso",
           "custom_stream_temperature_entity_name": "Sensore di temperatura primaria",
-          "custom_stream_aux_temperature_entity_name": "Sensore di temperatura frigorifero/camera (opzionale)",
-          "custom_stream_ext_temperature_entity_name": "Sensore di temperatura ambiente (opzionale)",
+          "custom_stream_aux_temperature_entity_name": "Sensore di temperatura frigorifero (opzionale)",
+          "custom_stream_ext_temperature_entity_name": "Sensore di temperatura ambiente/stanza (opzionale)",
           "custom_stream_gravity_entity_name": "Sensore di gravità specifica (opzionale)"
         },
         "data_description": {
-          "custom_stream_logging_id": "Inserisci il tuo ID di registrazione o incolla l'URL completo del flusso da Brewfather",
-          "custom_stream_temperature_entity_name": "Seleziona il sensore di temperatura di fermentazione primaria per lo streaming a Brewfather",
-          "custom_stream_aux_temperature_entity_name": "Seleziona il sensore di temperatura ausiliaria (frigorifero/camera) per lo streaming a Brewfather (opzionale)",
-          "custom_stream_ext_temperature_entity_name": "Seleziona il sensore di temperatura esterna (ambiente) per lo streaming a Brewfather (opzionale)",
+          "custom_stream_logging_id": "Inserisci il tuo ID di registrazione o incolla l'URL completo dello stream di Brewfather",
+          "custom_stream_temperature_entity_name": "Seleziona il sensore di temperatura di fermentazione principale da trasmettere a Brewfather",
+          "custom_stream_aux_temperature_entity_name": "Appare come 'Fridge Temp' in Brewfather. Seleziona il sensore di temperatura del frigorifero per lo streaming (opzionale)",
+          "custom_stream_ext_temperature_entity_name": "Appare come 'Room Temp' in Brewfather. Seleziona il sensore di temperatura ambiente per lo streaming (opzionale)",
           "custom_stream_gravity_entity_name": "Seleziona il sensore di gravità specifica (ad es. dall'idrometro) per lo streaming a Brewfather"
         }
       }
@@ -96,15 +96,15 @@
         "data": {
           "custom_stream_logging_id": "ID di registrazione Brewfather o URL del flusso",
           "custom_stream_temperature_entity_name": "Sensore di temperatura primaria",
-          "custom_stream_aux_temperature_entity_name": "Sensore di temperatura frigorifero/camera (opzionale)",
-          "custom_stream_ext_temperature_entity_name": "Sensore di temperatura ambiente (opzionale)",
+          "custom_stream_aux_temperature_entity_name": "Sensore di temperatura frigorifero (opzionale)",
+          "custom_stream_ext_temperature_entity_name": "Sensore di temperatura ambiente/stanza (opzionale)",
           "custom_stream_gravity_entity_name": "Sensore di gravità specifica (opzionale)"
         },
         "data_description": {
           "custom_stream_logging_id": "Inserisci il tuo ID di registrazione o incolla l'URL completo del flusso da Brewfather",
           "custom_stream_temperature_entity_name": "Seleziona il sensore di temperatura di fermentazione primaria per lo streaming a Brewfather",
-          "custom_stream_aux_temperature_entity_name": "Seleziona il sensore di temperatura ausiliaria (frigorifero/camera) per lo streaming a Brewfather (opzionale)",
-          "custom_stream_ext_temperature_entity_name": "Seleziona il sensore di temperatura esterna (ambiente) per lo streaming a Brewfather (opzionale)",
+          "custom_stream_aux_temperature_entity_name": "Appare come 'Fridge Temp' in Brewfather. Seleziona il sensore di temperatura del frigorifero per lo streaming (opzionale)",
+          "custom_stream_ext_temperature_entity_name": "Appare come 'Room Temp' in Brewfather. Seleziona il sensore di temperatura ambiente per lo streaming (opzionale)",
           "custom_stream_gravity_entity_name": "Seleziona il sensore di gravità specifica (ad es. dall'idrometro) per lo streaming a Brewfather"
         }
       }
