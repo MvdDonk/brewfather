@@ -23,13 +23,13 @@
           "ramp_temp_correction": "Enable temperature ramping",
           "multi_batch": "Multiple batch support (experimental)",
           "all_batch_info_sensor": "All batches data sensor (experimental)",
-          "custom_stream_enabled": "Enable custom stream for temperature monitoring"
+          "custom_stream_enabled": "Enable custom stream for fermentation monitoring"
         },
         "data_description": {
           "ramp_temp_correction": "Automatically adjust target temperatures during fermentation steps with ramping schedules",
           "multi_batch": "Monitor and display data from multiple fermenting batches simultaneously",
           "all_batch_info_sensor": "Create an additional sensor containing detailed information about all batches",
-          "custom_stream_enabled": "Automatically send temperature readings from Home Assistant to Brewfather"
+          "custom_stream_enabled": "Automatically send fermentation data from Home Assistant to Brewfather (temperature & gravity readings)"
         }
       },
       "custom_stream": {
@@ -83,7 +83,7 @@
           "ramp_temp_correction": "Automatically adjust target temperatures during fermentation steps with ramping schedules",
           "multi_batch": "Monitor and display data from multiple fermenting batches simultaneously",
           "all_batch_info_sensor": "Create an additional sensor containing detailed information about all batches",
-          "custom_stream_enabled": "Automatically send temperature readings from Home Assistant to Brewfather"
+          "custom_stream_enabled": "Automatically send fermentation data from Home Assistant to Brewfather (temperature & gravity readings)"
         }
       },
       "custom_stream": {

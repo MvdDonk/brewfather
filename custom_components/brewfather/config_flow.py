@@ -17,6 +17,8 @@ from .const import (
     CONF_CUSTOM_STREAM_ENABLED,
     CONF_CUSTOM_STREAM_LOGGING_ID,
     CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_NAME,
+    CONF_CUSTOM_STREAM_AUX_TEMPERATURE_ENTITY_NAME,
+    CONF_CUSTOM_STREAM_EXT_TEMPERATURE_ENTITY_NAME,
     CONF_CUSTOM_STREAM_GRAVITY_ENTITY_NAME,
 )
 from .connection import (
@@ -55,6 +57,18 @@ OPTIONS_CUSTOM_STREAM_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_CUSTOM_STREAM_LOGGING_ID): cv.string,
         vol.Required(CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_NAME): selector.EntitySelector(
+            selector.EntitySelectorConfig(
+                domain=["sensor", "climate", "number"],
+                device_class=["temperature"]
+            )
+        ),
+        vol.Optional(CONF_CUSTOM_STREAM_AUX_TEMPERATURE_ENTITY_NAME): selector.EntitySelector(
+            selector.EntitySelectorConfig(
+                domain=["sensor", "climate", "number"],
+                device_class=["temperature"]
+            )
+        ),
+        vol.Optional(CONF_CUSTOM_STREAM_EXT_TEMPERATURE_ENTITY_NAME): selector.EntitySelector(
             selector.EntitySelectorConfig(
                 domain=["sensor", "climate", "number"],
                 device_class=["temperature"]
