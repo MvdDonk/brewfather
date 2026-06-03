@@ -38,15 +38,15 @@
         "data": {
           "custom_stream_logging_id": "ID de registro do Brewfather ou URL do fluxo",
           "custom_stream_temperature_entity_name": "Sensor de Temperatura Primária",
-          "custom_stream_aux_temperature_entity_name": "Sensor de Temperatura da Geladeira/Câmara (Opcional)",
-          "custom_stream_ext_temperature_entity_name": "Sensor de Temperatura Ambiente (Opcional)",
+          "custom_stream_aux_temperature_entity_name": "Sensor de Temperatura da Geladeira (Opcional)",
+          "custom_stream_ext_temperature_entity_name": "Sensor de Temperatura do Cômodo (Opcional)",
           "custom_stream_gravity_entity_name": "Sensor de Gravidade Específica (Opcional)"
         },
         "data_description": {
-          "custom_stream_logging_id": "Digite seu ID de registro ou cole a URL completa do stream do Brewfather",
-          "custom_stream_temperature_entity_name": "Selecione o sensor de temperatura de fermentação primária para fazer stream para Brewfather",
-          "custom_stream_aux_temperature_entity_name": "Selecione o sensor de temperatura auxiliar (geladeira/câmara) para fazer stream para Brewfather (opcional)",
-          "custom_stream_ext_temperature_entity_name": "Selecione o sensor de temperatura externa (ambiente) para fazer stream para Brewfather (opcional)",
+          "custom_stream_logging_id": "Insira o seu ID de registro ou cole o URL completo do stream do Brewfather",
+          "custom_stream_temperature_entity_name": "Selecione o sensor de temperatura de fermentação principal para fazer stream para Brewfather",
+          "custom_stream_aux_temperature_entity_name": "Aparece como 'Fridge Temp' no Brewfather. Selecione o sensor de temperatura da geladeira para fazer stream (opcional)",
+          "custom_stream_ext_temperature_entity_name": "Aparece como 'Room Temp' no Brewfather. Selecione o sensor de temperatura do cômodo para fazer stream (opcional)",
           "custom_stream_gravity_entity_name": "Selecione o sensor de gravidade específica (por exemplo, do hidrômetro) para fazer stream para Brewfather"
         }
       }

@@ -38,15 +38,15 @@
         "data": {
           "custom_stream_logging_id": "ID de registro Brewfather o URL del flujo",
           "custom_stream_temperature_entity_name": "Sensor de temperatura primaria",
-          "custom_stream_aux_temperature_entity_name": "Sensor de temperatura del frigorífico/cámara (opcional)",
-          "custom_stream_ext_temperature_entity_name": "Sensor de temperatura ambiente (opcional)",
+          "custom_stream_aux_temperature_entity_name": "Sensor de temperatura del frigorífico (opcional)",
+          "custom_stream_ext_temperature_entity_name": "Sensor de temperatura de la habitación (opcional)",
           "custom_stream_gravity_entity_name": "Sensor de gravedad específica (opcional)"
         },
         "data_description": {
-          "custom_stream_logging_id": "Ingrese su ID de registro o pegue la URL completa del flujo desde Brewfather",
-          "custom_stream_temperature_entity_name": "Seleccione el sensor de temperatura de fermentación primaria para transmitir a Brewfather",
-          "custom_stream_aux_temperature_entity_name": "Seleccione el sensor de temperatura auxiliar (frigorífico/cámara) para transmitir a Brewfather (opcional)",
-          "custom_stream_ext_temperature_entity_name": "Seleccione el sensor de temperatura externa (ambiente) para transmitir a Brewfather (opcional)",
+          "custom_stream_logging_id": "Introduce tu ID de registro o pega la URL completa del stream de Brewfather",
+          "custom_stream_temperature_entity_name": "Selecciona el sensor de temperatura de fermentación principal para transmitir a Brewfather",
+          "custom_stream_aux_temperature_entity_name": "Aparece como 'Fridge Temp' en Brewfather. Seleccione el sensor de temperatura del frigorífico para transmitir (opcional)",
+          "custom_stream_ext_temperature_entity_name": "Aparece como 'Room Temp' en Brewfather. Seleccione el sensor de temperatura de la habitación para transmitir (opcional)",
           "custom_stream_gravity_entity_name": "Seleccione el sensor de gravedad específica (por ejemplo, del hidrómetro) para transmitir a Brewfather"
         }
       }

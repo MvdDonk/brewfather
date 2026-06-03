@@ -38,15 +38,15 @@
         "data": {
           "custom_stream_logging_id": "Brewfather Logging-ID oder Stream-URL",
           "custom_stream_temperature_entity_name": "Primärer Temperatursensor",
-          "custom_stream_aux_temperature_entity_name": "Kühlschrank-/Gärtemperatursensor (Optional)",
-          "custom_stream_ext_temperature_entity_name": "Raum-/Umgebungstemperatursensor (Optional)",
-          "custom_stream_gravity_entity_name": "Spezifischer Gravitätssensor (Optional)"
+          "custom_stream_aux_temperature_entity_name": "Kühlschrank-Temperatursensor (Optional)",
+          "custom_stream_ext_temperature_entity_name": "Raumtemperatursensor (Optional)",
+          "custom_stream_gravity_entity_name": "Schwerkraftsensor (Optional)"
         },
         "data_description": {
           "custom_stream_logging_id": "Geben Sie Ihre Logging-ID ein oder fügen Sie die vollständige Stream-URL von Brewfather ein",
           "custom_stream_temperature_entity_name": "Wählen Sie den primären Gärtemperatursensor zum Streamen zu Brewfather",
-          "custom_stream_aux_temperature_entity_name": "Wählen Sie den Hilfstemperatursensor (Kühlschrank/Gärbehälter) zum Streamen zu Brewfather (optional)",
-          "custom_stream_ext_temperature_entity_name": "Wählen Sie den externen Temperatursensor (Raum/Umgebung) zum Streamen zu Brewfather (optional)",
+          "custom_stream_aux_temperature_entity_name": "Erscheint als 'Fridge Temp' in Brewfather. Wählen Sie den Kühlschrank-Temperatursensor zum Streamen (optional)",
+          "custom_stream_ext_temperature_entity_name": "Erscheint als 'Room Temp' in Brewfather. Wählen Sie den Raumtemperatursensor zum Streamen (optional)",
           "custom_stream_gravity_entity_name": "Wählen Sie den Gravitätssensor zum Streamen zu Brewfather"
         }
       }

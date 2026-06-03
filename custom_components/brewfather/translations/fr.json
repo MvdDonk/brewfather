@@ -38,15 +38,15 @@
         "data": {
           "custom_stream_logging_id": "ID de journalisation Brewfather ou URL du flux",
           "custom_stream_temperature_entity_name": "Capteur de température primaire",
-          "custom_stream_aux_temperature_entity_name": "Capteur de température réfrigérateur/chambre (optionnel)",
-          "custom_stream_ext_temperature_entity_name": "Capteur de température ambiante (optionnel)",
-          "custom_stream_gravity_entity_name": "Capteur de gravité spécifique (optionnel)"
+          "custom_stream_aux_temperature_entity_name": "Capteur de température réfrigérateur (optionnel)",
+          "custom_stream_ext_temperature_entity_name": "Capteur de température ambiante/pièce (optionnel)",
+          "custom_stream_gravity_entity_name": "Capteur de densité spécifique (optionnel)"
         },
         "data_description": {
-          "custom_stream_logging_id": "Entrez votre ID de journalisation ou collez l'URL complète du flux depuis Brewfather",
-          "custom_stream_temperature_entity_name": "Sélectionnez le capteur de température de fermentation primaire à diffuser vers Brewfather",
-          "custom_stream_aux_temperature_entity_name": "Sélectionnez le capteur de température auxiliaire (réfrigérateur/chambre) à diffuser vers Brewfather (optionnel)",
-          "custom_stream_ext_temperature_entity_name": "Sélectionnez le capteur de température externe (ambiante) à diffuser vers Brewfather (optionnel)",
+          "custom_stream_logging_id": "Entrez votre ID de journalisation ou collez l'URL complète du flux de Brewfather",
+          "custom_stream_temperature_entity_name": "Sélectionnez le capteur de température de fermentation principal à diffuser vers Brewfather",
+          "custom_stream_aux_temperature_entity_name": "Apparaît comme 'Fridge Temp' dans Brewfather. Sélectionnez le capteur de température réfrigérateur à diffuser (optionnel)",
+          "custom_stream_ext_temperature_entity_name": "Apparaît comme 'Room Temp' dans Brewfather. Sélectionnez le capteur de température ambiante à diffuser (optionnel)",
           "custom_stream_gravity_entity_name": "Sélectionnez le capteur de gravité spécifique (par ex. provenant d'un hydromètre) à diffuser vers Brewfather"
         }
       }
