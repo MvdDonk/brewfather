@@ -348,6 +348,33 @@ class BrewfatherSensor(CoordinatorEntity[BrewfatherCoordinator], SensorEntity):
         self._attr_available = sensor_data.attr_available
         self._attr_extra_state_attributes = sensor_data.extra_state_attributes
         self.async_write_ha_state()
+    
+    @staticmethod
+    def parse_datetime_with_timezone(datetime_str: any, entity_id: str) -> datetime:
+        """Parse a datetime string, ensuring it is timezone-aware and in UTC."""
+
+        value: datetime = None
+
+        #check if the input is already a datetime object
+        if isinstance(datetime_str, datetime):
+            value = datetime_str
+        else:
+            try:
+                value = datetime.fromisoformat(datetime_str)
+            except ValueError as e:
+                raise ValueError(
+                    f"Invalid datetime format: {entity_id} provides state '{datetime_str}', "
+                    "which is not in a valid ISO 8601 format"
+                ) from e
+            
+        if value.tzinfo is None:
+            raise ValueError(
+                f"Invalid datetime format: {entity_id} provides state '{datetime_str}', "
+                "which is missing timezone information"
+            )
+        if value.tzinfo != timezone.utc:
+            value = value.astimezone(timezone.utc)
+        return value
 
     @staticmethod
     def _refresh_sensor_data(
@@ -391,17 +418,20 @@ class BrewfatherSensor(CoordinatorEntity[BrewfatherCoordinator], SensorEntity):
                 custom_attributes["other_batches"] = other_batches_data
 
         elif sensor_type == SensorKinds.fermenting_next_date:
-            sensor_data.state = data.next_step_date
-            custom_attributes["batch_id"] = data.batch_id
+            if data.next_step_date is not None:
+                value = BrewfatherSensor.parse_datetime_with_timezone(data.next_step_date, entity_id)
+                
+                sensor_data.state = value
+                custom_attributes["batch_id"] = data.batch_id
 
-            other_batches_data = []
-            for other_batch_data in data.other_batches:
-                other_batches_data.append({
-                    "batch_id": other_batch_data.batch_id,
-                    "state": other_batch_data.next_step_date
-                })
-            if len(other_batches_data)  > 0:
-                custom_attributes["other_batches"] = other_batches_data
+                other_batches_data = []
+                for other_batch_data in data.other_batches:
+                    other_batches_data.append({
+                        "batch_id": other_batch_data.batch_id,
+                        "state": other_batch_data.next_step_date
+                    })
+                if len(other_batches_data)  > 0:
+                    custom_attributes["other_batches"] = other_batches_data
 
         elif sensor_type == SensorKinds.fermenting_next_temperature:
             sensor_data.state = data.next_step_temperature
@@ -454,7 +484,9 @@ class BrewfatherSensor(CoordinatorEntity[BrewfatherCoordinator], SensorEntity):
 
         elif sensor_type == SensorKinds.fermenting_start_date:
             if data.start_date is not None:
-                sensor_data.state = data.start_date
+                value = BrewfatherSensor.parse_datetime_with_timezone(data.start_date, entity_id)
+
+                sensor_data.state = value
                 custom_attributes["batch_id"] = data.batch_id
                 
                 other_batches_data = []
@@ -538,31 +570,6 @@ class BrewfatherSensor(CoordinatorEntity[BrewfatherCoordinator], SensorEntity):
 
         sensor_data.extra_state_attributes = custom_attributes
 
-        # Received a datetime
-        if sensor_data.state is not None and device_class == SensorDeviceClass.TIMESTAMP:
-            try:
-                # We cast the value, to avoid using isinstance, but satisfy
-                # typechecking. The errors are guarded in this try.
-                value = cast(datetime, sensor_data.state)
-                if value.tzinfo is None:
-                    raise ValueError(
-                        f"Invalid datetime: {entity_id} provides state '{value}', "
-                        "which is missing timezone information"
-                    )
-
-                if value.tzinfo != timezone.utc:
-                    value = value.astimezone(timezone.utc)
-
-                _LOGGER.debug("value %s, %s", value, value.tzinfo)
-
-                #return value.isoformat(timespec="seconds")
-                sensor_data.state =value.isoformat(timespec="seconds")
-            except (AttributeError, TypeError) as err:
-                raise ValueError(
-                    f"Invalid datetime: {entity_id} has a timestamp device class"
-                    f"but does not provide a datetime state but {type(value)}"
-                ) from err
-            
         return sensor_data
 
 class SensorKinds(enum.Enum):
