@@ -62,7 +62,9 @@ class Connection:
         url = LOG_CUSTOM_STREAM.format(logging_id)
         stream_data = custom_stream_data(name = "HomeAssistant")
         stream_data.temp_unit = "C"
-        stream_data.temp = 1.2
+        stream_data.temp = 99.9
+        stream_data.gravity = 1.234
+        stream_data.comment = "Home Assistant integration test value, should have temp of 99.9C and gravity of 1.234, ignore this reading if you see it in brewfather"
         data = self.to_dict(stream_data)
 
         async with aiohttp.ClientSession() as session:

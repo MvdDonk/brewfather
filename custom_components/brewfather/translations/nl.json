@@ -23,13 +23,13 @@
           "ramp_temp_correction": "Temperatuurramping inschakelen",
           "multi_batch": "Multi-batch ondersteuning (experimenteel)",
           "all_batch_info_sensor": "Alle batches data sensor (experimenteel)",
-          "custom_stream_enabled": "Aangepaste stream inschakelen voor temperatuur monitoring"
+          "custom_stream_enabled": "Aangepaste stream inschakelen voor fermentatie monitoring"
         },
         "data_description": {
           "ramp_temp_correction": "Automatisch doeltemperaturen aanpassen tijdens fermentatiestappen met ramping schema's",
           "multi_batch": "Monitor en toon gegevens van meerdere fermenterende batches tegelijkertijd",
           "all_batch_info_sensor": "Maak een extra sensor met gedetailleerde informatie over alle batches",
-          "custom_stream_enabled": "Verstuur automatisch temperatuurmetingen van Home Assistant naar Brewfather"
+          "custom_stream_enabled": "Verstuur automatisch fermentatiegegevens van Home Assistant naar Brewfather (temperatuur- en graviteitmetingen)"
         }
       },
       "custom_stream": {
@@ -37,11 +37,17 @@
         "description": "Configureer automatische temperatuur streaming van Home Assistant naar Brewfather voor realtime monitoring.",
         "data": {
           "custom_stream_logging_id": "Brewfather logging ID of stream URL",
-          "custom_stream_temperature_entity_name": "Temperatuursensor"
+          "custom_stream_temperature_entity_name": "Primaire temperatuursensor",
+          "custom_stream_aux_temperature_entity_name": "Koelkasttemperatuursensor (optioneel)",
+          "custom_stream_ext_temperature_entity_name": "Kamertemperatuursensor (optioneel)",
+          "custom_stream_gravity_entity_name": "Sensor voor soortelijk gewicht (optioneel)"
         },
         "data_description": {
           "custom_stream_logging_id": "Voer uw logging ID in of plak de volledige stream URL van Brewfather",
-          "custom_stream_temperature_entity_name": "Selecteer de temperatuursensor om te streamen naar Brewfather"
+          "custom_stream_temperature_entity_name": "Selecteer de primaire gistingstemperatuursensor om naar Brewfather te streamen",
+          "custom_stream_aux_temperature_entity_name": "Verschijnt als 'Fridge Temp' in Brewfather. Selecteer de koelkasttemperatuursensor om te streamen (optioneel)",
+          "custom_stream_ext_temperature_entity_name": "Verschijnt als 'Room Temp' in Brewfather. Selecteer de kamertemperatuursensor om te streamen (optioneel)",
+          "custom_stream_gravity_entity_name": "Selecteer de sensor voor specifieke zwaartekracht (bijv. van hydrometer) om naar Brewfather te streamen"
         }
       }
     },
@@ -81,7 +87,7 @@
           "ramp_temp_correction": "Automatisch doeltemperaturen aanpassen tijdens fermentatiestappen met ramping schema's",
           "multi_batch": "Monitor en toon gegevens van meerdere fermenterende batches tegelijkertijd",
           "all_batch_info_sensor": "Maak een extra sensor met gedetailleerde informatie over alle batches",
-          "custom_stream_enabled": "Verstuur automatisch temperatuurmetingen van Home Assistant naar Brewfather"
+          "custom_stream_enabled": "Verstuur automatisch fermentatiegegevens van Home Assistant naar Brewfather (temperatuur- en graviteitmetingen)"
         }
       },
       "custom_stream": {
@@ -89,11 +95,17 @@
         "description": "Configureer automatische temperatuur streaming van Home Assistant naar Brewfather voor realtime monitoring.",
         "data": {
           "custom_stream_logging_id": "Brewfather logging ID of stream URL",
-          "custom_stream_temperature_entity_name": "Temperatuursensor"
+          "custom_stream_temperature_entity_name": "Primaire temperatuursensor",
+          "custom_stream_aux_temperature_entity_name": "Koelkasttemperatuursensor (optioneel)",
+          "custom_stream_ext_temperature_entity_name": "Kamertemperatuursensor (optioneel)",
+          "custom_stream_gravity_entity_name": "Specifieke zwaartekracht sensor (optioneel)"
         },
         "data_description": {
           "custom_stream_logging_id": "Voer uw logging ID in of plak de volledige stream URL van Brewfather",
-          "custom_stream_temperature_entity_name": "Selecteer de temperatuursensor om te streamen naar Brewfather"
+          "custom_stream_temperature_entity_name": "Selecteer de primaire gistingstemperatuursensor om naar Brewfather te streamen",
+          "custom_stream_aux_temperature_entity_name": "Verschijnt als 'Fridge Temp' in Brewfather. Selecteer de koelkasttemperatuursensor om te streamen (optioneel)",
+          "custom_stream_ext_temperature_entity_name": "Verschijnt als 'Room Temp' in Brewfather. Selecteer de kamertemperatuursensor om te streamen (optioneel)",
+          "custom_stream_gravity_entity_name": "Selecteer de sensor voor specifieke zwaartekracht (bijv. van hydrometer) om naar Brewfather te streamen"
         }
       }
     },

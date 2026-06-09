@@ -26,6 +26,8 @@ from .const import (
     CONF_CUSTOM_STREAM_ENABLED,
     CONF_CUSTOM_STREAM_LOGGING_ID,
     CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_NAME,
+    CONF_CUSTOM_STREAM_AUX_TEMPERATURE_ENTITY_NAME,
+    CONF_CUSTOM_STREAM_EXT_TEMPERATURE_ENTITY_NAME,
     CONF_CUSTOM_STREAM_GRAVITY_ENTITY_NAME
 )
 
@@ -85,10 +87,13 @@ class BrewfatherCoordinator(DataUpdateCoordinator[BrewfatherCoordinatorData]):
         )
         self.custom_stream_enabled = entry.data.get(CONF_CUSTOM_STREAM_ENABLED, False)
         self.last_update_success_time: Optional[datetime] = None
+        self.custom_stream_unit_mismatch_error: Optional[str] = None
         if self.custom_stream_enabled:
             self.custom_stream_logging_id = entry.data.get(CONF_CUSTOM_STREAM_LOGGING_ID, None)
 
             self.custom_stream_temperature_entity_name = entry.data.get(CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_NAME, None)
+            self.custom_stream_aux_temperature_entity_name = entry.data.get(CONF_CUSTOM_STREAM_AUX_TEMPERATURE_ENTITY_NAME, None)
+            self.custom_stream_ext_temperature_entity_name = entry.data.get(CONF_CUSTOM_STREAM_EXT_TEMPERATURE_ENTITY_NAME, None)
             
             self.custom_stream_gravity_entity_name = entry.data.get(CONF_CUSTOM_STREAM_GRAVITY_ENTITY_NAME, None)
 
@@ -329,12 +334,14 @@ class BrewfatherCoordinator(DataUpdateCoordinator[BrewfatherCoordinatorData]):
 
     def create_custom_stream_data(self) -> Optional[custom_stream_data]:
         stream_data = custom_stream_data(name = "HomeAssistant")
+        self.custom_stream_unit_mismatch_error = None  # Reset error
 
+        # Get primary temperature entity
         entity = self.hass.states.get(self.custom_stream_temperature_entity_name)
         if entity is None:
             return None
         
-        # Get temperature unit from entity
+        # Get temperature unit from primary entity
         entity_unit = entity.attributes.get("unit_of_measurement")
         if entity_unit:
             stream_data.temp_unit = self.get_brewfather_temp_unit(entity_unit)
@@ -352,6 +359,56 @@ class BrewfatherCoordinator(DataUpdateCoordinator[BrewfatherCoordinatorData]):
         except (ValueError, TypeError) as ex:
             _LOGGER.warning("Unable to convert temperature value '%s' to float: %s", temp_value, str(ex))
             return None
+
+        # Get auxiliary temperature if configured
+        aux_temp_entity_name = getattr(self, 'custom_stream_aux_temperature_entity_name', None)
+        if aux_temp_entity_name:
+            aux_entity = self.hass.states.get(aux_temp_entity_name)
+            if aux_entity is not None:
+                aux_entity_unit = aux_entity.attributes.get("unit_of_measurement")
+                if aux_entity_unit:
+                    brewfather_aux_unit = self.get_brewfather_temp_unit(aux_entity_unit)
+                else:
+                    brewfather_aux_unit = "C"
+                
+                # Check if unit matches primary temperature
+                if brewfather_aux_unit == stream_data.temp_unit:
+                    try:
+                        aux_temp_value = aux_entity.state
+                        if aux_temp_value is not None and aux_temp_value != STATE_UNKNOWN and aux_temp_value != STATE_UNAVAILABLE:
+                            stream_data.aux_temp = float(aux_temp_value)
+                            _LOGGER.debug("Including aux_temp: %s (%s)", stream_data.aux_temp, brewfather_aux_unit)
+                    except (ValueError, TypeError) as ex:
+                        _LOGGER.warning("Unable to convert aux_temp value '%s' to float: %s", aux_temp_value, str(ex))
+                else:
+                    error_msg = f"aux_temp unit mismatch: {aux_entity_unit} != {entity_unit}"
+                    _LOGGER.warning("Skipping aux_temp - %s", error_msg)
+                    self.custom_stream_unit_mismatch_error = error_msg if not self.custom_stream_unit_mismatch_error else f"{self.custom_stream_unit_mismatch_error}; {error_msg}"
+
+        # Get external (room) temperature if configured
+        ext_temp_entity_name = getattr(self, 'custom_stream_ext_temperature_entity_name', None)
+        if ext_temp_entity_name:
+            ext_entity = self.hass.states.get(ext_temp_entity_name)
+            if ext_entity is not None:
+                ext_entity_unit = ext_entity.attributes.get("unit_of_measurement")
+                if ext_entity_unit:
+                    brewfather_ext_unit = self.get_brewfather_temp_unit(ext_entity_unit)
+                else:
+                    brewfather_ext_unit = "C"
+                
+                # Check if unit matches primary temperature
+                if brewfather_ext_unit == stream_data.temp_unit:
+                    try:
+                        ext_temp_value = ext_entity.state
+                        if ext_temp_value is not None and ext_temp_value != STATE_UNKNOWN and ext_temp_value != STATE_UNAVAILABLE:
+                            stream_data.ext_temp = float(ext_temp_value)
+                            _LOGGER.debug("Including ext_temp: %s (%s)", stream_data.ext_temp, brewfather_ext_unit)
+                    except (ValueError, TypeError) as ex:
+                        _LOGGER.warning("Unable to convert ext_temp value '%s' to float: %s", ext_temp_value, str(ex))
+                else:
+                    error_msg = f"ext_temp unit mismatch: {ext_entity_unit} != {entity_unit}"
+                    _LOGGER.warning("Skipping ext_temp - %s", error_msg)
+                    self.custom_stream_unit_mismatch_error = error_msg if not self.custom_stream_unit_mismatch_error else f"{self.custom_stream_unit_mismatch_error}; {error_msg}"
 
         # Get gravity if configured
         gravity_entity_name = getattr(self, 'custom_stream_gravity_entity_name', None)

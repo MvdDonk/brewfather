@@ -17,6 +17,8 @@ from .const import (
     CONF_CUSTOM_STREAM_ENABLED,
     CONF_CUSTOM_STREAM_LOGGING_ID,
     CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_NAME,
+    CONF_CUSTOM_STREAM_AUX_TEMPERATURE_ENTITY_NAME,
+    CONF_CUSTOM_STREAM_EXT_TEMPERATURE_ENTITY_NAME,
     CONF_CUSTOM_STREAM_GRAVITY_ENTITY_NAME,
 )
 from .connection import (
@@ -55,6 +57,18 @@ OPTIONS_CUSTOM_STREAM_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_CUSTOM_STREAM_LOGGING_ID): cv.string,
         vol.Required(CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_NAME): selector.EntitySelector(
+            selector.EntitySelectorConfig(
+                domain=["sensor", "climate", "number"],
+                device_class=["temperature"]
+            )
+        ),
+        vol.Optional(CONF_CUSTOM_STREAM_AUX_TEMPERATURE_ENTITY_NAME): selector.EntitySelector(
+            selector.EntitySelectorConfig(
+                domain=["sensor", "climate", "number"],
+                device_class=["temperature"]
+            )
+        ),
+        vol.Optional(CONF_CUSTOM_STREAM_EXT_TEMPERATURE_ENTITY_NAME): selector.EntitySelector(
             selector.EntitySelectorConfig(
                 domain=["sensor", "climate", "number"],
                 device_class=["temperature"]
@@ -273,6 +287,12 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             final_config = self.config_data.copy()
             final_config[CONF_CUSTOM_STREAM_LOGGING_ID] = extract_logging_id_from_url(logging_id)
             final_config[CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_NAME] = entity_name
+            aux_entity_name = user_input.get(CONF_CUSTOM_STREAM_AUX_TEMPERATURE_ENTITY_NAME)
+            if aux_entity_name:
+                final_config[CONF_CUSTOM_STREAM_AUX_TEMPERATURE_ENTITY_NAME] = aux_entity_name
+            ext_entity_name = user_input.get(CONF_CUSTOM_STREAM_EXT_TEMPERATURE_ENTITY_NAME)
+            if ext_entity_name:
+                final_config[CONF_CUSTOM_STREAM_EXT_TEMPERATURE_ENTITY_NAME] = ext_entity_name
             if gravity_entity_name:
                 final_config[CONF_CUSTOM_STREAM_GRAVITY_ENTITY_NAME] = gravity_entity_name
 
@@ -519,6 +539,12 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
         new_config = self.init_info.copy()
         new_config[CONF_CUSTOM_STREAM_LOGGING_ID] = extracted_logging_id
         new_config[CONF_CUSTOM_STREAM_TEMPERATURE_ENTITY_NAME] = entity_name
+        aux_entity_name = user_input.get(CONF_CUSTOM_STREAM_AUX_TEMPERATURE_ENTITY_NAME)
+        if aux_entity_name:
+            new_config[CONF_CUSTOM_STREAM_AUX_TEMPERATURE_ENTITY_NAME] = aux_entity_name
+        ext_entity_name = user_input.get(CONF_CUSTOM_STREAM_EXT_TEMPERATURE_ENTITY_NAME)
+        if ext_entity_name:
+            new_config[CONF_CUSTOM_STREAM_EXT_TEMPERATURE_ENTITY_NAME] = ext_entity_name
         if gravity_entity_name:
             new_config[CONF_CUSTOM_STREAM_GRAVITY_ENTITY_NAME] = gravity_entity_name
 
