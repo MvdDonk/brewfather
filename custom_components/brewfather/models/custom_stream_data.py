@@ -7,6 +7,7 @@ class custom_stream_data:
     ext_temp: Optional[float]
     temp_unit: Optional[str]
     gravity: Optional[float]
+    comment: Optional[str]
 
     def __init__(self, name: str) -> None:
         self.name = name
@@ -15,3 +16,4 @@ class custom_stream_data:
         self.ext_temp = None
         self.temp_unit = None
         self.gravity = None
+        self.comment = None
