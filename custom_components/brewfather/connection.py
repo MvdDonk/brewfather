@@ -61,36 +61,45 @@ class Connection:
 
         url = LOG_CUSTOM_STREAM.format(logging_id)
         stream_data = custom_stream_data(name = "HomeAssistant")
-        stream_data.temp_unit = "C"
-        stream_data.temp = 99.9
-        stream_data.gravity = 1.234
-        stream_data.comment = "Home Assistant integration test value, should have temp of 99.9C and gravity of 1.234, ignore this reading if you see it in brewfather"
+        #do not send actuel data to avoid confusion, just send comment with expected values
+        #stream_data.temp_unit = "C"
+        #stream_data.temp = 99.9
+        #stream_data.gravity = 1.234
+        stream_data.comment = "Home Assistant integration test value, should have no data but comment"
         data = self.to_dict(stream_data)
 
         async with aiohttp.ClientSession() as session:
-            async with session.post(url, json=data, auth=self.auth) as response:
-                if response.status == 200:
-                    response_text = await response.text()
-                    _LOGGER.debug("POST request response: %s", response_text)
-                    try:
-                        response_json = json.loads(response_text)
-                        result_value = response_json.get("result", "").lower()
-                        return result_value in ["ok", "success"]
-                    except json.JSONDecodeError as ex:
-                        _LOGGER.error("Unable to parse JSON response: %s", str(ex))
+            try:
+                async with session.post(url, json=data, auth=self.auth, timeout=aiohttp.ClientTimeout(total=10)) as response:
+                    if response.status == 200:
+                        response_text = await response.text()
+                        _LOGGER.debug("POST request response: %s", response_text)
+                        try:
+                            response_json = json.loads(response_text)
+                            result_value = response_json.get("result", "").lower()
+                            return result_value in ["ok", "success"]
+                        except json.JSONDecodeError as ex:
+                            _LOGGER.error("Unable to parse JSON response: %s", str(ex))
+                            return False
+                    elif response.status == 400:
+                        _LOGGER.warning("Bad request to custom stream endpoint, logging_id might be invalid")
                         return False
-                elif response.status == 400:
-                    _LOGGER.warning("Bad request to custom stream endpoint, logging_id might be invalid")
-                    return False
-                elif response.status == 401:
-                    _LOGGER.warning("Unauthorized access to custom stream endpoint")
-                    raise InvalidCredentials()
-                elif response.status == 403:
-                    _LOGGER.warning("Forbidden access to custom stream endpoint")
-                    raise InvalidScope()
-                else:
-                    _LOGGER.warning("Custom stream test failed with status %s", response.status)
-                    return False
+                    elif response.status == 401:
+                        _LOGGER.warning("Unauthorized access to custom stream endpoint")
+                        raise InvalidCredentials()
+                    elif response.status == 403:
+                        _LOGGER.warning("Forbidden access to custom stream endpoint")
+                        raise InvalidScope()
+                    else:
+                        _LOGGER.warning("Custom stream test failed with status %s", response.status)
+                        return False
+            # catching timeout exception separately to provide more specific log message
+            except TimeoutError:
+                _LOGGER.warning("Custom stream request timed out")
+                return False
+            except Exception as ex:
+                _LOGGER.warning("Unable to connect to custom stream endpoint: %s - %s", repr(ex), str(ex))
+                return False
     
     async def get_batches(self) -> List[BatchesItemElement]:
         url = BATCHES_URI
