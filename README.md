@@ -43,21 +43,7 @@ Track your batch progress with real-time sensors:
 
 ### 🌡️ Supported Climate Devices
 
-The integration works with **any Home Assistant climate entity** — it uses the standard `climate.set_temperature` service, so no special hardware support is required. Any device that exposes a `climate` entity in Home Assistant will work.
-
-**Common fermentation chamber setups:**
-
-| Setup | HA Integration | Notes |
-|-------|---------------|-------|
-| **Generic Thermostat** | Built-in [Generic Thermostat](https://www.home-assistant.io/integrations/generic_thermostat/) | Combine any smart switch/relay with any temperature sensor |
-| **Inkbird IBS-TH2 / ITC-308** | [Inkbird BLE](https://www.home-assistant.io/integrations/inkbird/) or community integrations | Popular temperature controllers |
-| **STC-1000** | [ESPHome](https://esphome.io/) or community integrations | Flash with ESPHome for full HA integration |
-| **Sonoff TH Elite / TH Origin** | [Sonoff LAN](https://github.com/AlexxIT/SonoffLAN) or via ESPHome | Relay + temperature sensor combo |
-| **Smart plug + external controller** | Built-in [Generic Thermostat](https://www.home-assistant.io/integrations/generic_thermostat/) | Use any HA-compatible smart plug and temperature sensor |
-| **ESPHome custom build** | [ESPHome](https://esphome.io/) | Full DIY control — thermostat component exposes a climate entity |
-| **Any Wi-Fi/Zigbee thermostat** | Various | Any device that creates a `climate` entity in HA |
-
-**Key point:** If the device shows up as a `climate` entity in Home Assistant and supports `climate.set_temperature`, it will work with this integration. Use the [Generic Thermostat](https://www.home-assistant.io/integrations/generic_thermostat/) integration as a universal adapter to turn any smart switch + temperature sensor into a climate entity.
+Any Home Assistant [climate entity](https://www.home-assistant.io/integrations/#climate) is supported — the integration simply calls the standard `climate.set_temperature` service. If your device (thermostat, smart plug with temperature sensor, ESPHome build, etc.) exposes a `climate` entity in Home Assistant, it will work.
 
 ### 🔄 Custom Stream Integration
 Send data FROM Home Assistant TO Brewfather:
