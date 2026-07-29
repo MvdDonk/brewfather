@@ -43,7 +43,7 @@ Track your batch progress with real-time sensors:
 
 ### 🌡️ Supported Climate Devices
 
-Any Home Assistant [climate entity](https://www.home-assistant.io/integrations/#climate) is supported — the integration simply calls the standard `climate.set_temperature` service. If your device (thermostat, smart plug with temperature sensor, ESPHome build, etc.) exposes a `climate` entity in Home Assistant, it will work.
+Any Home Assistant [climate entity](https://www.home-assistant.io/integrations/#climate) is supported — the integration exposes the target temperature as a sensor, and your automation updates the climate device accordingly. If your device (thermostat, smart plug with temperature sensor, ESPHome build, etc.) exposes a `climate` entity in Home Assistant, it will work.
 
 ### 🔄 Custom Stream Integration
 Send data FROM Home Assistant TO Brewfather:
