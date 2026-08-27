@@ -183,7 +183,7 @@ class Connection:
                         return parseJson(jsonData)
                     except Exception as ex:
                         _LOGGER.error("Unable read or parse json response: %s", str(ex))
-                        exit(1)
+                        raise UpdateFailed(f"Unable to read or parse json response: {ex}")
                     
                 else:
                     if accept_404 and response.status == 404:

@@ -56,7 +56,7 @@ def to_class(c: Type[T], x: Any) -> dict:
 
 
 class Reading:
-    rssi: Optional[int]
+    rssi: Optional[float]
     temp: Optional[float]
     sg: Optional[float]
     angle: Optional[float]
@@ -67,7 +67,7 @@ class Reading:
     comment: Optional[str]
     pressure: Optional[float]
 
-    def __init__(self, rssi: Optional[int], temp: Optional[float], sg: Optional[float], angle: Optional[float], time: Optional[int], id: Optional[str], type: Optional[str], battery: Optional[float], comment: Optional[str], pressure: Optional[float] = None) -> None:
+    def __init__(self, rssi: Optional[float], temp: Optional[float], sg: Optional[float], angle: Optional[float], time: Optional[int], id: Optional[str], type: Optional[str], battery: Optional[float], comment: Optional[str], pressure: Optional[float] = None) -> None:
         self.rssi = rssi
         self.temp = temp
         self.sg = sg
@@ -82,7 +82,7 @@ class Reading:
     @staticmethod
     def from_dict(obj: Any) -> 'Reading':
         assert isinstance(obj, dict)
-        rssi = from_union([from_int, from_none], obj.get("rssi"))
+        rssi = from_union([from_float, from_none], obj.get("rssi"))
         temp = from_union([from_float, from_none], obj.get("temp"))
         sg = from_union([from_float, from_none], obj.get("sg"))
         angle = from_union([from_float, from_none], obj.get("angle"))
@@ -97,7 +97,7 @@ class Reading:
     def to_dict(self) -> dict:
         result: dict = {}
         if self.rssi is not None:
-            result["rssi"] = from_union([from_int, from_none], self.rssi)
+            result["rssi"] = from_union([to_float, from_none], self.rssi)
         if self.temp is not None:
             result["temp"] = from_union([to_float, from_none], self.temp)
         if self.sg is not None:
