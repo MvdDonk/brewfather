@@ -1,13 +1,15 @@
 {
-    "domain": "brewfather",
-    "name": "Brewfather batch information for Home Assistant",
-    "codeowners": ["@MvdDonk"],
-    "config_flow": true,
-    "dependencies": [],
-    "documentation": "https://github.com/MvdDonk/brewfather",
-    "iot_class": "cloud_polling",
-    "issue_tracker": "https://github.com/MvdDonk/brewfather/issues",
-    "requirements": [],
-    "single_config_entry": true,
-    "version": "2.7.7"
-  }
+  "domain": "brewfather",
+  "name": "Brewfather batch information for Home Assistant",
+  "codeowners": [
+    "@MvdDonk"
+  ],
+  "config_flow": true,
+  "dependencies": [],
+  "documentation": "https://github.com/MvdDonk/brewfather",
+  "iot_class": "cloud_polling",
+  "issue_tracker": "https://github.com/MvdDonk/brewfather/issues",
+  "requirements": [],
+  "single_config_entry": true,
+  "version": "2.7.8"
+}
